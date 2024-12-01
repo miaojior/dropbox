@@ -873,4 +873,85 @@ document.addEventListener('DOMContentLoaded', () => {
         
         return await response.json();
     }
+
+    // 检查文本是否需要折叠
+    function checkContentFolding(contentElement) {
+        const lineHeight = parseInt(window.getComputedStyle(contentElement).lineHeight);
+        const contentHeight = contentElement.scrollHeight;
+        const numberOfLines = Math.ceil(contentHeight / lineHeight);
+        
+        return numberOfLines > 100;
+    }
+
+    // 初始化折叠功能
+    function initFoldingContent(contentBlock) {
+        const contentWrapper = contentBlock.querySelector('.content-wrapper');
+        if (!contentWrapper) return;
+        
+        const content = contentWrapper.querySelector('.prose, .code, .poetry');
+        if (!content) return;
+        
+        if (checkContentFolding(content)) {
+            // 添加折叠相关的元素
+            if (!contentWrapper.querySelector('.fade-overlay')) {
+                const fadeOverlay = document.createElement('div');
+                fadeOverlay.className = 'fade-overlay';
+                contentWrapper.appendChild(fadeOverlay);
+            }
+            
+            if (!contentBlock.querySelector('.toggle-content')) {
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'toggle-content visible';
+                toggleButton.textContent = '展开全文';
+                contentBlock.appendChild(toggleButton);
+                
+                toggleButton.addEventListener('click', () => {
+                    const isCollapsed = contentWrapper.classList.contains('collapsed');
+                    contentWrapper.classList.toggle('collapsed');
+                    toggleButton.textContent = isCollapsed ? '收起全文' : '展开全文';
+                });
+            }
+            
+            // 默认折叠
+            contentWrapper.classList.add('collapsed');
+        }
+    }
+
+    // 在渲染内容时调用折叠初始化
+    function renderContent(content) {
+        const { id, title, type, content: encodedContent, timestamp } = content;
+        const decodedContent = decodeContent(encodedContent);
+        
+        const contentBlock = document.createElement('div');
+        contentBlock.className = 'text-block';
+        contentBlock.innerHTML = `
+            <div class="text-block-header">
+                <h2>${title}</h2>
+                <div class="text-block-meta">
+                    <span class="modified-date">${formatDate(timestamp)}</span>
+                </div>
+            </div>
+            <div class="content-wrapper">
+                ${type === 'code' ? `
+                    <div class="code">
+                        <pre><code class="language-javascript">${decodedContent}</code></pre>
+                    </div>
+                ` : type === 'poetry' ? `
+                    <div class="poetry">${decodedContent.split('\n').map(line => `<p>${line}</p>`).join('')}</div>
+                ` : `
+                    <div class="prose">${decodedContent}</div>
+                `}
+            </div>
+            <div class="text-block-actions">
+                <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${type}')">复制</button>
+                <button class="btn btn-edit" onclick="editContent('${id}')">编辑</button>
+                <button class="btn btn-delete" onclick="deleteContent('${id}')">删除</button>
+            </div>
+        `;
+        
+        // 初始化折叠功能
+        initFoldingContent(contentBlock);
+        
+        return contentBlock;
+    }
 }); 
