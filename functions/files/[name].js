@@ -7,9 +7,8 @@ export async function onRequestGet({ request, env, params }) {
         const filename = params.name;
         console.log('Requesting file:', filename);
         
-        // 从KV存储获取文件
-        const file = await env.FILES.get(filename, { type: 'arrayBuffer' });
-        const metadata = await env.FILES.getWithMetadata(filename);
+        // 先获取文件的元数据
+        const { value: file, metadata } = await env.FILES.getWithMetadata(filename, { type: 'arrayBuffer' });
         
         if (!file) {
             console.log('File not found:', filename);
@@ -22,15 +21,23 @@ export async function onRequestGet({ request, env, params }) {
             });
         }
 
-        // 返回文件，设置正确的Content-Type和Content-Disposition
-        return new Response(file, {
-            headers: {
-                'Content-Type': metadata.metadata?.contentType || 'application/octet-stream',
-                'Content-Disposition': `attachment; filename="${metadata.metadata?.originalName || filename}"`,
-                'Cache-Control': 'public, max-age=31536000',
-                'Access-Control-Allow-Origin': '*'
-            }
+        console.log('File found:', {
+            size: file.byteLength,
+            contentType: metadata?.contentType,
+            originalName: metadata?.originalName
         });
+
+        // 构建响应头
+        const headers = new Headers({
+            'Content-Type': metadata?.contentType || 'application/octet-stream',
+            'Content-Length': file.byteLength.toString(),
+            'Content-Disposition': `attachment; filename="${encodeURIComponent(metadata?.originalName || filename)}"`,
+            'Cache-Control': 'public, max-age=31536000',
+            'Access-Control-Allow-Origin': '*'
+        });
+
+        // 返回文件
+        return new Response(file, { headers });
     } catch (error) {
         console.error('Get file error:', error);
         return new Response('Error fetching file: ' + error.message, { 
