@@ -29,27 +29,34 @@ export async function onRequestPost({ request, env }) {
             metadata: {
                 contentType: file.type || 'application/octet-stream',
                 originalName: file.name,
-                size: arrayBuffer.byteLength
+                size: arrayBuffer.byteLength,
+                uploadTime: new Date().toISOString()
             }
         });
 
         console.log('File saved:', filename, 'Size:', arrayBuffer.byteLength, 'Type:', file.type);
 
-        // 返回完整的文件URL
+        // 获取当前请求的URL信息
         const url = new URL(request.url);
-        const baseUrl = `${url.protocol}//${url.host}`;
-        const fileUrl = `${baseUrl}/files/${filename}`;
+        const currentHost = url.host;
+        console.log('Current host:', currentHost);
+
+        // 返回完整的文件URL，使用当前域名
+        const fileUrl = `${url.protocol}//${currentHost}/files/${filename}`;
 
         return new Response(
             JSON.stringify({
                 url: fileUrl,
                 filename: filename,
                 size: arrayBuffer.byteLength,
-                type: file.type
+                type: file.type,
+                originalName: file.name
             }), {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                    'Access-Control-Allow-Headers': '*'
                 }
             }
         );
@@ -62,7 +69,9 @@ export async function onRequestPost({ request, env }) {
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                    'Access-Control-Allow-Headers': '*'
                 }
             }
         );
@@ -74,7 +83,7 @@ export async function onRequestOptions() {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': '*',
             'Access-Control-Max-Age': '86400',
         },
     });

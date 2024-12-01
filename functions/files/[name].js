@@ -17,7 +17,8 @@ export async function onRequestGet({ request, env, params }) {
         }
 
         const filename = params.name;
-        console.log('Requesting file:', filename, 'Origin:', request.headers.get('origin'));
+        const origin = request.headers.get('origin') || request.url;
+        console.log('Requesting file:', filename, 'Origin:', origin);
         
         // 从KV存储获取文件
         const file = await env.FILES.get(filename, { type: 'arrayBuffer' });
