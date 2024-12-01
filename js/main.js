@@ -7,6 +7,7 @@ let currentEditId = null;
 let lastUpdateTime = Date.now();
 let updateCheckInterval;
 let contentCache = [];
+let contentContainer;
 
 // Base64编码和解码函数
 function encodeContent(text) {
@@ -23,17 +24,14 @@ function copyText(encodedText, type) {
     let copyContent = text;
     
     if (type === 'poetry') {
-        // 保持诗歌的换行格式
         copyContent = text.split('\n').join('\r\n');
     } else if (type === 'image') {
-        // 对于图片，复制URL
         copyContent = text;
     }
     
     navigator.clipboard.writeText(copyContent).then(() => {
         alert('复制成功！');
     }).catch(() => {
-        // 备用复制方法
         const textarea = document.createElement('textarea');
         textarea.value = copyContent;
         document.body.appendChild(textarea);
@@ -46,6 +44,74 @@ function copyText(encodedText, type) {
         }
         document.body.removeChild(textarea);
     });
+}
+
+// 渲染内容函数
+function renderContents(contents) {
+    if (!contentContainer) {
+        contentContainer = document.getElementById('content-container');
+    }
+    
+    if (!contents || contents.length === 0) {
+        contentContainer.innerHTML = '<div class="empty">还没有任何内容，点击"添加新内容"开始创建</div>';
+        return;
+    }
+
+    let html = '';
+    contents.forEach(content => {
+        let contentHtml = '';
+        if (content.type === 'image') {
+            contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
+        } else if (content.type === 'code') {
+            contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
+        } else if (content.type === 'poetry') {
+            contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
+        } else {
+            contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
+        }
+
+        const encodedContent = encodeContent(content.content);
+
+        html += `
+            <section class="text-block">
+                <h2>${content.title}</h2>
+                <div class="${content.type}">
+                    ${contentHtml}
+                </div>
+                <div class="text-block-actions">
+                    <button class="btn" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
+                    <button class="btn" onclick="editContent(${content.id})">编辑</button>
+                    <button class="btn" onclick="deleteContent(${content.id})">删除</button>
+                </div>
+            </section>
+        `;
+    });
+
+    contentContainer.innerHTML = html;
+    Prism.highlightAll();
+}
+
+// 删除内容函数
+window.deleteContent = function(id) {
+    if (confirm('确定要删除这条内容吗？')) {
+        fetch(`${API_BASE_URL}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(async response => {
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || '删除失败');
+            }
+            contentCache = contentCache.filter(item => item.id !== id);
+            renderContents(contentCache);
+            alert('删除成功');
+        }).catch(error => {
+            console.error('删除失败:', error);
+            alert('删除失败: ' + error.message);
+        });
+    }
 }
 
 // 类型切换函数
@@ -88,34 +154,9 @@ window.editContent = function(id) {
     }
 }
 
-// 删除内容函数
-window.deleteContent = function(id) {
-    if (confirm('确定要删除这条内容吗？')) {
-        fetch(`${API_BASE_URL}/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json'
-            }
-        }).then(async response => {
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || '删除失败');
-            }
-            // 从缓存中移除内容
-            contentCache = contentCache.filter(item => item.id !== id);
-            // 重新渲染内容
-            renderContents(contentCache);
-            alert('删除成功');
-        }).catch(error => {
-            console.error('删除失败:', error);
-            alert('删除失败: ' + error.message);
-        });
-    }
-}
-
 // DOM元素
 document.addEventListener('DOMContentLoaded', () => {
-    const contentContainer = document.getElementById('content-container');
+    contentContainer = document.getElementById('content-container');
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     const addNewBtn = document.getElementById('addNewBtn');
@@ -144,49 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             reader.readAsDataURL(file);
         }
-    }
-
-    // 渲染内容
-    function renderContents(contents) {
-        if (!contents || contents.length === 0) {
-            contentContainer.innerHTML = '<div class="empty">还没有任何内容，点击"添加新内容"开始创建</div>';
-            return;
-        }
-
-        let html = '';
-        contents.forEach(content => {
-            let contentHtml = '';
-            if (content.type === 'image') {
-                contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
-            } else if (content.type === 'code') {
-                contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
-            } else if (content.type === 'poetry') {
-                contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
-            } else {
-                // 普通文本也使用换行
-                contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
-            }
-
-            // 使用Base64编码内容
-            const encodedContent = encodeContent(content.content);
-
-            html += `
-                <section class="text-block">
-                    <h2>${content.title}</h2>
-                    <div class="${content.type}">
-                        ${contentHtml}
-                    </div>
-                    <div class="text-block-actions">
-                        <button class="btn" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
-                        <button class="btn" onclick="editContent(${content.id})">编辑</button>
-                        <button class="btn" onclick="deleteContent(${content.id})">删除</button>
-                    </div>
-                </section>
-            `;
-        });
-
-        contentContainer.innerHTML = html;
-        Prism.highlightAll();
     }
 
     // 开始更新检查
