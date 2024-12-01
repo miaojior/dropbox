@@ -17,6 +17,66 @@ function copyText(text) {
     });
 }
 
+// 类型切换函数
+window.handleTypeChange = function(type) {
+    const contentGroup = document.getElementById('contentGroup');
+    const imageGroup = document.getElementById('imageGroup');
+    const editContent = document.getElementById('editContent');
+    const editImage = document.getElementById('editImage');
+
+    if (type === 'image') {
+        contentGroup.style.display = 'none';
+        imageGroup.style.display = 'block';
+        editContent.required = false;
+        editImage.required = true;
+    } else {
+        contentGroup.style.display = 'block';
+        imageGroup.style.display = 'none';
+        editContent.required = true;
+        editImage.required = false;
+    }
+}
+
+// 编辑内容函数
+window.editContent = function(id) {
+    const content = contentCache.find(item => item.id === id);
+    if (content) {
+        currentEditId = content.id;
+        document.getElementById('editType').value = content.type;
+        document.getElementById('editTitle').value = content.title;
+        document.getElementById('editContent').value = content.content;
+        
+        // 如果是图片类型，显示预览
+        if (content.type === 'image') {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = `<img src="${content.content}" alt="预览">`;
+        }
+        
+        handleTypeChange(content.type);
+        document.getElementById('editModal').style.display = 'block';
+    }
+}
+
+// 删除内容函数
+window.deleteContent = function(id) {
+    if (confirm('确定要删除这条内容吗？')) {
+        fetch(`${API_BASE_URL}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                loadContents(true);
+            } else {
+                alert('删除失败');
+            }
+        }).catch(() => {
+            alert('删除失败');
+        });
+    }
+}
+
 // DOM元素
 document.addEventListener('DOMContentLoaded', () => {
     const contentContainer = document.getElementById('content-container');
@@ -157,28 +217,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 打开模态框
-    window.openModal = function(content = null) {
-        currentEditId = content ? content.id : null;
-        document.getElementById('editType').value = content ? content.type : 'prose';
-        document.getElementById('editTitle').value = content ? content.title : '';
-        document.getElementById('editContent').value = content ? content.content : '';
-        
-        // 如果是图片类型，显示预览
-        if (content && content.type === 'image') {
-            const imagePreview = document.getElementById('imagePreview');
-            imagePreview.innerHTML = `<img src="${content.content}" alt="${content.title}">`;
-        }
-        
-        // 触发类型切换处理
-        handleTypeChange(content ? content.type : 'prose');
-        
-        editModal.style.display = 'block';
+    window.openModal = function() {
+        currentEditId = null;
+        document.getElementById('editType').value = 'prose';
+        document.getElementById('editTitle').value = '';
+        document.getElementById('editContent').value = '';
+        document.getElementById('imagePreview').innerHTML = '';
+        document.getElementById('editImage').value = '';
+        handleTypeChange('prose');
+        document.getElementById('editModal').style.display = 'block';
     }
 
     // 关闭模态框
     window.closeModal = function() {
-        editModal.style.display = 'none';
-        editForm.reset();
+        document.getElementById('editModal').style.display = 'none';
+        document.getElementById('editForm').reset();
+        document.getElementById('imagePreview').innerHTML = '';
         currentEditId = null;
     }
 
@@ -242,50 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             submitButton.disabled = false;
             submitButton.textContent = originalText;
-        }
-    }
-
-    // 编辑内容
-    window.editContent = function(id) {
-        try {
-            // 从缓存中获取内容
-            const content = contentCache.find(item => item.id === id);
-            if (!content) {
-                throw new Error('内容不存在');
-            }
-            openModal(content);
-        } catch (error) {
-            console.error('获取内容失败:', error);
-            alert(`获取内容失败: ${error.message}`);
-        }
-    }
-
-    // 删除内容
-    window.deleteContent = async function(id) {
-        if (!confirm('确定要删除这条内容吗？')) return;
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.details || data.error || '删除失败');
-            }
-            
-            // 从缓存中移除被删除的内容
-            contentCache = contentCache.filter(item => item.id !== id);
-            renderContents(contentCache);
-            
-            // 静默更新以确保与服务器同步
-            await loadContents(false);
-        } catch (error) {
-            console.error('删除失败:', error);
-            alert(`删除失败: ${error.message}`);
         }
     }
 
