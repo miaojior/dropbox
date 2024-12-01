@@ -10,15 +10,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // 创建加载动画容器
     const loadingContainer = document.createElement('div');
     loadingContainer.className = 'loading';
+    loadingContainer.style.opacity = '0';
+    loadingContainer.style.transition = 'opacity 0.3s ease-in-out';
     loadingContainer.innerHTML = `
         <div class="loading-spinner"></div>
         <div class="loading-text">加载中...</div>
     `;
     document.body.appendChild(loadingContainer);
     
+    // 显示加载动画函数
+    window.showLoading = () => {
+        loadingContainer.style.display = 'flex';
+        // 强制重排以触发过渡动画
+        loadingContainer.offsetHeight;
+        loadingContainer.style.opacity = '1';
+    };
+    
+    // 隐藏加载动画函数
+    window.hideLoading = () => {
+        loadingContainer.style.opacity = '0';
+        setTimeout(() => {
+            loadingContainer.style.display = 'none';
+        }, 300); // 等待过渡动画完成
+    };
+    
     // 确保所有资源加载完成后移除加载动画
     window.addEventListener('load', () => {
-        loadingContainer.style.display = 'none';
+        hideLoading();
         document.body.classList.add('loaded');
     });
 });
@@ -756,16 +774,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 显加载状态
+    // 显示加载状态
     function showLoadingState() {
-        contentContainer.innerHTML = '<div class="loading">加载中...</div>';
+        if (window.showLoading) {
+            window.showLoading();
+        }
     }
 
     // 隐藏加载状态
     function hideLoadingState() {
-        const loading = contentContainer.querySelector('.loading');
-        if (loading) {
-            loading.remove();
+        if (window.hideLoading) {
+            window.hideLoading();
         }
     }
 
