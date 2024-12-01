@@ -15,27 +15,30 @@ function getFileIcon(filename) {
     // 获取文件扩展名
     const ext = filename.toLowerCase().split('.').pop();
     
+    // Markdown文件
+    if (['md', 'markdown', 'mdown', 'mkd'].includes(ext)) return 'markdown';
+    
     // 图片文件
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff'].includes(ext)) return 'image';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff', 'heic'].includes(ext)) return 'image';
     
     // 文档文件
     if (ext === 'pdf') return 'pdf';
-    if (['doc', 'docx', 'rtf', 'odt'].includes(ext)) return 'word';
-    if (['xls', 'xlsx', 'csv', 'ods'].includes(ext)) return 'excel';
-    if (['ppt', 'pptx', 'odp'].includes(ext)) return 'powerpoint';
-    if (['txt', 'log', 'md', 'markdown'].includes(ext)) return 'text';
+    if (['doc', 'docx', 'rtf', 'odt', 'pages'].includes(ext)) return 'word';
+    if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(ext)) return 'excel';
+    if (['ppt', 'pptx', 'odp', 'key'].includes(ext)) return 'powerpoint';
+    if (['txt', 'log', 'ini', 'conf', 'cfg'].includes(ext)) return 'text';
     
     // 代码文件
-    if (['js', 'ts', 'jsx', 'tsx', 'json', 'html', 'css', 'scss', 'less', 'php', 'py', 'java', 'c', 'cpp', 'cs', 'go', 'rb', 'swift', 'kt'].includes(ext)) return 'code';
+    if (['js', 'ts', 'jsx', 'tsx', 'json', 'html', 'css', 'scss', 'less', 'sass', 'php', 'py', 'java', 'c', 'cpp', 'cs', 'go', 'rb', 'swift', 'kt', 'rs', 'dart', 'vue', 'sql', 'sh', 'bash', 'yml', 'yaml', 'xml'].includes(ext)) return 'code';
     
     // 压缩文件
-    if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(ext)) return 'archive';
+    if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz'].includes(ext)) return 'archive';
     
     // 视频文件
-    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm', 'm4v', '3gp'].includes(ext)) return 'video';
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm', 'm4v', '3gp', 'mpg', 'mpeg', 'ogv'].includes(ext)) return 'video';
     
     // 音频文件
-    if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus'].includes(ext)) return 'audio';
+    if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus', 'mid', 'midi'].includes(ext)) return 'audio';
     
     return 'generic';
 }
@@ -44,22 +47,26 @@ function getFileTypeDescription(filename) {
     // 获取文件扩展名
     const ext = filename.toLowerCase().split('.').pop();
     
+    // Markdown文件
+    if (['md', 'markdown', 'mdown', 'mkd'].includes(ext)) return 'Markdown文档';
+    
     // 图片文件
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff'].includes(ext)) return '图片文件';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff', 'heic'].includes(ext)) return '图片文件';
     
     // 文档文件
     if (ext === 'pdf') return 'PDF文档';
-    if (['doc', 'docx', 'rtf', 'odt'].includes(ext)) return 'Word文档';
-    if (['xls', 'xlsx', 'csv', 'ods'].includes(ext)) return 'Excel表格';
-    if (['ppt', 'pptx', 'odp'].includes(ext)) return 'PowerPoint演示文稿';
+    if (['doc', 'docx', 'rtf', 'odt', 'pages'].includes(ext)) return 'Word文档';
+    if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(ext)) return 'Excel表格';
+    if (['ppt', 'pptx', 'odp', 'key'].includes(ext)) return 'PowerPoint演示文稿';
     if (['txt', 'log'].includes(ext)) return '文本文件';
-    if (['md', 'markdown'].includes(ext)) return 'Markdown文档';
+    if (['ini', 'conf', 'cfg'].includes(ext)) return '配置文件';
     
     // 代码文件
-    if (['js', 'ts'].includes(ext)) return 'JavaScript文件';
+    if (['js', 'ts'].includes(ext)) return 'JavaScript/TypeScript文件';
     if (['jsx', 'tsx'].includes(ext)) return 'React组件';
+    if (ext === 'vue') return 'Vue组件';
     if (ext === 'html') return 'HTML文件';
-    if (['css', 'scss', 'less'].includes(ext)) return '样式表';
+    if (['css', 'scss', 'less', 'sass'].includes(ext)) return '样式表';
     if (ext === 'php') return 'PHP文件';
     if (ext === 'py') return 'Python文件';
     if (ext === 'java') return 'Java文件';
@@ -69,16 +76,23 @@ function getFileTypeDescription(filename) {
     if (ext === 'rb') return 'Ruby文件';
     if (ext === 'swift') return 'Swift文件';
     if (ext === 'kt') return 'Kotlin文件';
+    if (ext === 'rs') return 'Rust文件';
+    if (ext === 'dart') return 'Dart文件';
+    if (ext === 'sql') return 'SQL文件';
+    if (['sh', 'bash'].includes(ext)) return 'Shell脚本';
+    if (['yml', 'yaml'].includes(ext)) return 'YAML配置';
+    if (ext === 'xml') return 'XML文件';
     
     // 压缩文件
     if (['zip', 'rar', '7z'].includes(ext)) return '压缩文件';
-    if (['tar', 'gz', 'bz2', 'xz'].includes(ext)) return '归档文件';
+    if (['tar', 'gz', 'bz2', 'xz', 'tgz'].includes(ext)) return '归档文件';
     
     // 视频文件
-    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm', 'm4v', '3gp'].includes(ext)) return '视频文件';
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm', 'm4v', '3gp', 'mpg', 'mpeg', 'ogv'].includes(ext)) return '视频文件';
     
     // 音频文件
     if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus'].includes(ext)) return '音频文件';
+    if (['mid', 'midi'].includes(ext)) return 'MIDI音乐';
     
     return `${ext.toUpperCase()}文件`;
 }
