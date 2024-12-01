@@ -53,11 +53,18 @@
                     <div class="form-group" id="fileGroup" style="display: none;">
                         <label for="editFile">文件：</label>
                         <div class="upload-area" id="uploadArea">
-                            <input type="file" id="editFile" onchange="handleFileSelect(event)">
+                            <input type="file" id="editFile" multiple onchange="handleFileSelect(event)">
                             <div class="upload-hint">
                                 <p>拖拽文件到此处或点击选择文件</p>
-                                <p class="sub-hint">支持拖拽、粘贴上传</p>
+                                <p class="sub-hint">支持批量上传、拖拽、粘贴</p>
                             </div>
+                        </div>
+                        <div class="selected-files" id="selectedFiles">
+                            <div class="selected-files-header">
+                                <span>已选择的文件</span>
+                                <button type="button" class="btn-clear" onclick="clearFiles()">清空</button>
+                            </div>
+                            <ul class="file-list"></ul>
                         </div>
                         <div class="file-info">支持所有类型的文件</div>
                     </div>

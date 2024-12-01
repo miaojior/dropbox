@@ -11,6 +11,9 @@ let updateCheckInterval;
 let contentCache = [];
 let contentContainer;
 
+// 存储已选择的文件
+let selectedFiles = new Map();
+
 // 工具函数
 function getFileIcon(filename) {
     // 获取文件扩展名
@@ -465,7 +468,12 @@ function handleDrop(e) {
     const files = dt.files;
 
     if (files.length > 0) {
-        handleFiles(files);
+        addFiles(files);
+        if (!document.getElementById('editModal').classList.contains('show')) {
+            openModal();
+        }
+        document.getElementById('editType').value = 'file';
+        handleTypeChange('file');
     }
 }
 
@@ -477,9 +485,9 @@ function handlePaste(e) {
     let pastedText = '';
 
     for (let item of items) {
-        if (item.type.indexOf('image') !== -1) {
+        if (item.kind === 'file') {
             const file = item.getAsFile();
-            files.push(file);
+            if (file) files.push(file);
         } else if (item.type === 'text/plain') {
             hasText = true;
             item.getAsString((text) => {
@@ -490,8 +498,13 @@ function handlePaste(e) {
     }
 
     if (files.length > 0) {
-        showPasteIndicator('检测到图片，正在上传...');
-        handleFiles(files);
+        showPasteIndicator('检测到文件，正在添加...');
+        addFiles(files);
+        if (!document.getElementById('editModal').classList.contains('show')) {
+            openModal();
+        }
+        document.getElementById('editType').value = 'file';
+        handleTypeChange('file');
     }
 }
 
@@ -622,26 +635,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 处理文件选择和标题
     function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (file) {
-            // 立即设置标题
-            const titleInput = document.getElementById('editTitle');
-            titleInput.value = file.name;
-            
-            // 更新文件信息显示
-            const fileInfo = document.querySelector('.file-info');
-            const fileIcon = getFileIcon(file.type);
-            fileInfo.innerHTML = `
-                <div class="file-preview">
-                    <i class="file-icon ${fileIcon}"></i>
+        const files = event.target.files || event.dataTransfer.files;
+        addFiles(files);
+    }
+
+    // 添加文件到列表
+    function addFiles(files) {
+        for (let file of files) {
+            // 使用文件名和最后修改时间作为唯一标识
+            const fileId = `${file.name}-${file.lastModified}`;
+            selectedFiles.set(fileId, file);
+        }
+        updateFileList();
+    }
+
+    // 更新文件列表显示
+    function updateFileList() {
+        const fileList = document.querySelector('.file-list');
+        fileList.innerHTML = '';
+
+        selectedFiles.forEach((file, fileId) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="file-info-block">
+                    <div class="file-icon">${getFileIcon(file.type)}</div>
                     <div class="file-details">
                         <div class="file-name">${file.name}</div>
-                        <div class="file-type">${getFileTypeDescription(file.type)}</div>
                         <div class="file-size">${formatFileSize(file.size)}</div>
                     </div>
                 </div>
+                <button type="button" class="file-remove" onclick="removeFile('${fileId}')">删除</button>
             `;
-        }
+            fileList.appendChild(li);
+        });
+
+        // 更新文件信息提示
+        const fileInfo = document.querySelector('.file-info');
+        const count = selectedFiles.size;
+        fileInfo.textContent = count > 0 ? 
+            `已选择 ${count} 个文件` : 
+            '支持所有类型的文件';
+    }
+
+    // 获取文件图标
+    function getFileIcon(fileType) {
+        if (fileType.startsWith('image/')) return '📷';
+        if (fileType.startsWith('video/')) return '🎥';
+        if (fileType.startsWith('audio/')) return '🎵';
+        if (fileType.includes('pdf')) return '📄';
+        if (fileType.includes('word')) return '📝';
+        if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
+        if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z')) return '📦';
+        return '📄';
+    }
+
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 移除文件
+    function removeFile(fileId) {
+        selectedFiles.delete(fileId);
+        updateFileList();
+    }
+
+    // 清空文件列表
+    function clearFiles() {
+        selectedFiles.clear();
+        updateFileList();
+        // 清空文件输入框
+        document.getElementById('editFile').value = '';
     }
 
     // 开始更新检查
