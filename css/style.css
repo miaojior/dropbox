@@ -15,16 +15,22 @@
     --bg-color: #f5f5f5;
     --text-color: #333;
     --grid-color: rgba(0, 0, 0, 0.84);
-    --card-bg: #fafafa;
-    --card-shadow: rgba(0, 0, 0, 0.15);
+    --card-bg: #ffffff;
+    --card-inner-bg: #f8f8f8;
+    --card-shadow: rgba(0, 0, 0, 0.1);
     --heading-color: #2c3e50;
-    --border-color: #eee;
-    --file-bg: var(--card-bg);
-    --file-border: #eee;
+    --border-color: #e0e0e0;
+    --input-bg: #ffffff;
+    --input-border: #d0d0d0;
+    --input-focus-border: #3498db;
+    --input-text: #333;
+    --input-placeholder: #999;
+    --file-bg: var(--card-inner-bg);
+    --file-border: var(--border-color);
     --file-text: #2c3e50;
     --file-subtext: #7f8c8d;
-    --code-bg: var(--card-bg);
-    --modal-bg: var(--card-bg);
+    --code-bg: var(--card-inner-bg);
+    --modal-bg: #ffffff;
     --modal-overlay: rgba(0, 0, 0, 0.5);
 }
 
@@ -716,7 +722,7 @@ code {
 
 /* 文件相关样式 */
 .file {
-    background: var(--card-bg);
+    background: var(--file-bg);
     display: flex;
     align-items: center;
     padding: 1.5rem;
@@ -1081,4 +1087,89 @@ code {
 
 [data-theme="dark"] .token.punctuation {
     color: var(--text-color);
+}
+
+/* 卡片基础样式 */
+.text-block {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px var(--card-shadow);
+    transition: box-shadow 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+/* 文件卡片样式 */
+.file {
+    background: var(--file-bg);
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--file-border);
+    margin: 1rem 0;
+}
+
+/* 表单元素样式 */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--input-text);
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    margin-bottom: 1rem;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--input-placeholder);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 10.5l-4-4h8l-4 4z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+/* 表单组样式 */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* 操作区域样式 */
+.text-block-actions {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--card-bg);
 }
