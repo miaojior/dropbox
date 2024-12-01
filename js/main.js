@@ -480,31 +480,46 @@ function handleDrop(e) {
 // 处理粘贴事件
 function handlePaste(e) {
     const items = e.clipboardData.items;
-    const files = [];
+    let hasFiles = false;
     let hasText = false;
-    let pastedText = '';
 
+    // 首先检查是否有文件
     for (let item of items) {
         if (item.kind === 'file') {
+            hasFiles = true;
             const file = item.getAsFile();
-            if (file) files.push(file);
+            if (file) {
+                // 确保模态框打开并设置为文件模式
+                if (!document.getElementById('editModal').classList.contains('show')) {
+                    openModal();
+                }
+                document.getElementById('editType').value = 'file';
+                handleTypeChange('file');
+                
+                // 添加文件到列表
+                const fileId = `${file.name}-${file.lastModified}`;
+                selectedFiles.set(fileId, file);
+                showPasteIndicator(`已添加文件: ${file.name}`);
+            }
         } else if (item.type === 'text/plain') {
             hasText = true;
-            item.getAsString((text) => {
-                pastedText = text;
-                handlePastedText(text);
-            });
         }
     }
 
-    if (files.length > 0) {
-        showPasteIndicator('检测到文件，正在添加...');
-        addFiles(files);
-        if (!document.getElementById('editModal').classList.contains('show')) {
-            openModal();
+    // 更新文件列表显示
+    if (hasFiles) {
+        updateFileList();
+    }
+
+    // 如果只有文本内容，则按原来的方式处理
+    if (!hasFiles && hasText) {
+        for (let item of items) {
+            if (item.type === 'text/plain') {
+                item.getAsString((text) => {
+                    handlePastedText(text);
+                });
+            }
         }
-        document.getElementById('editType').value = 'file';
-        handleTypeChange('file');
     }
 }
 
@@ -548,11 +563,18 @@ function detectIfCode(text) {
 
 // 显示粘贴提示
 function showPasteIndicator(message) {
+    // 移除已有的提示
+    const existingIndicator = document.querySelector('.paste-indicator');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+
     const indicator = document.createElement('div');
     indicator.className = 'paste-indicator';
     indicator.textContent = message;
     document.body.appendChild(indicator);
 
+    // 2秒后自动移除提示
     setTimeout(() => {
         indicator.remove();
     }, 2000);
