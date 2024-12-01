@@ -1529,3 +1529,344 @@ select {
 [data-theme="dark"] .loading-text {
     color: #999;
 }
+
+/* 音乐播放器样式 */
+.song-player {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 99;
+    background: rgba(0, 0, 0, 0.80);
+    backdrop-filter: blur(30px);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease;
+    width: 400px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 折叠状态 */
+.song-player.collapsed {
+    width: 72px;
+    padding: 0;
+}
+
+.song-player.collapsed .player-container {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.song-player.collapsed .cover {
+    width: 72px;
+    height: 72px;
+    margin: 0;
+}
+
+.song-player.collapsed .collapse-btn {
+    display: none;
+}
+
+.song-player.collapsed .info,
+.song-player.collapsed .controls,
+.song-player.collapsed .lyrics-container {
+    display: none;
+}
+
+/* 折叠按钮 */
+.song-player .collapse-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(30px);
+    border: none !important;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    z-index: 2;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.song-player .collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #fff;
+}
+
+.song-player .collapse-btn svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s;
+}
+
+.song-player.collapsed .collapse-btn {
+    background: rgba(255, 255, 255, 0.20) !important;
+    backdrop-filter: blur(30px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.song-player.collapsed .collapse-btn svg {
+    transform: rotate(180deg);
+}
+
+.song-player.collapsed .collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.30) !important;
+}
+
+/* 歌词容器 */
+.song-player .lyrics-container {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(30px);
+    border-radius: 8px;
+    margin-top: 12px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.song-player .lyrics-container.expanded {
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.song-player .lyrics-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.song-player .lyrics-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.song-player .lyrics-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.song-player .lyrics-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.song-player .lyrics-line {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 4px 0;
+    text-align: center;
+}
+
+.song-player .lyrics-line.active {
+    color: #fff;
+    font-weight: 500;
+}
+
+/* 播放器主体 */
+.song-player .player-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.song-player .cover {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.song-player .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.song-player .info {
+    flex: 1;
+    min-width: 0;
+    margin-right: 8px;
+}
+
+.song-player .title {
+    color: #fff;
+    font-size: 13px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.song-player .artist {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    margin: 4px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-player .controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.song-player .main-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.song-player .progress {
+    flex: 1;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 1.5px;
+    margin: 0 8px;
+    cursor: pointer;
+    position: relative;
+}
+
+.song-player .progress-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: #409EFF;
+    border-radius: 1.5px;
+}
+
+.song-player button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 6px;
+    margin: 0;
+    border-radius: 50%;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.song-player button:hover,
+.song-player button:focus {
+    background: none !important;
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 控制按钮组 */
+.song-player .control-buttons {
+    display: flex;
+    gap: 2px;
+    margin-left: 8px;
+}
+
+.song-player .control-buttons button {
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    background: none !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.song-player .control-buttons button:hover,
+.song-player .control-buttons button:focus,
+.song-player .control-buttons button.active {
+    color: #409EFF;
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* 歌单面板 */
+.song-player .playlist-panel {
+    background: rgba(0, 0, 0, 0.80);
+    backdrop-filter: blur(30px);
+    border-radius: 8px;
+    margin-top: 8px;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.song-player .playlist-panel.expanded {
+    max-height: 300px;
+    padding: 12px;
+}
+
+.song-player .playlist-panel .song-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.song-player .playlist-panel .song-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.song-player .playlist-panel .song-item.active {
+    color: #409EFF;
+}
+
+.song-player .playlist-panel .song-item .song-index {
+    width: 24px;
+    text-align: center;
+    margin-right: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* 滚动条样式 */
+.song-player .playlist-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.song-player .playlist-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.song-player .playlist-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.song-player .playlist-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
