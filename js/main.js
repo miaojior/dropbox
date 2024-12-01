@@ -415,6 +415,170 @@ window.editContent = function(id) {
     document.getElementById('editModal').style.display = 'block';
 }
 
+// 初始化拖拽和粘贴功能
+function initializeUploadFeatures() {
+    const uploadArea = document.getElementById('uploadArea');
+    const body = document.body;
+
+    // 拖拽上传
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        body.addEventListener(eventName, preventDefaults, false);
+        if (uploadArea) {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        }
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // 拖拽效果
+    ['dragenter', 'dragover'].forEach(eventName => {
+        if (uploadArea) {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.add('dragover');
+            }, false);
+        }
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        if (uploadArea) {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.remove('dragover');
+            }, false);
+        }
+    });
+
+    // 处理拖拽文件
+    if (uploadArea) {
+        uploadArea.addEventListener('drop', handleDrop, false);
+    }
+
+    // 全局粘贴处理
+    document.addEventListener('paste', handlePaste, false);
+}
+
+// 处理拖拽文件
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0) {
+        handleFiles(files);
+    }
+}
+
+// 处理粘贴事件
+function handlePaste(e) {
+    const items = e.clipboardData.items;
+    const files = [];
+    let hasText = false;
+    let pastedText = '';
+
+    for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            files.push(file);
+        } else if (item.type === 'text/plain') {
+            hasText = true;
+            item.getAsString((text) => {
+                pastedText = text;
+                handlePastedText(text);
+            });
+        }
+    }
+
+    if (files.length > 0) {
+        showPasteIndicator('检测到图片，正在上传...');
+        handleFiles(files);
+    }
+}
+
+// 处理粘贴的文本
+function handlePastedText(text) {
+    // 检测是否是代码
+    const isCode = detectIfCode(text);
+    
+    // 如果模态框未打开，则打开它
+    if (!document.getElementById('editModal').classList.contains('show')) {
+        openModal();
+    }
+
+    // 设置类型和内容
+    document.getElementById('editType').value = isCode ? 'code' : 'text';
+    document.getElementById('editContent').value = text;
+    
+    // 如果是代码，可以尝试检测语言类型
+    if (isCode) {
+        const language = detectCodeLanguage(text);
+        // 这里可以添加语言选择的逻辑
+    }
+
+    showPasteIndicator(isCode ? '已粘贴代码内容' : '已粘贴文本内容');
+}
+
+// 检测是否是代码
+function detectIfCode(text) {
+    // 简单的代码检测规则
+    const codeIndicators = [
+        /^(function|class|import|export|const|let|var|if|for|while)\s/m,  // 关键字开头
+        /[{}\[\]()];$/m,  // 以分隔符结尾的行
+        /^\s*(public|private|protected)\s/m,  // 访问修饰符
+        /^\s*@\w+/m,  // 装饰器
+        /\s{2,}[\w$_]/m,  // 缩进
+        /<\/?[a-z][\s\S]*>/i,  // HTML标签
+    ];
+
+    return codeIndicators.some(pattern => pattern.test(text));
+}
+
+// 显示粘贴提示
+function showPasteIndicator(message) {
+    const indicator = document.createElement('div');
+    indicator.className = 'paste-indicator';
+    indicator.textContent = message;
+    document.body.appendChild(indicator);
+
+    setTimeout(() => {
+        indicator.remove();
+    }, 2000);
+}
+
+// 处理文件上传
+function handleFiles(files) {
+    for (let file of files) {
+        if (file.type.startsWith('image/')) {
+            // 处理图片文件
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (!document.getElementById('editModal').classList.contains('show')) {
+                    openModal();
+                }
+                document.getElementById('editType').value = 'image';
+                handleTypeChange('image');
+                
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="预览图片">`;
+                
+                // 可以在这里添加自动生成标题的逻辑
+                if (!document.getElementById('editTitle').value) {
+                    document.getElementById('editTitle').value = file.name;
+                }
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // 处理其他类型文件
+            if (!document.getElementById('editModal').classList.contains('show')) {
+                openModal();
+            }
+            document.getElementById('editType').value = 'file';
+            handleTypeChange('file');
+            handleFileSelect({ target: { files: [file] } });
+        }
+    }
+}
+
 // DOM元素
 document.addEventListener('DOMContentLoaded', () => {
     contentContainer = document.getElementById('content-container');
@@ -427,6 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadContents(true);
     setupEventListeners();
     startUpdateCheck();
+    initializeUploadFeatures();
 
     // 设置事件监听器
     function setupEventListeners() {
