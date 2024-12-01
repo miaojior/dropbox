@@ -121,12 +121,14 @@ function renderContents(contents) {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'file') {
-            const fileIcon = getFileIcon('application/octet-stream');
+            // 从文件名获取图标类型
+            const fileIcon = getFileIcon(content.title);
             contentHtml = `
                 <div class="file">
                     <i class="file-icon ${fileIcon}"></i>
                     <div class="file-details">
                         <div class="file-name">${content.title}</div>
+                        <div class="file-type">${getFileTypeDescription(content.title)}</div>
                     </div>
                 </div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
@@ -587,8 +589,21 @@ document.addEventListener('DOMContentLoaded', () => {
             'audio/wav': 'audio'
         };
         
-        const type = mimeType.split('/')[0];
-        return iconMap[mimeType] || iconMap[type] || 'generic';
+        // 如果没有MIME类型，根据文件扩展名判断
+        if (!mimeType && typeof mimeType === 'string') {
+            const ext = mimeType.toLowerCase().split('.').pop();
+            if (ext === 'pdf') return 'pdf';
+            if (['doc', 'docx'].includes(ext)) return 'word';
+            if (['xls', 'xlsx'].includes(ext)) return 'excel';
+            if (['ppt', 'pptx'].includes(ext)) return 'powerpoint';
+            if (['txt', 'log'].includes(ext)) return 'text';
+            if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return 'code';
+            if (['zip', 'rar', '7z'].includes(ext)) return 'archive';
+            if (['mp4', 'avi', 'mov'].includes(ext)) return 'video';
+            if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
+        }
+        
+        return iconMap[mimeType] || 'generic';
     }
 
     // 获取文件类型描述
@@ -615,12 +630,26 @@ document.addEventListener('DOMContentLoaded', () => {
             'audio/wav': 'WAV音频'
         };
         
-        return typeMap[mimeType] || mimeType;
+        // 如果没有MIME类型，根据文件扩展名判断
+        if (!mimeType && typeof mimeType === 'string') {
+            const ext = mimeType.toLowerCase().split('.').pop();
+            if (ext === 'pdf') return 'PDF文档';
+            if (['doc', 'docx'].includes(ext)) return 'Word文档';
+            if (['xls', 'xlsx'].includes(ext)) return 'Excel表格';
+            if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint演示文稿';
+            if (['txt', 'log'].includes(ext)) return '文本文件';
+            if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return '代码文件';
+            if (['zip', 'rar', '7z'].includes(ext)) return '压缩文件';
+            if (['mp4', 'avi', 'mov'].includes(ext)) return '视频文件';
+            if (['mp3', 'wav', 'ogg'].includes(ext)) return '音频文件';
+        }
+        
+        return typeMap[mimeType] || '未知类型';
     }
 
     // 格式化文件大小
     function formatFileSize(bytes) {
-        if (bytes === 0) return '0 B';
+        if (!bytes || bytes === 0) return '未知大小';
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
