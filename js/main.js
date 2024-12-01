@@ -1,6 +1,7 @@
 // API配置
 const API_BASE_URL = '/contents';
 const IMAGES_API_URL = '/images';
+const FILES_API_URL = '/files';
 
 // 全局变量
 let currentEditId = null;
@@ -114,8 +115,14 @@ function renderContents(contents) {
     let html = '';
     contents.forEach(content => {
         let contentHtml = '';
+        let downloadButton = '';
+        
         if (content.type === 'image') {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
+            downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
+        } else if (content.type === 'file') {
+            contentHtml = `<div class="file"><i class="file-icon"></i>${content.title}</div>`;
+            downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -134,6 +141,7 @@ function renderContents(contents) {
                 </div>
                 <div class="text-block-actions">
                     <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
+                    ${downloadButton}
                     <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
                     <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
                 </div>
@@ -180,19 +188,27 @@ window.deleteContent = async function(id) {
 window.handleTypeChange = function(type) {
     const contentGroup = document.getElementById('contentGroup');
     const imageGroup = document.getElementById('imageGroup');
+    const fileGroup = document.getElementById('fileGroup');
     const editContent = document.getElementById('editContent');
     const editImage = document.getElementById('editImage');
+    const editFile = document.getElementById('editFile');
+
+    contentGroup.style.display = 'none';
+    imageGroup.style.display = 'none';
+    fileGroup.style.display = 'none';
+    editContent.required = false;
+    editImage.required = false;
+    editFile.required = false;
 
     if (type === 'image') {
-        contentGroup.style.display = 'none';
         imageGroup.style.display = 'block';
-        editContent.required = false;
         editImage.required = true;
+    } else if (type === 'file') {
+        fileGroup.style.display = 'block';
+        editFile.required = true;
     } else {
         contentGroup.style.display = 'block';
-        imageGroup.style.display = 'none';
         editContent.required = true;
-        editImage.required = false;
     }
 }
 
@@ -379,11 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const imageFile = document.getElementById('editImage').files[0];
                 const existingContent = document.getElementById('editContent').value;
                 
-                // 如果没有选择新图片且有现有图片，保持现有图片
                 if (!imageFile && existingContent) {
                     content = existingContent;
                 } else if (imageFile) {
-                    // 上传新图片
                     const formData = new FormData();
                     formData.append('image', imageFile);
                     
@@ -401,6 +415,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     throw new Error('请选择图片文件');
                 }
+            } else if (type === 'file') {
+                const file = document.getElementById('editFile').files[0];
+                const existingContent = document.getElementById('editContent').value;
+                
+                if (!file && existingContent) {
+                    content = existingContent;
+                } else if (file) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    const uploadResponse = await fetch(FILES_API_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        throw new Error('文件上传失败');
+                    }
+                    
+                    const { url } = await uploadResponse.json();
+                    content = url;
+                } else {
+                    throw new Error('请选择文件');
+                }
             } else {
                 content = document.getElementById('editContent').value;
             }
@@ -417,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadContents(false);
         } catch (error) {
             console.error('保存失败:', error);
-            alert(`保存失败: ${error.message}`);
+            showToast(error.message, 'error');
         } finally {
             submitButton.disabled = false;
             submitButton.textContent = originalText;

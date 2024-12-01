@@ -163,6 +163,10 @@ code {
     background-color: #95a5a6 !important;
 }
 
+.btn-download {
+    background-color: #f39c12 !important;
+}
+
 /* 提示框样式 */
 .toast {
     position: fixed;
@@ -627,4 +631,47 @@ code {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+}
+
+/* 文件相关样式 */
+.file {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.file-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%234a5568" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+#fileGroup {
+    display: none;
+}
+
+#editFile {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border: 2px dashed #bdc3c7;
+    cursor: pointer;
+    transition: border-color 0.3s;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+#editFile:hover {
+    border-color: #3498db;
+}
+
+.file-info {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
 } 
