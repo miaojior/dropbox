@@ -71,6 +71,35 @@ function copyText(encodedText, type) {
     });
 }
 
+// 显示确认对话框
+function showConfirmDialog(title, message) {
+    return new Promise((resolve) => {
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog';
+        
+        dialog.innerHTML = `
+            <div class="confirm-dialog-content">
+                <div class="confirm-dialog-title">${title}</div>
+                <div class="confirm-dialog-message">${message}</div>
+                <div class="confirm-dialog-buttons">
+                    <button class="btn btn-cancel">取消</button>
+                    <button class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(dialog);
+        
+        const buttons = dialog.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                dialog.remove();
+                resolve(button.classList.contains('btn-primary'));
+            });
+        });
+    });
+}
+
 // 渲染内容函数
 function renderContents(contents) {
     if (!contentContainer) {
@@ -104,9 +133,9 @@ function renderContents(contents) {
                     ${contentHtml}
                 </div>
                 <div class="text-block-actions">
-                    <button class="btn" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
-                    <button class="btn" onclick="editContent(${content.id})">编辑</button>
-                    <button class="btn" onclick="deleteContent(${content.id})">删除</button>
+                    <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
+                    <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
+                    <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
                 </div>
             </section>
         `;
@@ -117,25 +146,33 @@ function renderContents(contents) {
 }
 
 // 删除内容函数
-window.deleteContent = function(id) {
-    if (confirm('确定要删除这条内容吗？')) {
-        fetch(`${API_BASE_URL}/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json'
-            }
-        }).then(async response => {
+window.deleteContent = async function(id) {
+    const confirmed = await showConfirmDialog(
+        '确认删除',
+        '确定要删除这条内容吗？此操作无法撤销。'
+    );
+    
+    if (confirmed) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
             if (!response.ok) {
                 const data = await response.json();
                 throw new Error(data.error || '删除失败');
             }
+            
             contentCache = contentCache.filter(item => item.id !== id);
             renderContents(contentCache);
             showToast('删除成功！');
-        }).catch(error => {
+        } catch (error) {
             console.error('删除失败:', error);
             showToast(error.message, 'error');
-        });
+        }
     }
 }
 
