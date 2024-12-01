@@ -1,3 +1,17 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // 等待所有资源加载完成
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            const loadingOverlay = document.querySelector('.loading-overlay');
+            loadingOverlay.classList.add('hidden');
+            // 1秒后完全移除遮罩层
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 1000);
+        }, 500); // 增加500ms延迟以确保动画流畅
+    });
+});
+
 // API配置
 const API_BASE_URL = '/contents';
 const IMAGES_API_URL = '/images';
@@ -738,7 +752,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 显��加载状态
+    // 显加载状态
     function showLoadingState() {
         contentContainer.innerHTML = '<div class="loading">加载中...</div>';
     }
