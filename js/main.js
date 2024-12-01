@@ -8,6 +8,42 @@ let lastUpdateTime = Date.now();
 let updateCheckInterval;
 let contentCache = [];
 
+// 复制内容到剪贴板
+window.copyContent = async function(content, type) {
+    try {
+        await navigator.clipboard.writeText(content);
+        showToast('复制成功！');
+    } catch (err) {
+        console.error('复制失败:', err);
+        // 使用备用复制方法
+        const textarea = document.createElement('textarea');
+        textarea.value = content;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showToast('复制成功！');
+        } catch (e) {
+            showToast('复制失败，请手动复制');
+        }
+        document.body.removeChild(textarea);
+    }
+}
+
+// 显示提示信息
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // 2秒后自动消失
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
 // DOM元素
 document.addEventListener('DOMContentLoaded', () => {
     const contentContainer = document.getElementById('content-container');
@@ -26,31 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addNewBtn.addEventListener('click', () => openModal());
         editForm.addEventListener('submit', handleFormSubmit);
         editImage.addEventListener('change', handleImagePreview);
-    }
-
-    // 复制内容到剪贴板
-    window.copyContent = async function(content, type) {
-        try {
-            await navigator.clipboard.writeText(content);
-            showToast('复制成功！');
-        } catch (err) {
-            console.error('复制失败:', err);
-            showToast('复制失败，请手动复制');
-        }
-    }
-
-    // 显示提示信息
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        // 2秒后自动消失
-        setTimeout(() => {
-            toast.classList.add('fade-out');
-            setTimeout(() => toast.remove(), 300);
-        }, 2000);
     }
 
     // 处理图片预览

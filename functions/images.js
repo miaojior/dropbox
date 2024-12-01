@@ -18,7 +18,7 @@ export async function onRequestPost({ request, env }) {
         const filename = `${timestamp}-${randomString}.${extension}`;
 
         // 将图片保存到KV存储
-        await env.IMAGES.put(filename, imageFile.stream(), {
+        await env.IMAGES.put(filename, await imageFile.arrayBuffer(), {
             metadata: {
                 contentType: imageFile.type,
                 filename: imageFile.name
@@ -56,7 +56,7 @@ export async function onRequestPost({ request, env }) {
     }
 }
 
-export async function onRequestGet({ request, env, params }) {
+export async function onRequestGet({ request, env }) {
     try {
         if (!env.IMAGES) {
             throw new Error('IMAGES binding not found');
@@ -66,18 +66,15 @@ export async function onRequestGet({ request, env, params }) {
         const filename = url.pathname.split('/').pop();
         
         // 从KV存储获取图片
-        const image = await env.IMAGES.get(filename, 'stream');
-        if (!image) {
+        const metadata = await env.IMAGES.getWithMetadata(filename);
+        if (!metadata.value) {
             return new Response('Image not found', { status: 404 });
         }
 
-        // 获取图片元数据
-        const metadata = await env.IMAGES.get(filename, { type: 'metadata' });
-        
         // 返回图片
-        return new Response(image, {
+        return new Response(metadata.value, {
             headers: {
-                'Content-Type': metadata?.contentType || 'image/jpeg',
+                'Content-Type': metadata.metadata?.contentType || 'image/jpeg',
                 'Cache-Control': 'public, max-age=31536000',
                 'Access-Control-Allow-Origin': '*'
             }
