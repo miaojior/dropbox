@@ -2,6 +2,7 @@
 const API_BASE_URL = '/contents';
 const IMAGES_API_URL = '/images';
 const FILES_API_URL = '/files';
+const DOWNLOAD_API_URL = '/download';
 
 // 全局变量
 let currentEditId = null;
@@ -201,9 +202,27 @@ function getFileIconUrl(filename) {
 }
 
 // 下载文件函数
-function downloadFile(url, filename) {
-    // 直接打开文件链接
-    window.open(url, '_blank');
+async function downloadFile(url, filename) {
+    try {
+        // 构造下载API的URL，传递原始文件URL作为参数
+        const downloadUrl = `${DOWNLOAD_API_URL}?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+        
+        // 创建一个隐藏的iframe来处理下载
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        iframe.src = downloadUrl;
+
+        // 延迟移除iframe
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 2000);
+
+        showToast('开始下载...');
+    } catch (error) {
+        console.error('下载失败:', error);
+        showToast('下载失败，请重试', 'error');
+    }
 }
 
 // 渲染内容函数
@@ -237,7 +256,7 @@ function renderContents(contents) {
                         </div>
                     </div>`;
             }
-            downloadButton = `<a href="${content.content}" class="btn btn-download" target="_blank" download="${content.title}">下载</a>`;
+            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -443,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 开始更新检查
     function startUpdateCheck() {
-        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新���
+        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新
     }
 
     // 加载所有内容
