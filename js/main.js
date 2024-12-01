@@ -5,42 +5,22 @@ const FILES_API_URL = '/files';
 const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
 
-// 初始化加载动画
-const loadingContainer = document.createElement('div');
-loadingContainer.className = 'loading';
-loadingContainer.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.98);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
-`;
-loadingContainer.innerHTML = `
-    <div class="loading-spinner"></div>
-    <div class="loading-text">加载中...</div>
-`;
-document.body.appendChild(loadingContainer);
+// 加载动画控制
+const initialLoading = document.getElementById('initialLoading');
 
 // 显示加载动画函数
 window.showLoading = () => {
-    loadingContainer.style.display = 'flex';
+    initialLoading.style.display = 'flex';
     // 强制重排以触发过渡动画
-    loadingContainer.offsetHeight;
-    loadingContainer.style.opacity = '1';
+    initialLoading.offsetHeight;
+    initialLoading.style.opacity = '1';
 };
 
 // 隐藏加载动画函数
 window.hideLoading = () => {
-    loadingContainer.style.opacity = '0';
+    initialLoading.style.opacity = '0';
     setTimeout(() => {
-        loadingContainer.style.display = 'none';
+        initialLoading.style.display = 'none';
     }, 300); // 等待过渡动画完成
 };
 
