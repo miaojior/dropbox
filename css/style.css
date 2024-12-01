@@ -1018,7 +1018,7 @@ button[type="submit"]:hover,
     color: var(--file-subtext);
 }
 
-/* 图片预览深���模式样式 */
+/* 图片预览深模式样式 */
 [data-theme="dark"] #imagePreview {
     background-color: var(--file-bg);
     border-color: var(--file-border);
@@ -1488,4 +1488,46 @@ select {
     font-size: 48px;
     margin-bottom: 15px;
     animation: pulse 2s infinite;
+}
+
+/* 加载动画 */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    color: var(--text-color-secondary);
+}
+
+.loading::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] .loading::before {
+    border-color: #333;
+    border-top-color: #3498db;
+}
+
+[data-theme="dark"] .loading-text {
+    color: #999;
 }
