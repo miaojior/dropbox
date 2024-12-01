@@ -192,6 +192,14 @@ function showConfirmDialog(title, message) {
     });
 }
 
+// 获取文件图标URL
+function getFileIconUrl(filename) {
+    // 获取文件扩展名
+    const ext = filename.toLowerCase().split('.').pop();
+    // 使用在线图标服务
+    return `https://cdn.jsdelivr.net/gh/PKief/vscode-material-icon-theme@main/icons/${ext}.svg`;
+}
+
 // 渲染内容函数
 function renderContents(contents) {
     if (!contentContainer) {
@@ -212,11 +220,11 @@ function renderContents(contents) {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'file') {
-            const fileIcon = getFileIcon(content.title);
+            const iconUrl = getFileIconUrl(content.title);
             const fileType = getFileTypeDescription(content.title);
             contentHtml = `
                 <div class="file">
-                    <i class="file-icon ${fileIcon}"></i>
+                    <img class="file-icon" src="${iconUrl}" onerror="this.src='https://cdn.jsdelivr.net/gh/PKief/vscode-material-icon-theme@main/icons/file.svg'" alt="${fileType}">
                     <div class="file-details">
                         <div class="file-name">${content.title}</div>
                         <div class="file-type">${fileType}</div>

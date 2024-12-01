@@ -655,10 +655,22 @@ code {
     width: 32px;
     height: 32px;
     margin-right: 1rem;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    display: inline-block;
+    object-fit: contain;
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #2c3e50;
+}
+
+.file-type {
+    color: #7f8c8d;
+    font-size: 0.9rem;
 }
 
 .file-icon.word {
@@ -686,7 +698,7 @@ code {
 }
 
 .file-icon.text {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%2395a5a6' d='M369.9 97.9L286 14C277 5 264.8-.1 252.1-.1H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V131.9c0-12.7-5.1-25-14.1-34zM332.1 128H256V51.9l76.1 76.1zM48 464V48h160v104c0 13.3 10.7 24 24 24h104v288H48zm32-48h224v-32H80v32zm0-64h224v-32H80v32zm0-64h224v-32H80v32z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%2395a5a6' d='M369.9 97.9L286 14C277 5 264.8-.1 252.1-.1H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V131.9c0-12.7-5.1-25-14.1-34zM332.1 128H256V51.9l76.1 76.1zM48 464V48h160v104c0 13.3 10.7 24 24 24h104v288H48zm144-80.7V303h-64v-31.3h64V192h31.3v79.7H288v31.3h-64.7v80H192v-80.7h-31.3z'/%3E%3C/svg%3E");
 }
 
 .file-icon.generic {
