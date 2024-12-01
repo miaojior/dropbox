@@ -22,6 +22,14 @@
     "/_vars/*": {
       "function": "_vars/[name]",
       "method": ["GET", "OPTIONS"]
+    },
+    "/files": {
+      "function": "files",
+      "method": ["POST", "OPTIONS"]
+    },
+    "/files/*": {
+      "function": "files/[name]",
+      "method": ["GET", "DELETE", "OPTIONS"]
     }
   }
 } 
