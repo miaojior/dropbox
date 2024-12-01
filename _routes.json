@@ -23,7 +23,7 @@
       "function": "_vars/[name]",
       "method": ["GET", "OPTIONS"]
     },
-    "/files": {
+    "/files/upload": {
       "function": "files/upload",
       "method": ["POST", "OPTIONS"]
     },

@@ -2,6 +2,7 @@
 const API_BASE_URL = '/contents';
 const IMAGES_API_URL = '/images';
 const FILES_API_URL = '/files';
+const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
 
 // 全局变量
@@ -852,7 +853,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     formData.append('file', file);
                     
                     console.log('开始上传文件:', file.name);
-                    const uploadResponse = await fetch(FILES_API_URL, {
+                    const uploadResponse = await fetch(FILES_UPLOAD_URL, {
                         method: 'POST',
                         body: formData
                     });
