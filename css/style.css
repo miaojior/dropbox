@@ -111,6 +111,7 @@ h1 {
                 0 4px 8px var(--card-shadow);
     transition: all 0.3s ease;
     border: 1px solid var(--border-color);
+    overflow: hidden;
 }
 
 .text-block:hover {
@@ -1042,7 +1043,9 @@ button[type="submit"]:hover,
 
 [data-theme="dark"] .text-block > div {
     background: var(--card-inner-bg);
-    border-radius: 4px;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: -1px;
 }
 
 [data-theme="dark"] .text-block pre {
@@ -1064,10 +1067,11 @@ button[type="submit"]:hover,
 }
 
 [data-theme="dark"] .text-block-actions {
-    background: var(--card-bg) !important;
-    border-top: 1px solid var(--card-border);
+    background: var(--card-bg);
     margin-top: 1rem;
-    padding-top: 1rem;
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    border-radius: 0 0 12px 12px;
 }
 
 /* 代码区域深色模式样式 */
@@ -1144,6 +1148,7 @@ button[type="submit"]:hover,
                 0 4px 8px var(--card-shadow);
     transition: all 0.3s ease;
     border: 1px solid var(--border-color);
+    overflow: hidden;
 }
 
 .text-block h2 {
