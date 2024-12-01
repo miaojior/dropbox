@@ -11,84 +11,42 @@ let contentCache = [];
 let contentContainer;
 
 // 工具函数
-function getFileIcon(mimeType) {
-    const iconMap = {
-        'application/pdf': 'pdf',
-        'application/msword': 'word',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'word',
-        'application/vnd.ms-excel': 'excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'excel',
-        'application/vnd.ms-powerpoint': 'powerpoint',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'powerpoint',
-        'text/plain': 'text',
-        'application/json': 'code',
-        'text/html': 'code',
-        'text/css': 'code',
-        'text/javascript': 'code',
-        'application/zip': 'archive',
-        'application/x-rar-compressed': 'archive',
-        'application/x-7z-compressed': 'archive',
-        'video/mp4': 'video',
-        'video/quicktime': 'video',
-        'audio/mpeg': 'audio',
-        'audio/wav': 'audio'
-    };
+function getFileIcon(filename) {
+    // 获取文件扩展名
+    const ext = filename.toLowerCase().split('.').pop();
     
-    // 如果没有MIME类型，根据文件扩展名判断
-    if (!mimeType && typeof mimeType === 'string') {
-        const ext = mimeType.toLowerCase().split('.').pop();
-        if (ext === 'pdf') return 'pdf';
-        if (['doc', 'docx'].includes(ext)) return 'word';
-        if (['xls', 'xlsx'].includes(ext)) return 'excel';
-        if (['ppt', 'pptx'].includes(ext)) return 'powerpoint';
-        if (['txt', 'log'].includes(ext)) return 'text';
-        if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return 'code';
-        if (['zip', 'rar', '7z'].includes(ext)) return 'archive';
-        if (['mp4', 'avi', 'mov'].includes(ext)) return 'video';
-        if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
-    }
+    // 根据扩展名判断文件类型
+    if (ext === 'pdf') return 'pdf';
+    if (['doc', 'docx'].includes(ext)) return 'word';
+    if (['xls', 'xlsx'].includes(ext)) return 'excel';
+    if (['ppt', 'pptx'].includes(ext)) return 'powerpoint';
+    if (['txt', 'log'].includes(ext)) return 'text';
+    if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return 'code';
+    if (['zip', 'rar', '7z'].includes(ext)) return 'archive';
+    if (['mp4', 'avi', 'mov'].includes(ext)) return 'video';
+    if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'image';
     
-    return iconMap[mimeType] || 'generic';
+    return 'generic';
 }
 
-function getFileTypeDescription(mimeType) {
-    const typeMap = {
-        'application/pdf': 'PDF文档',
-        'application/msword': 'Word文档',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word文档',
-        'application/vnd.ms-excel': 'Excel表格',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel表格',
-        'application/vnd.ms-powerpoint': 'PowerPoint演示文稿',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PowerPoint演示文稿',
-        'text/plain': '文本文件',
-        'application/json': 'JSON文件',
-        'text/html': 'HTML文件',
-        'text/css': 'CSS文件',
-        'text/javascript': 'JavaScript文件',
-        'application/zip': 'ZIP压缩包',
-        'application/x-rar-compressed': 'RAR压缩包',
-        'application/x-7z-compressed': '7Z压缩包',
-        'video/mp4': 'MP4视频',
-        'video/quicktime': 'QuickTime视频',
-        'audio/mpeg': 'MP3音频',
-        'audio/wav': 'WAV音频'
-    };
+function getFileTypeDescription(filename) {
+    // 获取文件扩展名
+    const ext = filename.toLowerCase().split('.').pop();
     
-    // 如果没有MIME类型，根据文件扩展名判断
-    if (!mimeType && typeof mimeType === 'string') {
-        const ext = mimeType.toLowerCase().split('.').pop();
-        if (ext === 'pdf') return 'PDF文档';
-        if (['doc', 'docx'].includes(ext)) return 'Word文档';
-        if (['xls', 'xlsx'].includes(ext)) return 'Excel表格';
-        if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint演示文稿';
-        if (['txt', 'log'].includes(ext)) return '文本文件';
-        if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return '代码文件';
-        if (['zip', 'rar', '7z'].includes(ext)) return '压缩文件';
-        if (['mp4', 'avi', 'mov'].includes(ext)) return '视频文件';
-        if (['mp3', 'wav', 'ogg'].includes(ext)) return '音频文件';
-    }
+    // 根据扩展名返回中文描述
+    if (ext === 'pdf') return 'PDF文档';
+    if (['doc', 'docx'].includes(ext)) return 'Word文档';
+    if (['xls', 'xlsx'].includes(ext)) return 'Excel表格';
+    if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint演示文稿';
+    if (['txt', 'log'].includes(ext)) return '文本文件';
+    if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return '代码文件';
+    if (['zip', 'rar', '7z'].includes(ext)) return '压缩文件';
+    if (['mp4', 'avi', 'mov'].includes(ext)) return '视频文件';
+    if (['mp3', 'wav', 'ogg'].includes(ext)) return '音频文件';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return '图片文件';
     
-    return typeMap[mimeType] || '未知类型';
+    return `${ext.toUpperCase()}文件`;
 }
 
 function formatFileSize(bytes) {
@@ -206,14 +164,14 @@ function renderContents(contents) {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'file') {
-            // 从文件名获取图标类型
             const fileIcon = getFileIcon(content.title);
+            const fileType = getFileTypeDescription(content.title);
             contentHtml = `
                 <div class="file">
                     <i class="file-icon ${fileIcon}"></i>
                     <div class="file-details">
                         <div class="file-name">${content.title}</div>
-                        <div class="file-type">${getFileTypeDescription(content.title)}</div>
+                        <div class="file-type">${fileType}</div>
                     </div>
                 </div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
@@ -549,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const { url } = await uploadResponse.json();
                     content = url;
                 } else {
-                    throw new Error('请选择���片文件');
+                    throw new Error('请选择片文件');
                 }
             } else if (type === 'file') {
                 const file = document.getElementById('editFile').files[0];
