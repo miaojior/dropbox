@@ -202,21 +202,13 @@ function getFileIconUrl(filename) {
 
 // 下载文件函数
 async function downloadFile(url, filename) {
-    try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(downloadUrl);
-        document.body.removeChild(a);
-    } catch (error) {
-        console.error('下载失败:', error);
-        showToast('下载失败，请稍后重试', 'error');
-    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
 
 // 渲染内容函数
@@ -249,7 +241,7 @@ function renderContents(contents) {
                         <div class="file-type">${fileType}</div>
                     </div>
                 </div>`;
-            downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
+            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -455,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 开始更新检查
     function startUpdateCheck() {
-        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新一���
+        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新一
     }
 
     // 加载所有内容
@@ -677,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || '更新内容失败');
+            throw new Error(errorData.error || '更新内容���败');
         }
         
         return await response.json();

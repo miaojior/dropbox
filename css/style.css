@@ -885,13 +885,13 @@ code {
 
 /* 文件卡片深色模式样式 */
 [data-theme="dark"] .file {
-    background-color: var(--file-bg);
+    background: var(--file-bg);
     border-color: var(--file-border);
 }
 
 [data-theme="dark"] .file:hover {
-    background-color: var(--btn-hover);
-    border-color: #3498db;
+    background: var(--btn-hover);
+    border-color: var(--border-color);
 }
 
 /* 模态框深色模式样式 */
@@ -982,4 +982,33 @@ code {
 
 [data-theme="dark"] #editImage:hover {
     border-color: #3498db;
+}
+
+/* 卡片样式深色模式适配 */
+[data-theme="dark"] .text-block {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px var(--card-shadow);
+}
+
+[data-theme="dark"] .text-block:hover {
+    box-shadow: 0 4px 8px var(--card-shadow);
+}
+
+[data-theme="dark"] .text-block h2 {
+    color: var(--heading-color);
+}
+
+[data-theme="dark"] .text-block-actions {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .file {
+    background: var(--file-bg);
+    border-color: var(--file-border);
+}
+
+[data-theme="dark"] .file:hover {
+    background: var(--btn-hover);
+    border-color: var(--border-color);
 }
