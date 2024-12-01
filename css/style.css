@@ -703,7 +703,7 @@ code {
 
 /* PowerPoint文件图标 */
 .file-icon.powerpoint {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d24726' d='M19 3H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 6c0-.55.45-1 1-1h2V7h-3V6h3c.55 0 1 .45 1 1v1c0 .55-.45 1-1 1h-2v1h3v1h-4V9zm-3-3h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1V7c0-.55.45-1 1-1zm-.5 4.5h1v-3h-1v3zM5 7h2c.55 0 1 .45 1 1v1c0 .55-.45 1-1 1H6v2H5V7zm1.5 2h.5V8h-.5v1z'/%3E%3Cpath fill='%23d24726' d='M15 15H5v1h10v-1zm4 0h-3v1h3v-1zm-4 2H5v1h10v-1zm4 0h-3v1h3v-1z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='%23d24726' x='2' y='2' width='20' height='20' rx='4'/%3E%3Cpath fill='white' d='M8 17V7h5c1.1 0 2 .9 2 2v2.5c0 1.1-.9 2-2 2H9.5v3.5H8zm1.5-5h3c.3 0 .5-.2.5-.5v-2c0-.3-.2-.5-.5-.5h-3v3z'/%3E%3C/svg%3E");
 }
 
 /* 代码文件图标 */
