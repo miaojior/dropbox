@@ -129,6 +129,7 @@ code {
     gap: 6px;
     color: white;
     margin: 0 4px;
+    background-color: #3498db;
 }
 
 .btn:hover {
@@ -143,23 +144,23 @@ code {
 
 /* 按钮变体 */
 .btn-primary {
-    background-color: #3498db;
+    background-color: #3498db !important;
 }
 
 .btn-copy {
-    background-color: #9b59b6;
+    background-color: #9b59b6 !important;
 }
 
 .btn-edit {
-    background-color: #2ecc71;
+    background-color: #2ecc71 !important;
 }
 
 .btn-delete {
-    background-color: #e74c3c;
+    background-color: #e74c3c !important;
 }
 
 .btn-cancel {
-    background-color: #95a5a6;
+    background-color: #95a5a6 !important;
 }
 
 /* 提示框样式 */
