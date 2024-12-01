@@ -296,7 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleImagePreview(event) {
         const file = event.target.files[0];
         if (file) {
-            document.getElementById('editTitle').value = file.name;
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const preview = document.getElementById('imagePreview');
@@ -310,7 +313,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleFileSelect(event) {
         const file = event.target.files[0];
         if (file) {
-            document.getElementById('editTitle').value = file.name;
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
+            
+            // 更新文件信息显示
             const fileInfo = document.querySelector('.file-info');
             const fileIcon = getFileIcon(file.type);
             fileInfo.innerHTML = `
@@ -434,6 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!imageFile && existingContent) {
                     content = existingContent;
                 } else if (imageFile) {
+                    // 确保设置标题
+                    if (!title) {
+                        document.getElementById('editTitle').value = imageFile.name;
+                    }
+                    
                     const formData = new FormData();
                     formData.append('image', imageFile);
                     
@@ -443,7 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     
                     if (!uploadResponse.ok) {
-                        throw new Error('图片上传失败');
+                        const errorData = await uploadResponse.json();
+                        throw new Error(errorData.error || '图片上传失败');
                     }
                     
                     const { url } = await uploadResponse.json();
@@ -458,6 +471,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!file && existingContent) {
                     content = existingContent;
                 } else if (file) {
+                    // 确保设置标题
+                    if (!title) {
+                        document.getElementById('editTitle').value = file.name;
+                    }
+                    
                     const formData = new FormData();
                     formData.append('file', file);
                     
@@ -480,11 +498,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 content = document.getElementById('editContent').value;
             }
 
-            if (!type || !title || !content) {
+            // 重新获取标题，因为可能在上传过程中被设置
+            const finalTitle = document.getElementById('editTitle').value;
+            
+            if (!type || !finalTitle || !content) {
                 throw new Error('请填写所有必要字段');
             }
             
-            const formData = { type, title, content };
+            const formData = { type, title: finalTitle, content };
             
             if (currentEditId) {
                 await updateContent(currentEditId, formData);
