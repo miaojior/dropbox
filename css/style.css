@@ -1,3 +1,81 @@
+/* 按钮基础样式 - 移到文件前面以确保优先加载 */
+.btn,
+button[type="submit"],
+.btn-add,
+.add-new-btn,
+.add-new-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    min-width: 4rem;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+/* 主要按钮样式 */
+.btn-primary,
+button[type="submit"],
+.btn-save,
+.add-new-content {
+    background-color: #333333 !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 功能按钮样式 */
+.btn-copy {
+    background-color: #9333ea !important;
+}
+
+.btn-download {
+    background-color: #0284c7 !important;
+}
+
+.btn-edit {
+    background-color: #059669 !important;
+}
+
+.btn-delete {
+    background-color: #dc2626 !important;
+}
+
+/* 次要按钮样式 */
+.btn-secondary,
+.btn-cancel {
+    background-color: #6b7280 !important;
+}
+
+/* 按钮悬停效果 */
+.btn:hover,
+.btn-primary:hover,
+button[type="submit"]:hover,
+.btn-save:hover,
+.add-new-content:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* 按钮激活状态 */
+.btn:active {
+    transform: translateY(0);
+}
+
+/* 按钮禁用状态 */
+.btn:disabled {
+    background-color: #bdc3c7 !important;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* 基础样式重置 */
 * {
     margin: 0;
@@ -189,99 +267,6 @@ code {
     .poetry {
         font-size: 1.1rem;
     }
-}
-
-/* 按钮基础样式 */
-.btn,
-button[type="submit"],
-.btn-add,
-.add-new-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 4rem;
-    color: white;
-}
-
-/* 主��操作按钮 */
-.btn-primary,
-button[type="submit"],
-.btn-save,
-.add-new-content {
-    background-color: #333333;
-    color: white;
-    font-weight: 600;
-    padding: 0.625rem 1.25rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btn-primary:hover,
-button[type="submit"]:hover,
-.btn-save:hover,
-.add-new-content:hover {
-    background-color: #1a1a1a;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-}
-
-/* 功能按钮 */
-.btn-copy {
-    background-color: #9333ea;
-}
-
-.btn-download {
-    background-color: #0284c7;
-}
-
-.btn-edit {
-    background-color: #059669;
-}
-
-.btn-delete {
-    background-color: #dc2626;
-}
-
-/* 次要按钮 */
-.btn-secondary,
-.btn-cancel {
-    background-color: #6b7280;
-}
-
-.btn-secondary:hover,
-.btn-cancel:hover {
-    background-color: #4b5563;
-}
-
-/* 按钮悬停效果 */
-.btn:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.1);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
-/* 添加新内容按钮特殊样式 */
-.add-new-content {
-    background-color: #333333 !important;
-    color: white !important;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.add-new-content:hover {
-    background-color: #1a1a1a !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* 提示框样式 */
@@ -1510,7 +1495,7 @@ select {
     animation: pulse 2s infinite;
 }
 
-/* 加载��画 */
+/* 加载动画 */
 @keyframes spin {
     0% {
         transform: rotate(0deg);
