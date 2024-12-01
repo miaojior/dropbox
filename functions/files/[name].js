@@ -6,9 +6,13 @@ export async function onRequestGet({ request, env, params }) {
 
         const filename = params.name;
         console.log('Requesting file:', filename);
-        
-        // 直接从KV获取文件内容和元数据
-        const { value: fileData, metadata } = await env.FILES.getWithMetadata(filename, 'arrayBuffer');
+
+        // 先获取元数据
+        const { metadata } = await env.FILES.getWithMetadata(filename);
+        console.log('Metadata:', metadata);
+
+        // 直接获取文件内容
+        const fileData = await env.FILES.get(filename, { type: 'stream' });
         
         if (!fileData) {
             console.log('File not found:', filename);
@@ -25,22 +29,22 @@ export async function onRequestGet({ request, env, params }) {
         console.log('File found:', {
             contentType: metadata?.contentType,
             originalName: metadata?.originalName,
-            size: metadata?.size || fileData.byteLength
+            size: metadata?.size
         });
 
-        // 返回文件内容
+        // 返回文件流
         return new Response(fileData, {
             headers: {
                 'Content-Type': metadata?.contentType || 'application/octet-stream',
                 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(metadata?.originalName || filename)}`,
-                'Content-Length': (metadata?.size || fileData.byteLength).toString(),
                 'Access-Control-Allow-Origin': '*',
                 'Cache-Control': 'no-store, no-cache, must-revalidate',
-                'Pragma': 'no-cache'
+                'Transfer-Encoding': 'chunked'
             }
         });
     } catch (error) {
         console.error('Get file error:', error);
+        console.error('Error stack:', error.stack);
         return new Response('Error fetching file: ' + error.message, { 
             status: 500,
             headers: {
