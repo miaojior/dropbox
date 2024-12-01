@@ -200,6 +200,25 @@ function getFileIconUrl(filename) {
     return `https://cdn.jsdelivr.net/gh/PKief/vscode-material-icon-theme@main/icons/${ext}.svg`;
 }
 
+// 下载文件函数
+async function downloadFile(url, filename) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(a);
+    } catch (error) {
+        console.error('下载失败:', error);
+        showToast('下载失败，请稍后重试', 'error');
+    }
+}
+
 // 渲染内容函数
 function renderContents(contents) {
     if (!contentContainer) {
@@ -218,7 +237,7 @@ function renderContents(contents) {
         
         if (content.type === 'image') {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
-            downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
+            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
         } else if (content.type === 'file') {
             const fileIcon = getFileIcon(content.title);
             const fileType = getFileTypeDescription(content.title);
@@ -230,7 +249,7 @@ function renderContents(contents) {
                         <div class="file-type">${fileType}</div>
                     </div>
                 </div>`;
-            downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
+            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
