@@ -7,10 +7,10 @@ export async function onRequestGet({ request, env, params }) {
         const filename = params.name;
         console.log('Requesting file:', filename);
         
-        // 获取文件元数据
-        const { value, metadata } = await env.FILES.getWithMetadata(filename);
+        // 直接从KV获取文件内容和元数据
+        const { value: fileData, metadata } = await env.FILES.getWithMetadata(filename, 'arrayBuffer');
         
-        if (!value) {
+        if (!fileData) {
             console.log('File not found:', filename);
             return new Response('File not found', { 
                 status: 404,
@@ -25,17 +25,18 @@ export async function onRequestGet({ request, env, params }) {
         console.log('File found:', {
             contentType: metadata?.contentType,
             originalName: metadata?.originalName,
-            size: metadata?.size
+            size: metadata?.size || fileData.byteLength
         });
 
-        // 直接返回KV中的原始数据
-        return new Response(value, {
+        // 返回文件内容
+        return new Response(fileData, {
             headers: {
                 'Content-Type': metadata?.contentType || 'application/octet-stream',
                 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(metadata?.originalName || filename)}`,
-                'Content-Length': metadata?.size?.toString() || '0',
+                'Content-Length': (metadata?.size || fileData.byteLength).toString(),
                 'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+                'Pragma': 'no-cache'
             }
         });
     } catch (error) {
