@@ -220,11 +220,11 @@ function renderContents(contents) {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'file') {
-            const iconUrl = getFileIconUrl(content.title);
+            const fileIcon = getFileIcon(content.title);
             const fileType = getFileTypeDescription(content.title);
             contentHtml = `
                 <div class="file">
-                    <img class="file-icon" src="${iconUrl}" onerror="this.src='https://cdn.jsdelivr.net/gh/PKief/vscode-material-icon-theme@main/icons/file.svg'" alt="${fileType}">
+                    <i class="file-icon ${fileIcon}"></i>
                     <div class="file-details">
                         <div class="file-name">${content.title}</div>
                         <div class="file-type">${fileType}</div>
