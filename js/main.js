@@ -33,7 +33,7 @@ async function getSyncInterval() {
 
 // 工具函数
 function getFileIcon(filename) {
-    // 获取文件扩展名
+    // ���取文件扩展名
     const ext = filename.toLowerCase().split('.').pop();
     
     // Markdown文件
@@ -528,19 +528,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     await getSyncInterval();
     
     contentContainer = document.getElementById('content-container');
-    
-    // 显示初始空状态
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('editForm');
+    const addNewBtn = document.getElementById('addNewBtn');
+    const editImage = document.getElementById('editImage');
+
+    // 立即显示初始空状态
     renderContents([]);
     
     // 初始化
-    loadContents(true);
+    await loadContents(true);
     setupEventListeners();
     startUpdateCheck();
 
     // 设置事件监听器
     function setupEventListeners() {
         if (addNewBtn) {
-            addNewBtn.className = 'btn add-new-content';
             addNewBtn.addEventListener('click', () => openModal());
         }
         editForm.addEventListener('submit', handleFormSubmit);
@@ -637,7 +640,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 检测文本是否为代码
+    // 检��文本是否为代码
     function detectCodeContent(text) {
         // 代码特征检测规则
         const codePatterns = [
