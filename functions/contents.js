@@ -1,7 +1,7 @@
 export async function onRequestGet({ request, env }) {
   try {
     const { results } = await env.DB.prepare(
-      'SELECT id, type, title, content, file_type, file_size FROM content_blocks ORDER BY id DESC'
+      'SELECT id, type, title, content FROM content_blocks ORDER BY id DESC'
     ).all();
     
     return new Response(JSON.stringify(results), {
@@ -37,8 +37,8 @@ export async function onRequestPost({ request, env }) {
     }
 
     const { success } = await env.DB.prepare(
-      'INSERT INTO content_blocks (type, title, content, file_type, file_size) VALUES (?, ?, ?, ?, ?)'
-    ).bind(type, title, content, fileType || null, fileSize || null).run();
+      'INSERT INTO content_blocks (type, title, content) VALUES (?, ?, ?)'
+    ).bind(type, title, content).run();
 
     if (!success) {
       throw new Error('创建内容失败');
@@ -47,9 +47,7 @@ export async function onRequestPost({ request, env }) {
     return new Response(JSON.stringify({ 
       type, 
       title, 
-      content,
-      fileType,
-      fileSize
+      content
     }), {
       headers: { 
         'Content-Type': 'application/json',

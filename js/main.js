@@ -121,14 +121,12 @@ function renderContents(contents) {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'file') {
-            const fileIcon = getFileIcon(content.fileType || 'application/octet-stream');
+            const fileIcon = getFileIcon('application/octet-stream');
             contentHtml = `
                 <div class="file">
                     <i class="file-icon ${fileIcon}"></i>
                     <div class="file-details">
                         <div class="file-name">${content.title}</div>
-                        <div class="file-type">${getFileTypeDescription(content.fileType || 'application/octet-stream')}</div>
-                        ${content.fileSize ? `<div class="file-size">${formatFileSize(content.fileSize)}</div>` : ''}
                     </div>
                 </div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
@@ -433,8 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = document.getElementById('editType').value;
             const title = document.getElementById('editTitle').value;
             let content = '';
-            let fileType = '';
-            let fileSize = 0;
             
             if (type === 'image') {
                 const imageFile = document.getElementById('editImage').files[0];
@@ -481,8 +477,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const { url } = await uploadResponse.json();
                     content = url;
-                    fileType = file.type;
-                    fileSize = file.size;
                 } else {
                     throw new Error('请选择文件');
                 }
@@ -490,13 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 content = document.getElementById('editContent').value;
             }
             
-            const formData = { 
-                type, 
-                title, 
-                content,
-                fileType,
-                fileSize
-            };
+            const formData = { type, title, content };
             
             if (currentEditId) {
                 await updateContent(currentEditId, formData);
