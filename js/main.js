@@ -5,31 +5,6 @@ const FILES_API_URL = '/files';
 const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
 
-// 加载动画控制
-const initialLoading = document.getElementById('initialLoading');
-
-// 显示加载动画函数
-window.showLoading = () => {
-    initialLoading.style.display = 'flex';
-    // 强制重排以触发过渡动画
-    initialLoading.offsetHeight;
-    initialLoading.style.opacity = '1';
-};
-
-// 隐藏加载动画函数
-window.hideLoading = () => {
-    initialLoading.style.opacity = '0';
-    setTimeout(() => {
-        initialLoading.style.display = 'none';
-    }, 300); // 等待过渡动画完成
-};
-
-// 确保所有资源加载完成后移除加载动画
-window.addEventListener('load', () => {
-    hideLoading();
-    document.body.classList.add('loaded');
-});
-
 // 全局变量
 let currentEditId = null;
 let lastUpdateTime = Date.now();
@@ -729,10 +704,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 加载有内容
     async function loadContents(showLoading = true) {
         try {
-            if (showLoading) {
-                showLoadingState();
-            }
-            
             const response = await fetch(API_BASE_URL, {
                 headers: {
                     'Accept': 'application/json'
@@ -756,24 +727,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (showLoading) {
                 showError(`加载内容失败: ${error.message}`);
             }
-        } finally {
-            if (showLoading) {
-                hideLoadingState();
-            }
-        }
-    }
-
-    // 显示加载状态
-    function showLoadingState() {
-        if (window.showLoading) {
-            window.showLoading();
-        }
-    }
-
-    // 隐藏加载状态
-    function hideLoadingState() {
-        if (window.hideLoading) {
-            window.hideLoading();
         }
     }
 
