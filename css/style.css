@@ -203,6 +203,7 @@ code {
     align-items: center;
     justify-content: center;
     min-width: 4rem;
+    color: white;
 }
 
 .btn:hover {
@@ -214,29 +215,67 @@ code {
     transform: translateY(0);
 }
 
-/* 按钮变体 */
-.btn-primary {
-    background-color: #3498db !important;
+/* 主要操作按钮 */
+.btn-primary,
+button[type="submit"],
+.btn-save,
+.btn-add {
+    background-color: #2563eb;
+    color: white;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
 }
 
-.btn-copy {
-    background-color: #9b59b6 !important;
+.btn-primary:hover,
+button[type="submit"]:hover,
+.btn-save:hover,
+.btn-add:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
 }
 
-.btn-edit {
-    background-color: #2ecc71 !important;
-}
-
-.btn-delete {
-    background-color: #e74c3c !important;
-}
-
+/* 次要按钮 */
+.btn-secondary,
 .btn-cancel {
-    background-color: #95a5a6 !important;
+    background-color: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover,
+.btn-cancel:hover {
+    background-color: #4b5563;
+}
+
+/* 功能按钮 */
+.btn-copy {
+    background-color: #9333ea;
 }
 
 .btn-download {
-    background-color: #f39c12 !important;
+    background-color: #0284c7;
+}
+
+.btn-edit {
+    background-color: #059669;
+}
+
+.btn-delete {
+    background-color: #dc2626;
+}
+
+/* 添加新内容按钮特殊样式 */
+.add-new-btn {
+    background-color: #2563eb;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.add-new-btn:hover {
+    background-color: #1d4ed8;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
 }
 
 /* 提示框样式 */
@@ -1169,6 +1208,7 @@ code {
     align-items: center;
     justify-content: center;
     min-width: 4rem;
+    color: white;
 }
 
 .btn-copy {
