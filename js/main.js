@@ -203,21 +203,46 @@ function getFileIconUrl(filename) {
 // 下载文件函数
 async function downloadFile(url, filename) {
     try {
-        const response = await fetch(url);
-        const contentType = response.headers.get('content-type');
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
+        // 获取文件扩展名
+        const ext = filename.toLowerCase().split('.').pop();
         
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(blobUrl);
+        // 图片文件使用fetch下载
+        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(blobUrl);
+        } else {
+            // 其他文件类型，使用iframe下载
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            // 创建一个表单并提交
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = url;
+            iframe.contentDocument.body.appendChild(form);
+            form.submit();
+            
+            // 延迟移除iframe
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 2000);
+            
+            showToast('开始下载文件...');
+        }
     } catch (error) {
         console.error('下载失败:', error);
-        // 如果fetch失败，尝试直接打开链接
+        showToast('下载失败，正在尝试直接打开...', 'error');
+        // 如果上述方法都失败，尝试直接打开
         window.open(url, '_blank');
     }
 }

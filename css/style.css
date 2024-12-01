@@ -41,9 +41,10 @@
     --file-border: #404040;
     --file-text: #e0e0e0;
     --file-subtext: #a0a0a0;
-    --code-bg: #2d2d2d;
+    --code-bg: #1e1e1e;
+    --code-block-bg: #1e1e1e;
+    --code-border: #2d2d2d;
     --code-text: #e0e0e0;
-    --code-border: #404040;
     --code-comment: #6a9955;
     --code-string: #ce9178;
     --code-number: #b5cea8;
@@ -139,16 +140,16 @@ h2 {
 
 /* 代码样式 */
 pre {
-    background: var(--code-bg);
-    border-radius: 4px;
+    margin: 0;
     padding: 1rem;
+    border-radius: 4px;
     overflow-x: auto;
-    color: var(--text-color);
 }
 
 code {
     font-family: var(--font-mono);
     font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 /* 普通文本样式 */
@@ -853,7 +854,7 @@ code {
     opacity: 0.9;
 }
 
-/* 按钮样式适配深色模式 */
+/* ��钮样式适配��色模式 */
 [data-theme="dark"] .btn {
     background-color: var(--btn-bg);
     color: var(--btn-text);
@@ -1011,11 +1012,26 @@ code {
 }
 
 /* 代码区域深色模式样式 */
-[data-theme="dark"] pre,
-[data-theme="dark"] code {
-    background-color: var(--code-bg);
+[data-theme="dark"] pre {
+    background-color: var(--code-block-bg);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] pre code {
+    background-color: transparent;
     color: var(--code-text);
+    border: none;
+}
+
+[data-theme="dark"] .text-block pre {
+    background-color: var(--code-block-bg);
     border: 1px solid var(--code-border);
+}
+
+/* 确保代码块内的所有元素背景色一致 */
+[data-theme="dark"] pre * {
+    background-color: transparent !important;
 }
 
 [data-theme="dark"] .language-javascript {
