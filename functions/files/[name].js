@@ -1,17 +1,16 @@
 export async function onRequestGet({ request, env, params }) {
     try {
-        if (!env.FILES) {
-            throw new Error('FILES binding not found');
+        if (!env.FILES || !env.CLOUDFLARE_API_TOKEN) {
+            throw new Error('Required environment variables not found');
         }
 
         const filename = params.name;
         console.log('Requesting file:', filename);
 
-        // 获取文件内容（使用arrayBuffer）
-        const fileData = await env.FILES.get(filename, { type: 'arrayBuffer' });
-        
-        if (!fileData) {
-            console.log('File not found:', filename);
+        // 获取元数据
+        const { metadata } = await env.FILES.getWithMetadata(filename);
+        if (!metadata) {
+            console.log('File metadata not found:', filename);
             return new Response('File not found', { 
                 status: 404,
                 headers: {
@@ -21,8 +20,23 @@ export async function onRequestGet({ request, env, params }) {
             });
         }
 
-        // 获取元数据
-        const { metadata } = await env.FILES.getWithMetadata(filename);
+        // 构建 Cloudflare API 请求
+        const response = await fetch(
+            `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/storage/kv/namespaces/${env.KV_NAMESPACE_ID}/values/${filename}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+        }
+
+        // 获取文件内容
+        const fileData = await response.arrayBuffer();
 
         // 打印调试信息
         console.log('File found:', {
