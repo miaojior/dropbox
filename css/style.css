@@ -34,6 +34,8 @@
     --text-color: #e0e0e0;
     --grid-color: rgba(255, 255, 255, 0.1);
     --card-bg: #2d2d2d;
+    --card-inner-bg: #1e1e1e;
+    --card-border: #404040;
     --card-shadow: rgba(0, 0, 0, 0.3);
     --heading-color: #ffffff;
     --border-color: #404040;
@@ -789,7 +791,7 @@ code {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%233498db' d='M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z'/%3E%3C/svg%3E");
 }
 
-/* 压缩文件图标 */
+/* 压缩文件���标 */
 .file-icon.archive {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffa000' d='M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z'/%3E%3C/svg%3E");
 }
@@ -854,7 +856,7 @@ code {
     opacity: 0.9;
 }
 
-/* ��钮样式适配��色模式 */
+/* 按钮样式适配深色模式 */
 [data-theme="dark"] .btn {
     background-color: var(--btn-bg);
     color: var(--btn-text);
@@ -985,30 +987,38 @@ code {
 /* 卡片样式深色模式适配 */
 [data-theme="dark"] .text-block {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     box-shadow: 0 2px 4px var(--card-shadow);
 }
 
-[data-theme="dark"] .text-block:hover {
-    box-shadow: 0 4px 8px var(--card-shadow);
+[data-theme="dark"] .text-block > div {
+    background: var(--card-inner-bg);
+    border-radius: 4px;
 }
 
-[data-theme="dark"] .text-block h2 {
-    color: var(--heading-color);
+[data-theme="dark"] .text-block pre {
+    background: var(--card-inner-bg);
+    margin: 0;
+    border: none;
+}
+
+[data-theme="dark"] .text-block .code {
+    background: var(--card-inner-bg);
+    padding: 0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .text-block code {
+    background: transparent;
+    color: var(--code-text);
 }
 
 [data-theme="dark"] .text-block-actions {
-    border-top-color: var(--border-color);
-}
-
-[data-theme="dark"] .file {
-    background: var(--file-bg);
-    border-color: var(--file-border);
-}
-
-[data-theme="dark"] .file:hover {
-    background: var(--btn-hover);
-    border-color: var(--border-color);
+    background: var(--card-bg) !important;
+    border-top: 1px solid var(--card-border);
+    margin-top: 1rem;
+    padding-top: 1rem;
 }
 
 /* 代码区域深色模式样式 */
