@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [],
+  "functions": {
+    "/api/contents": {
+      "function": "contents",
+      "method": ["GET", "POST", "OPTIONS"]
+    },
+    "/api/contents/*": {
+      "function": "contents/[id]",
+      "method": ["GET", "PUT", "DELETE", "OPTIONS"]
+    }
+  }
+} 

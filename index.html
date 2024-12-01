@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优雅的文本展示</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>优雅的文本展示</h1>
+            <button id="addNewBtn" class="btn">添加新内容</button>
+        </header>
+        
+        <main id="content-container">
+            <!-- 内容将通过JavaScript动态加载 -->
+        </main>
+
+        <!-- 编辑模态框 -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <h2>编辑内容</h2>
+                <form id="editForm">
+                    <input type="hidden" id="editId">
+                    <div class="form-group">
+                        <label for="editType">类型：</label>
+                        <select id="editType" required>
+                            <option value="poetry">诗歌</option>
+                            <option value="code">代码</option>
+                            <option value="prose">普通文本</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTitle">标题：</label>
+                        <input type="text" id="editTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editContent">内容：</label>
+                        <textarea id="editContent" required></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn">保存</button>
+                        <button type="button" class="btn btn-cancel" onclick="closeModal()">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 
