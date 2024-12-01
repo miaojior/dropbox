@@ -62,62 +62,6 @@
                 </form>
             </div>
         </div>
-
-        <!-- 音乐播放器 -->
-        <div class="song-player">
-            <button class="collapse-btn" onclick="toggleCollapse()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M7 10l5 5 5-5H7z"/>
-                </svg>
-            </button>
-            <div class="player-container">
-                <div class="cover">
-                    <img src="https://p2.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg" alt="封面">
-                </div>
-                <div class="info">
-                    <h3 class="title">正在加载...</h3>
-                    <p class="artist">未知歌手</p>
-                    <div class="controls">
-                        <div class="main-controls">
-                            <button onclick="previousTrack()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-                                </svg>
-                            </button>
-                            <button onclick="togglePlay()" id="playPauseBtn">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M8 5v14l11-7z"/>
-                                </svg>
-                            </button>
-                            <button onclick="nextTrack()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar" style="width: 0%"></div>
-                        </div>
-                        <div class="control-buttons">
-                            <button onclick="toggleLyrics()" id="lyricsBtn" title="歌词">
-                                <span style="font-size: 12px; font-weight: bold;">词</span>
-                            </button>
-                            <button onclick="togglePlaylist()" id="playlistBtn" title="播放列表">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="lyrics-container">
-                <div class="lyrics-content"></div>
-            </div>
-            <div class="playlist-panel">
-                <div class="playlist-content"></div>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
