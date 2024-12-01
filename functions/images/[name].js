@@ -5,24 +5,40 @@ export async function onRequestGet({ request, env, params }) {
         }
 
         const filename = params.name;
+        console.log('Requesting image:', filename);
         
         // 从KV存储获取图片
-        const imageData = await env.IMAGES.getWithMetadata(filename);
-        if (!imageData.value) {
-            return new Response('Image not found', { status: 404 });
+        const image = await env.IMAGES.get(filename, { type: 'arrayBuffer' });
+        const metadata = await env.IMAGES.getWithMetadata(filename);
+        
+        if (!image) {
+            console.log('Image not found:', filename);
+            return new Response('Image not found', { 
+                status: 404,
+                headers: {
+                    'Content-Type': 'text/plain',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
         }
 
         // 返回图片，设置正确的Content-Type
-        return new Response(imageData.value, {
+        return new Response(image, {
             headers: {
-                'Content-Type': imageData.metadata?.contentType || 'image/jpeg',
+                'Content-Type': metadata.metadata?.contentType || 'image/jpeg',
                 'Cache-Control': 'public, max-age=31536000',
                 'Access-Control-Allow-Origin': '*'
             }
         });
     } catch (error) {
         console.error('Get image error:', error);
-        return new Response('Error fetching image', { status: 500 });
+        return new Response('Error fetching image: ' + error.message, { 
+            status: 500,
+            headers: {
+                'Content-Type': 'text/plain',
+                'Access-Control-Allow-Origin': '*'
+            }
+        });
     }
 }
 

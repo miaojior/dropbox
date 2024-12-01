@@ -14,25 +14,32 @@ export async function onRequestPost({ request, env }) {
         // 生成唯一的文件名
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 15);
-        const extension = imageFile.name.split('.').pop();
+        const extension = imageFile.name.split('.').pop().toLowerCase();
         const filename = `${timestamp}-${randomString}.${extension}`;
 
         // 将图片保存到KV存储
-        await env.IMAGES.put(filename, await imageFile.arrayBuffer(), {
+        const arrayBuffer = await imageFile.arrayBuffer();
+        await env.IMAGES.put(filename, arrayBuffer, {
             metadata: {
                 contentType: imageFile.type,
-                filename: imageFile.name
+                filename: imageFile.name,
+                size: arrayBuffer.byteLength
             }
         });
 
-        // 获取当前域名
-        const url = new URL(request.url);
-        const baseUrl = `${url.protocol}//${url.host}`;
+        console.log('Image saved:', filename, 'Size:', arrayBuffer.byteLength, 'Type:', imageFile.type);
 
         // 返回完整的图片URL
+        const url = new URL(request.url);
+        const baseUrl = `${url.protocol}//${url.host}`;
+        const imageUrl = `${baseUrl}/images/${filename}`;
+
         return new Response(
             JSON.stringify({
-                url: `${baseUrl}/images/${filename}`
+                url: imageUrl,
+                filename: filename,
+                size: arrayBuffer.byteLength,
+                type: imageFile.type
             }), {
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,7 +96,7 @@ export async function onRequestOptions() {
     return new Response(null, {
         headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type',
             'Access-Control-Max-Age': '86400',
         },
