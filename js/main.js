@@ -344,6 +344,7 @@ window.handleTypeChange = function(type) {
     const editFile = document.getElementById('editFile');
     const titleInput = document.getElementById('editTitle');
     const titleGroup = document.getElementById('titleGroup');
+    const fileInfo = document.querySelector('.file-info');
 
     contentGroup.style.display = 'none';
     imageGroup.style.display = 'none';
@@ -362,8 +363,18 @@ window.handleTypeChange = function(type) {
     } else if (type === 'file') {
         fileGroup.style.display = 'block';
         editFile.required = true;
-        titleGroup.style.display = 'none';
-        titleInput.required = false;
+        
+        // 如果没有选择文件，显示默认的文件信息
+        if (!editFile.files || !editFile.files[0]) {
+            fileInfo.innerHTML = `
+                <div class="file-preview">
+                    <i class="file-icon generic"></i>
+                    <div class="file-details">
+                        <div class="file-type">支持所有类型的文件</div>
+                    </div>
+                </div>
+            `;
+        }
     } else {
         contentGroup.style.display = 'block';
         editContent.required = true;
@@ -568,14 +579,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 处理文件选择和标题
-    function handleFileSelect(event) {
+    window.handleFileSelect = function(event) {
         const file = event.target.files[0];
         if (file) {
             // 立即设置标题
             const titleInput = document.getElementById('editTitle');
             titleInput.value = file.name;
             
-            // 更新文件信息显示
+            // 使用统一的文件信息显示函数
             updateFileInfo(file);
         }
     }
