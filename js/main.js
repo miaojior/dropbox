@@ -203,47 +203,25 @@ function getFileIconUrl(filename) {
 // 下载文件函数
 async function downloadFile(url, filename) {
     try {
-        // 获取文件扩展名
-        const ext = filename.toLowerCase().split('.').pop();
+        showToast('开始下载...');
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('下载失败');
         
-        // 图片文件使用fetch下载
-        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(blobUrl);
-        } else {
-            // 其他文件类型，使用iframe下载
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            // 创建一个表单并提交
-            const form = document.createElement('form');
-            form.method = 'GET';
-            form.action = url;
-            iframe.contentDocument.body.appendChild(form);
-            form.submit();
-            
-            // 延迟移除iframe
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-            }, 2000);
-            
-            showToast('开始下载文件...');
-        }
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+        
+        showToast('下载成功！');
     } catch (error) {
         console.error('下载失败:', error);
-        showToast('下载失败，正在尝试直接打开...', 'error');
-        // 如果上述方法都失败，尝试直接打开
-        window.open(url, '_blank');
+        showToast('下载失败，请重试', 'error');
     }
 }
 
@@ -263,20 +241,21 @@ function renderContents(contents) {
         let contentHtml = '';
         let downloadButton = '';
         
-        if (content.type === 'image') {
-            contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
-            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
-        } else if (content.type === 'file') {
-            const fileIcon = getFileIcon(content.title);
-            const fileType = getFileTypeDescription(content.title);
-            contentHtml = `
-                <div class="file">
-                    <i class="file-icon ${fileIcon}"></i>
-                    <div class="file-details">
-                        <div class="file-name">${content.title}</div>
-                        <div class="file-type">${fileType}</div>
-                    </div>
-                </div>`;
+        if (content.type === 'image' || content.type === 'file') {
+            if (content.type === 'image') {
+                contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
+            } else {
+                const fileIcon = getFileIcon(content.title);
+                const fileType = getFileTypeDescription(content.title);
+                contentHtml = `
+                    <div class="file">
+                        <i class="file-icon ${fileIcon}"></i>
+                        <div class="file-details">
+                            <div class="file-name">${content.title}</div>
+                            <div class="file-type">${fileType}</div>
+                        </div>
+                    </div>`;
+            }
             downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
