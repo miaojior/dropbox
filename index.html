@@ -26,19 +26,25 @@
                     <input type="hidden" id="editId">
                     <div class="form-group">
                         <label for="editType">类型：</label>
-                        <select id="editType" required>
+                        <select id="editType" required onchange="handleTypeChange(this.value)">
                             <option value="poetry">诗歌</option>
                             <option value="code">代码</option>
                             <option value="prose">普通文本</option>
+                            <option value="image">图片</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="editTitle">标题：</label>
                         <input type="text" id="editTitle" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="contentGroup">
                         <label for="editContent">内容：</label>
                         <textarea id="editContent" required></textarea>
+                    </div>
+                    <div class="form-group" id="imageGroup" style="display: none;">
+                        <label for="editImage">图片：</label>
+                        <input type="file" id="editImage" accept="image/*">
+                        <div id="imagePreview" class="image-preview"></div>
                     </div>
                     <div class="form-buttons">
                         <button type="submit" class="btn">保存</button>

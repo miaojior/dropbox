@@ -10,6 +10,14 @@
     "/contents/*": {
       "function": "contents/[id]",
       "method": ["GET", "PUT", "DELETE", "OPTIONS"]
+    },
+    "/images": {
+      "function": "images",
+      "method": ["POST", "OPTIONS"]
+    },
+    "/images/*": {
+      "function": "images",
+      "method": ["GET", "OPTIONS"]
     }
   }
 } 

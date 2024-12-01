@@ -1,11 +1,12 @@
 // API配置
 const API_BASE_URL = '/contents';
+const IMAGES_API_URL = '/images';
 
 // 全局变量
 let currentEditId = null;
 let lastUpdateTime = Date.now();
 let updateCheckInterval;
-let contentCache = []; // 添加内容缓存
+let contentCache = [];
 
 // DOM元素
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,9 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     const addNewBtn = document.getElementById('addNewBtn');
+    const editImage = document.getElementById('editImage');
 
     // 初始化
-    loadContents(true); // 首次加载显示加载状态
+    loadContents(true);
     setupEventListeners();
     startUpdateCheck();
 
@@ -23,7 +25,41 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupEventListeners() {
         addNewBtn.addEventListener('click', () => openModal());
         editForm.addEventListener('submit', handleFormSubmit);
+        editImage.addEventListener('change', handleImagePreview);
     }
+
+    // 处理图片预览
+    function handleImagePreview(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 处理类型切换
+    window.handleTypeChange = function(type) {
+        const contentGroup = document.getElementById('contentGroup');
+        const imageGroup = document.getElementById('imageGroup');
+        const editContent = document.getElementById('editContent');
+        const editImage = document.getElementById('editImage');
+
+        if (type === 'image') {
+            contentGroup.style.display = 'none';
+            imageGroup.style.display = 'block';
+            editContent.required = false;
+            editImage.required = true;
+        } else {
+            contentGroup.style.display = 'block';
+            imageGroup.style.display = 'none';
+            editContent.required = true;
+            editImage.required = false;
+        }
+    };
 
     // 开始更新检查
     function startUpdateCheck() {
@@ -114,7 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const contentDiv = document.createElement('div');
             contentDiv.className = content.type;
             
-            if (content.type === 'code') {
+            if (content.type === 'image') {
+                const img = document.createElement('img');
+                img.src = content.content;
+                img.alt = content.title;
+                contentDiv.appendChild(img);
+            } else if (content.type === 'code') {
                 const pre = document.createElement('pre');
                 const code = document.createElement('code');
                 code.className = 'language-javascript';
@@ -174,31 +215,57 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleFormSubmit(event) {
         event.preventDefault();
         
-        const formData = {
-            type: document.getElementById('editType').value,
-            title: document.getElementById('editTitle').value,
-            content: document.getElementById('editContent').value
-        };
+        const submitButton = event.submitter;
+        submitButton.disabled = true;
+        const originalText = submitButton.textContent;
+        submitButton.innerHTML = '保存中... <span class="loading-spinner"></span>';
         
         try {
-            const submitButton = event.submitter;
-            submitButton.disabled = true;
-            submitButton.textContent = '保存中...';
+            const type = document.getElementById('editType').value;
+            const title = document.getElementById('editTitle').value;
+            let content = '';
+            
+            if (type === 'image') {
+                const imageFile = document.getElementById('editImage').files[0];
+                if (!imageFile) {
+                    throw new Error('请选择图片文件');
+                }
+                
+                // 上传图片到KV存储
+                const formData = new FormData();
+                formData.append('image', imageFile);
+                
+                const uploadResponse = await fetch(IMAGES_API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('图片上传失败');
+                }
+                
+                const { url } = await uploadResponse.json();
+                content = url;
+            } else {
+                content = document.getElementById('editContent').value;
+            }
+            
+            const formData = { type, title, content };
             
             if (currentEditId) {
                 await updateContent(currentEditId, formData);
             } else {
                 await createContent(formData);
             }
+            
             closeModal();
-            await loadContents(false); // 静默更新内容
+            await loadContents(false);
         } catch (error) {
             console.error('保存失败:', error);
             alert(`保存失败: ${error.message}`);
         } finally {
-            const submitButton = event.submitter;
             submitButton.disabled = false;
-            submitButton.textContent = '保存';
+            submitButton.textContent = originalText;
         }
     }
 
