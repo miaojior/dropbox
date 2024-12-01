@@ -24,13 +24,12 @@
       "method": ["GET", "OPTIONS"]
     },
     "/files": {
-      "function": "files",
+      "function": "files/upload",
       "method": ["POST", "OPTIONS"]
     },
     "/files/*": {
-      "function": "files/[name]",
-      "method": ["GET", "OPTIONS"],
-      "no_cache": true
+      "function": "files",
+      "method": ["GET", "OPTIONS"]
     }
   }
 } 

@@ -1,90 +1,56 @@
-export async function onRequestPost({ request, env }) {
-    try {
-        if (!env.FILES) {
-            throw new Error('FILES binding not found');
+export async function onRequestGet({ request, env }) {
+  try {
+    const url = new URL(request.url);
+    const filename = url.pathname.split('/').pop();
+    console.log('Requesting file:', filename);
+    
+    // 从KV存储获取文件
+    const file = await env.FILES.get(filename, { type: 'arrayBuffer' });
+    const metadata = await env.FILES.getWithMetadata(filename);
+    
+    if (!file) {
+      console.log('File not found:', filename);
+      return new Response('文件不存在', { 
+        status: 404,
+        headers: {
+          'Content-Type': 'text/plain',
+          'Access-Control-Allow-Origin': '*'
         }
-
-        const formData = await request.formData();
-        const file = formData.get('file');
-        
-        if (!file) {
-            throw new Error('No file provided');
-        }
-
-        // 检查文件大小
-        const maxSize = 25 * 1024 * 1024; // 25MB
-        if (file.size > maxSize) {
-            throw new Error(`File size exceeds limit (25MB), current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
-        }
-
-        // 生成唯一的文件名
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(2, 15);
-        const extension = file.name.split('.').pop().toLowerCase();
-        const filename = `${timestamp}-${randomString}.${extension}`;
-
-        // 将文件转换为ArrayBuffer并保存
-        const arrayBuffer = await file.arrayBuffer();
-        await env.FILES.put(filename, arrayBuffer, {
-            metadata: {
-                contentType: file.type || 'application/octet-stream',
-                originalName: file.name,
-                size: arrayBuffer.byteLength,
-                uploadTime: new Date().toISOString()
-            }
-        });
-
-        console.log('File saved:', filename, 'Size:', arrayBuffer.byteLength, 'Type:', file.type);
-
-        // 获取当前请求的URL信息
-        const url = new URL(request.url);
-        const currentHost = url.host;
-        console.log('Current host:', currentHost);
-
-        // 返回完整的文件URL，使用当前域名
-        const fileUrl = `${url.protocol}//${currentHost}/files/${filename}`;
-
-        return new Response(
-            JSON.stringify({
-                url: fileUrl,
-                filename: filename,
-                size: arrayBuffer.byteLength,
-                type: file.type,
-                originalName: file.name
-            }), {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers': '*'
-                }
-            }
-        );
-    } catch (error) {
-        console.error('Upload error:', error);
-        return new Response(
-            JSON.stringify({
-                error: error.message
-            }), {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers': '*'
-                }
-            }
-        );
+      });
     }
+
+    // 获取原始文件名
+    const originalName = metadata?.metadata?.filename || filename;
+
+    // 返回文件
+    return new Response(file, {
+      headers: {
+        'Content-Type': metadata?.metadata?.contentType || 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${originalName}"`,
+        'Content-Length': metadata?.metadata?.size || file.byteLength,
+        'Cache-Control': 'public, max-age=31536000',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch (error) {
+    console.error('Get file error:', error);
+    return new Response('Error fetching file: ' + error.message, { 
+      status: 500,
+      headers: {
+        'Content-Type': 'text/plain',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  }
 }
 
 export async function onRequestOptions() {
-    return new Response(null, {
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': '*',
-            'Access-Control-Max-Age': '86400',
-        },
-    });
+  return new Response(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 } 
