@@ -96,14 +96,19 @@ window.deleteContent = function(id) {
             headers: {
                 'Accept': 'application/json'
             }
-        }).then(response => {
-            if (response.ok) {
-                loadContents(true);
-            } else {
-                alert('删除失败');
+        }).then(async response => {
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || '删除失败');
             }
-        }).catch(() => {
-            alert('删除失败');
+            // 从缓存中移除内容
+            contentCache = contentCache.filter(item => item.id !== id);
+            // 重新渲染内容
+            renderContents(contentCache);
+            alert('删除成功');
+        }).catch(error => {
+            console.error('删除失败:', error);
+            alert('删除失败: ' + error.message);
         });
     }
 }
@@ -158,7 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (content.type === 'poetry') {
                 contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
             } else {
-                contentHtml = `<p>${content.content}</p>`;
+                // 普通文本也使用换行
+                contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
             }
 
             // 使用Base64编码内容
