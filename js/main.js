@@ -204,24 +204,30 @@ function getFileIconUrl(filename) {
 // 下载文件函数
 async function downloadFile(url, filename) {
     try {
-        // 构造下载API的URL，传递原始文件URL作为参数
-        const downloadUrl = `${DOWNLOAD_API_URL}?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+        showToast('准备下载...');
         
-        // 创建一个隐藏的iframe来处理下载
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-        iframe.src = downloadUrl;
-
-        // 延迟移除iframe
+        // 创建一个隐藏的下载链接
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || '';  // 如果没有文件名，浏览器会使用URL中的文件名
+        link.style.display = 'none';
+        
+        // 添加到文档中并触发点击
+        document.body.appendChild(link);
+        link.click();
+        
+        // 清理DOM
         setTimeout(() => {
-            document.body.removeChild(iframe);
-        }, 2000);
-
-        showToast('开始下载...');
+            document.body.removeChild(link);
+        }, 100);
+        
+        showToast('下载已开始');
     } catch (error) {
         console.error('下载失败:', error);
-        showToast('下载失败，请重试', 'error');
+        showToast('下载失败，请右键链接另存为', 'error');
+        
+        // 如果下载失败，打开新窗口显示文件
+        window.open(url, '_blank');
     }
 }
 
@@ -256,7 +262,12 @@ function renderContents(contents) {
                         </div>
                     </div>`;
             }
-            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
+            // 添加下载按钮和备用链接
+            downloadButton = `
+                <button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>
+                <div class="download-fallback" style="display:none;">
+                    <a href="${content.content}" download="${content.title}" class="btn btn-download">备用下载</a>
+                </div>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -465,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新
     }
 
-    // 加载所有内容
+    // 加载��有内容
     async function loadContents(showLoading = true) {
         try {
             if (showLoading) {
