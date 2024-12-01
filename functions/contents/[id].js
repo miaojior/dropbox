@@ -60,15 +60,20 @@ export async function onRequestDelete({ env, params }) {
       });
     }
 
-    // 如果是图片类型，删除对应的图片文件
-    if (content.type === 'image' && content.content) {
+    // 如果是文件类型，从URL中提取文件名并删除KV中的文件
+    if (content.type === 'file' || content.type === 'image') {
       try {
-        const imageFilename = content.content.split('/').pop();
-        if (imageFilename && env.IMAGES) {
-          await env.IMAGES.delete(imageFilename);
+        const url = new URL(content.content);
+        const filename = url.pathname.split('/').pop();
+        
+        // 根据类型选择正确的KV存储
+        const storage = content.type === 'file' ? env.FILES : env.IMAGES;
+        if (storage) {
+          await storage.delete(filename);
+          console.log(`Deleted ${content.type} from KV:`, filename);
         }
-      } catch (imageError) {
-        console.error('删除图片失败:', imageError);
+      } catch (storageError) {
+        console.error(`Error deleting ${content.type} from KV:`, storageError);
       }
     }
 
