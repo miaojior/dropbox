@@ -851,18 +851,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const formData = new FormData();
                     formData.append('file', file);
                     
+                    console.log('开始上传文件:', file.name);
                     const uploadResponse = await fetch(FILES_API_URL, {
                         method: 'POST',
                         body: formData
                     });
-                    
-                    const responseData = await uploadResponse.json();
+
+                    console.log('上传响应状态:', uploadResponse.status);
+                    const responseText = await uploadResponse.text();
+                    console.log('上传响应内容:', responseText);
+
+                    let responseData;
+                    try {
+                        responseData = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('解析响应失败:', e);
+                        throw new Error('服务器响应格式错误');
+                    }
                     
                     if (!uploadResponse.ok) {
                         throw new Error(responseData.error || '文件上传失败');
                     }
                     
+                    if (!responseData.url) {
+                        console.error('响应数据:', responseData);
+                        throw new Error('上传成功但未返回文件URL');
+                    }
+
                     content = responseData.url;
+                    console.log('文件上传成功:', content);
                 } else {
                     throw new Error('请选择文件');
                 }
