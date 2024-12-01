@@ -249,7 +249,7 @@ function renderContents(contents) {
                         <div class="file-type">${fileType}</div>
                     </div>
                 </div>`;
-            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
+            downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 开始更新检查
     function startUpdateCheck() {
-        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新一次
+        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新一���
     }
 
     // 加载所有内容
