@@ -49,6 +49,15 @@ function getFileIcon(filename) {
     if (['ppt', 'pptx', 'odp', 'key'].includes(ext)) return 'powerpoint';
     if (['txt', 'log', 'ini', 'conf', 'cfg'].includes(ext)) return 'text';
     
+    // 应用程序文件
+    if (ext === 'exe') return 'windows';
+    if (ext === 'msi') return 'windows-installer';
+    if (ext === 'apk') return 'android';
+    if (ext === 'app' || ext === 'dmg') return 'macos';
+    if (ext === 'deb' || ext === 'rpm') return 'linux';
+    if (['appx', 'msix'].includes(ext)) return 'windows-store';
+    if (['ipa', 'pkg'].includes(ext)) return 'ios';
+    
     // 代码文件
     if (['js', 'ts', 'jsx', 'tsx', 'json', 'html', 'css', 'scss', 'less', 'sass', 'php', 'py', 'java', 'c', 'cpp', 'cs', 'go', 'rb', 'swift', 'kt', 'rs', 'dart', 'vue', 'sql', 'sh', 'bash', 'yml', 'yaml', 'xml'].includes(ext)) return 'code';
     
@@ -81,6 +90,18 @@ function getFileTypeDescription(filename) {
     if (['ppt', 'pptx', 'odp', 'key'].includes(ext)) return 'PowerPoint演示文稿';
     if (['txt', 'log'].includes(ext)) return '文本文件';
     if (['ini', 'conf', 'cfg'].includes(ext)) return '配置文件';
+    
+    // 应用程序文件
+    if (ext === 'exe') return 'Windows可执行程序';
+    if (ext === 'msi') return 'Windows安装程序';
+    if (ext === 'apk') return 'Android应用程序';
+    if (ext === 'app') return 'macOS应用程序';
+    if (ext === 'dmg') return 'macOS安装镜像';
+    if (ext === 'deb') return 'Debian/Ubuntu安装包';
+    if (ext === 'rpm') return 'RedHat/Fedora安装包';
+    if (['appx', 'msix'].includes(ext)) return 'Windows商店应用';
+    if (ext === 'ipa') return 'iOS应用程序';
+    if (ext === 'pkg') return 'macOS安装包';
     
     // 代码文件
     if (['js', 'ts'].includes(ext)) return 'JavaScript/TypeScript文件';
@@ -717,7 +738,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 显示加载状态
+    // 显��加载状态
     function showLoadingState() {
         contentContainer.innerHTML = '<div class="loading">加载中...</div>';
     }
