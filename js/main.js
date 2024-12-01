@@ -443,43 +443,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 处理粘贴事件
     async function handlePaste(event) {
-        event.preventDefault();
-        const items = event.clipboardData.items;
+        const items = event.clipboardData?.items;
+        if (!items) return;
         
         for (const item of items) {
+            console.log('粘贴类型:', item.type); // 调试日志
+            
             // 处理图片
-            if (item.type.startsWith('image/')) {
+            if (item.type.indexOf('image') !== -1) {
                 const file = item.getAsFile();
                 if (file) {
-                    currentEditId = null;
-                    document.getElementById('editType').value = 'image';
-                    document.getElementById('editTitle').value = `粘贴的图片_${new Date().getTime()}.png`;
+                    // 创建一个新的 FileList 对象
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
                     
+                    // 重置表单
+                    currentEditId = null;
+                    const editType = document.getElementById('editType');
+                    const editTitle = document.getElementById('editTitle');
+                    const editImage = document.getElementById('editImage');
+                    const imagePreview = document.getElementById('imagePreview');
+                    
+                    editType.value = 'image';
+                    editTitle.value = `粘贴的图片_${new Date().getTime()}.png`;
+                    editImage.files = dataTransfer.files;
+                    
+                    // 预览图片
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        const preview = document.getElementById('imagePreview');
-                        preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+                        imagePreview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
                     };
                     reader.readAsDataURL(file);
                     
                     handleTypeChange('image');
-                    document.getElementById('editImage').files = new FileList([file]);
                     document.getElementById('editModal').style.display = 'block';
                     return;
                 }
             }
             
             // 处理文件
-            if (item.type.startsWith('application/') || 
-                item.type.startsWith('text/') && item.type !== 'text/plain') {
+            else if (item.kind === 'file' && !item.type.startsWith('image/')) {
                 const file = item.getAsFile();
                 if (file) {
+                    // 创建一个新的 FileList 对象
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    
+                    // 重置表单
                     currentEditId = null;
-                    document.getElementById('editType').value = 'file';
-                    document.getElementById('editTitle').value = file.name;
+                    const editType = document.getElementById('editType');
+                    const editTitle = document.getElementById('editTitle');
+                    const editFile = document.getElementById('editFile');
+                    
+                    editType.value = 'file';
+                    editTitle.value = file.name;
+                    editFile.files = dataTransfer.files;
                     
                     handleTypeChange('file');
-                    document.getElementById('editFile').files = new FileList([file]);
                     
                     // 更新文件信息显示
                     const fileInfo = document.querySelector('.file-info');
@@ -501,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // 处理文本
-            if (item.type === 'text/plain') {
+            else if (item.type === 'text/plain') {
                 item.getAsString(async (text) => {
                     // 检测是否为代码
                     const isCode = detectCodeContent(text);
