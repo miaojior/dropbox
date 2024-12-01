@@ -40,7 +40,7 @@ button[type="submit"],
     opacity: 1 !important;
 }
 
-/* 全局加载动画样式 */
+/* 全局加载动画容器 */
 .loading {
     position: fixed;
     top: 0;
@@ -53,6 +53,112 @@ button[type="submit"],
     justify-content: center;
     align-items: center;
     z-index: 9999;
+}
+
+/* 加载动画主体 */
+.loading-spinner {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-spinner:before,
+.loading-spinner:after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-spinner:before {
+    width: 100%;
+    height: 100%;
+    border: 8px solid #f0f0f0;
+    border-top-color: #3498db;
+    border-right-color: #3498db;
+    animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+.loading-spinner:after {
+    width: 70%;
+    height: 70%;
+    border: 8px solid #f0f0f0;
+    border-top-color: #2ecc71;
+    border-right-color: #2ecc71;
+    animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite reverse;
+}
+
+/* 加载文字样式 */
+.loading-text {
+    margin-top: 2rem;
+    font-size: 1.25rem;
+    color: #2c3e50;
+    font-weight: 500;
+    text-align: center;
+    opacity: 0.9;
+    animation: fadeInOut 2s ease-in-out infinite;
+}
+
+/* 动画关键帧 */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* 深色模式支持 */
+[data-theme="dark"] .loading {
+    background: rgba(28, 28, 28, 0.98);
+}
+
+[data-theme="dark"] .loading-spinner:before {
+    border-color: #333;
+    border-top-color: #3498db;
+    border-right-color: #3498db;
+}
+
+[data-theme="dark"] .loading-spinner:after {
+    border-color: #333;
+    border-top-color: #2ecc71;
+    border-right-color: #2ecc71;
+}
+
+[data-theme="dark"] .loading-text {
+    color: #e0e0e0;
+}
+
+/* 页面加载完成后的状态 */
+body.loaded .loading {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
 }
 
 /* 内容加载动画样式 */
