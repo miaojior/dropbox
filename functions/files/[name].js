@@ -1,16 +1,18 @@
 export async function onRequestGet({ request, env, params }) {
     try {
-        if (!env.FILES || !env.CLOUDFLARE_API_TOKEN) {
-            throw new Error('Required environment variables not found');
+        if (!env.FILES) {
+            throw new Error('FILES binding not found');
         }
 
         const filename = params.name;
         console.log('Requesting file:', filename);
+        console.log('Request URL:', request.url);
+        console.log('Request headers:', Object.fromEntries(request.headers.entries()));
 
-        // 获取元数据
-        const { metadata } = await env.FILES.getWithMetadata(filename);
-        if (!metadata) {
-            console.log('File metadata not found:', filename);
+        // 直接从KV获取文件内容
+        const fileData = await env.FILES.get(filename, { type: 'arrayBuffer' });
+        if (!fileData) {
+            console.log('File not found:', filename);
             return new Response('File not found', { 
                 status: 404,
                 headers: {
@@ -20,23 +22,8 @@ export async function onRequestGet({ request, env, params }) {
             });
         }
 
-        // 构建 Cloudflare API 请求
-        const response = await fetch(
-            `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/storage/kv/namespaces/${env.KV_NAMESPACE_ID}/values/${filename}`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
-        }
-
-        // 获取文件内容
-        const fileData = await response.arrayBuffer();
+        // 获取元数据
+        const { metadata } = await env.FILES.getWithMetadata(filename);
 
         // 打印调试信息
         console.log('File found:', {
@@ -45,17 +32,25 @@ export async function onRequestGet({ request, env, params }) {
             size: fileData.byteLength
         });
 
-        // 返回文件内容
-        return new Response(fileData, {
+        // 创建响应
+        const response = new Response(fileData, {
             headers: {
                 'Content-Type': metadata?.contentType || 'application/octet-stream',
                 'Content-Disposition': `attachment; filename="${encodeURIComponent(metadata?.originalName || filename)}"`,
                 'Content-Length': fileData.byteLength.toString(),
                 'Access-Control-Allow-Origin': '*',
                 'Cache-Control': 'no-store, no-cache, must-revalidate',
-                'Accept-Ranges': 'bytes'
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'X-Content-Type-Options': 'nosniff'
             }
         });
+
+        // 打印响应信息
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        console.log('Response size:', fileData.byteLength);
+
+        return response;
     } catch (error) {
         console.error('Get file error:', error);
         console.error('Error stack:', error.stack);
@@ -69,40 +64,11 @@ export async function onRequestGet({ request, env, params }) {
     }
 }
 
-export async function onRequestDelete({ request, env, params }) {
-    try {
-        if (!env.FILES) {
-            throw new Error('FILES binding not found');
-        }
-
-        const filename = params.name;
-        
-        // 从KV存储删除文件
-        await env.FILES.delete(filename);
-
-        return new Response(JSON.stringify({ message: '文件删除成功' }), {
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        });
-    } catch (error) {
-        console.error('Delete file error:', error);
-        return new Response(JSON.stringify({ error: error.message }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        });
-    }
-}
-
 export async function onRequestOptions() {
     return new Response(null, {
         headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, DELETE, OPTIONS',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type',
             'Access-Control-Max-Age': '86400',
         },

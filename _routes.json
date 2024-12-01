@@ -29,7 +29,8 @@
     },
     "/files/*": {
       "function": "files/[name]",
-      "method": ["GET", "DELETE", "OPTIONS"]
+      "method": ["GET", "OPTIONS"],
+      "no_cache": true
     }
   }
 } 
