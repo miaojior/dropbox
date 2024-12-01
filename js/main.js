@@ -5,24 +5,6 @@ const FILES_API_URL = '/files';
 const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
 
-// 初始化加载动画
-document.addEventListener('DOMContentLoaded', () => {
-    // 创建加载动画容器
-    const loadingContainer = document.createElement('div');
-    loadingContainer.className = 'loading';
-    loadingContainer.innerHTML = `
-        <div class="loading-spinner"></div>
-        <div class="loading-text">加载中...</div>
-    `;
-    document.body.appendChild(loadingContainer);
-    
-    // 确保所有资源加载完成后移除加载动画
-    window.addEventListener('load', () => {
-        loadingContainer.style.display = 'none';
-        document.body.classList.add('loaded');
-    });
-});
-
 // 全局变量
 let currentEditId = null;
 let lastUpdateTime = Date.now();
@@ -30,6 +12,68 @@ let updateCheckInterval;
 let contentCache = [];
 let contentContainer;
 let syncInterval = 30000; // 默认30秒
+let loadingContainer = null;
+
+// 初始化加载动画
+function initializeLoading() {
+    loadingContainer = document.createElement('div');
+    loadingContainer.className = 'loading';
+    loadingContainer.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+    `;
+    document.body.appendChild(loadingContainer);
+    return loadingContainer;
+}
+
+// 显示全局加载状态
+function showGlobalLoading() {
+    if (!loadingContainer) {
+        loadingContainer = initializeLoading();
+    }
+    loadingContainer.style.display = 'flex';
+    document.body.classList.remove('loaded');
+}
+
+// 隐藏全局加载状态
+function hideGlobalLoading() {
+    if (loadingContainer) {
+        loadingContainer.style.display = 'none';
+        document.body.classList.add('loaded');
+    }
+}
+
+// 显示内容加载状态
+function showContentLoading() {
+    if (contentContainer) {
+        contentContainer.innerHTML = `
+            <div class="content-loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">加载内容中...</div>
+            </div>
+        `;
+    }
+}
+
+// 隐藏内容加载状态
+function hideContentLoading() {
+    if (contentContainer) {
+        const loading = contentContainer.querySelector('.content-loading');
+        if (loading) {
+            loading.remove();
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 初始化全局加载动画
+    showGlobalLoading();
+    
+    // 页面完全加载后隐藏加载动画
+    window.addEventListener('load', () => {
+        hideGlobalLoading();
+    });
+});
 
 // 获取同步间隔配置
 async function getSyncInterval() {
@@ -723,7 +767,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadContents(showLoading = true) {
         try {
             if (showLoading) {
-                showLoadingState();
+                showContentLoading();
             }
             
             const response = await fetch(API_BASE_URL, {
@@ -751,21 +795,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } finally {
             if (showLoading) {
-                hideLoadingState();
+                hideContentLoading();
             }
-        }
-    }
-
-    // 显加载状态
-    function showLoadingState() {
-        contentContainer.innerHTML = '<div class="loading">加载中...</div>';
-    }
-
-    // 隐藏加载状态
-    function hideLoadingState() {
-        const loading = contentContainer.querySelector('.loading');
-        if (loading) {
-            loading.remove();
         }
     }
 
