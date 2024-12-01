@@ -1,20 +1,27 @@
 export async function onRequestGet({ request, env, params }) {
     try {
-        if (!env.FILES) {
-            throw new Error('FILES binding not found');
+        if (!env.FILES || !env.CLOUDFLARE_API_TOKEN || !env.CF_ACCOUNT_ID || !env.KV_NAMESPACE_ID) {
+            throw new Error('Required environment variables not found');
         }
 
         const filename = params.name;
         console.log('Requesting file:', filename);
-        console.log('Request URL:', request.url);
-        console.log('Request headers:', Object.fromEntries(request.headers.entries()));
 
-        // 直接从KV获取文件内容
-        const fileData = await env.FILES.get(filename, { type: 'arrayBuffer' });
-        if (!fileData) {
-            console.log('File not found:', filename);
+        // 构建Cloudflare API URL
+        const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/storage/kv/namespaces/${env.KV_NAMESPACE_ID}/values/${filename}`;
+        console.log('API URL:', apiUrl);
+
+        // 从Cloudflare API获取文件
+        const response = await fetch(apiUrl, {
+            headers: {
+                'Authorization': `Bearer ${env.CLOUDFLARE_API_TOKEN}`
+            }
+        });
+
+        if (!response.ok) {
+            console.error('API response not ok:', response.status, response.statusText);
             return new Response('File not found', { 
-                status: 404,
+                status: response.status,
                 headers: {
                     'Content-Type': 'text/plain',
                     'Access-Control-Allow-Origin': '*'
@@ -22,20 +29,22 @@ export async function onRequestGet({ request, env, params }) {
             });
         }
 
+        // 获取文件内容
+        const fileData = await response.arrayBuffer();
+        console.log('File size from API:', fileData.byteLength);
+
         // 获取元数据
         const { metadata } = await env.FILES.getWithMetadata(filename);
+        console.log('File metadata:', metadata);
 
-        // 打印调试信息
-        console.log('File found:', {
-            contentType: metadata?.contentType,
-            originalName: metadata?.originalName,
-            size: fileData.byteLength
-        });
+        // 获取原始响应的headers
+        const originalHeaders = Object.fromEntries(response.headers.entries());
+        console.log('Original response headers:', originalHeaders);
 
-        // 创建响应
-        const response = new Response(fileData, {
+        // 创建新的响应
+        const newResponse = new Response(fileData, {
             headers: {
-                'Content-Type': metadata?.contentType || 'application/octet-stream',
+                'Content-Type': metadata?.contentType || response.headers.get('content-type') || 'application/octet-stream',
                 'Content-Disposition': `attachment; filename="${encodeURIComponent(metadata?.originalName || filename)}"`,
                 'Content-Length': fileData.byteLength.toString(),
                 'Access-Control-Allow-Origin': '*',
@@ -46,11 +55,10 @@ export async function onRequestGet({ request, env, params }) {
             }
         });
 
-        // 打印响应信息
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-        console.log('Response size:', fileData.byteLength);
+        // 打印新响应的headers
+        console.log('New response headers:', Object.fromEntries(newResponse.headers.entries()));
+        return newResponse;
 
-        return response;
     } catch (error) {
         console.error('Get file error:', error);
         console.error('Error stack:', error.stack);
