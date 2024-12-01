@@ -783,29 +783,37 @@ code {
     position: fixed;
     top: 20px;
     right: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--card-bg);
-    border: 2px solid var(--text-color);
+    width: 48px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: #e0e0e0;
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 4px var(--card-shadow);
+    padding: 2px;
     transition: all 0.3s ease;
+    border: none;
     z-index: 1000;
 }
 
-.theme-toggle:hover {
-    transform: scale(1.1);
+.theme-toggle::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
 }
 
-.theme-toggle::before {
-    content: '🌞';
-    font-size: 20px;
+[data-theme="dark"] .theme-toggle {
+    background-color: #3498db;
 }
 
 [data-theme="dark"] .theme-toggle::before {
-    content: '🌙';
+    transform: translateX(24px);
+}
+
+.theme-toggle:hover {
+    opacity: 0.9;
 }
