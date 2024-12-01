@@ -201,28 +201,9 @@ function getFileIconUrl(filename) {
 }
 
 // 下载文件函数
-async function downloadFile(url, filename) {
-    try {
-        showToast('开始下载...');
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('下载失败');
-        
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(blobUrl);
-        
-        showToast('下载成功！');
-    } catch (error) {
-        console.error('下载失败:', error);
-        showToast('下载失败，请重试', 'error');
-    }
+function downloadFile(url, filename) {
+    // 直接打开文件链接
+    window.open(url, '_blank');
 }
 
 // 渲染内容函数
@@ -256,7 +237,7 @@ function renderContents(contents) {
                         </div>
                     </div>`;
             }
-            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
+            downloadButton = `<a href="${content.content}" class="btn btn-download" target="_blank" download="${content.title}">下载</a>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -462,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 开始更新检查
     function startUpdateCheck() {
-        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新一
+        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新���
     }
 
     // 加载所有内容
@@ -589,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const { url } = await uploadResponse.json();
                     content = url;
                 } else {
-                    throw new Error('请选择片文件');
+                    throw new Error('请选择图片文件');
                 }
             } else if (type === 'file') {
                 const file = document.getElementById('editFile').files[0];
