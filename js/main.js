@@ -421,42 +421,38 @@ window.editContent = function(id) {
 // 初始化拖拽和粘贴功能
 function initializeUploadFeatures() {
     const uploadArea = document.getElementById('uploadArea');
-    const body = document.body;
-
-    // 拖拽上传
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        body.addEventListener(eventName, preventDefaults, false);
-        if (uploadArea) {
-            uploadArea.addEventListener(eventName, preventDefaults, false);
-        }
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    const selectedFilesDiv = document.getElementById('selectedFiles');
+    
+    if (!uploadArea || !selectedFilesDiv) {
+        console.error('Upload area or selected files container not found');
+        return;
     }
 
-    // 拖拽效果
+    // 初始化文件列表显示
+    selectedFilesDiv.style.display = 'none';
+    updateFileList();
+
+    // 设置拖放区域事件
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    // 拖放效果
     ['dragenter', 'dragover'].forEach(eventName => {
-        if (uploadArea) {
-            uploadArea.addEventListener(eventName, () => {
-                uploadArea.classList.add('dragover');
-            }, false);
-        }
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.add('dragover');
+        }, false);
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
-        if (uploadArea) {
-            uploadArea.addEventListener(eventName, () => {
-                uploadArea.classList.remove('dragover');
-            }, false);
-        }
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.remove('dragover');
+        }, false);
     });
 
-    // 处理拖拽文件
-    if (uploadArea) {
-        uploadArea.addEventListener('drop', handleDrop, false);
-    }
+    // 处理文件拖放
+    uploadArea.addEventListener('drop', handleDrop, false);
 
     // 全局粘贴处理
     document.addEventListener('paste', handlePaste, false);
@@ -658,7 +654,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 处理文件选择和标题
     function handleFileSelect(event) {
         const files = event.target.files || event.dataTransfer.files;
+        if (!files || files.length === 0) return;
+
+        // 添加文件到列表
         addFiles(files);
+
+        // 如果是从input元素选择的文件，清空input以允许重复选择相同文件
+        if (event.target.tagName === 'INPUT') {
+            event.target.value = '';
+        }
     }
 
     // 添加文件到列表
@@ -673,9 +677,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 更新文件列表显示
     function updateFileList() {
-        const fileList = document.querySelector('.file-list');
+        const selectedFilesDiv = document.getElementById('selectedFiles');
+        const fileList = selectedFilesDiv.querySelector('.file-list');
+        
+        // 确保文件列表元素存在
+        if (!fileList) {
+            console.error('File list element not found');
+            return;
+        }
+
+        // 清空当前列表
         fileList.innerHTML = '';
 
+        // 如果没有文件，显示提示信息
+        if (selectedFiles.size === 0) {
+            fileList.innerHTML = '<li class="no-files">暂无选择的文件</li>';
+            return;
+        }
+
+        // 添加所有文件到列表
         selectedFiles.forEach((file, fileId) => {
             const li = document.createElement('li');
             li.innerHTML = `
@@ -693,10 +713,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 更新文件信息提示
         const fileInfo = document.querySelector('.file-info');
-        const count = selectedFiles.size;
-        fileInfo.textContent = count > 0 ? 
-            `已选择 ${count} 个文件` : 
-            '支持所有类型的文件';
+        if (fileInfo) {
+            const count = selectedFiles.size;
+            fileInfo.textContent = count > 0 ? 
+                `已选择 ${count} 个文件` : 
+                '支持所有类型的文件';
+        }
+
+        // 显示文件列表区域
+        selectedFilesDiv.style.display = selectedFiles.size > 0 ? 'block' : 'none';
     }
 
     // 获取文件图标
@@ -722,8 +747,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 移除文件
     function removeFile(fileId) {
-        selectedFiles.delete(fileId);
-        updateFileList();
+        if (selectedFiles.has(fileId)) {
+            selectedFiles.delete(fileId);
+            updateFileList();
+            showPasteIndicator('文件已移除');
+        }
     }
 
     // 清空文件列表
@@ -732,6 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateFileList();
         // 清空文件输入框
         document.getElementById('editFile').value = '';
+        showPasteIndicator('文件列表已清空');
     }
 
     // 开始更新检查
