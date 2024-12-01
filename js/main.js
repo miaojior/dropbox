@@ -235,6 +235,17 @@ async function downloadFile(url, filename) {
     }
 }
 
+// 格式化日期
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
 // 渲染内容函数
 function renderContents(contents) {
     if (!contentContainer) {
@@ -254,7 +265,6 @@ function renderContents(contents) {
         if (content.type === 'image' || content.type === 'file') {
             if (content.type === 'image') {
                 contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
-                downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
             } else {
                 const fileIcon = getFileIcon(content.title);
                 const fileType = getFileTypeDescription(content.title);
@@ -266,9 +276,8 @@ function renderContents(contents) {
                             <div class="file-type">${fileType}</div>
                         </div>
                     </div>`;
-                // 对于文件类型，显示"打开"而不是"下载"
-                downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">打开</button>`;
             }
+            downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -278,10 +287,16 @@ function renderContents(contents) {
         }
 
         const encodedContent = encodeContent(content.content);
+        const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
 
         html += `
             <section class="text-block">
-                <h2>${content.title}</h2>
+                <div class="text-block-header">
+                    <h2>${content.title}</h2>
+                    <div class="text-block-meta">
+                        <span class="modified-date">修改于 ${modifiedDate}</span>
+                    </div>
+                </div>
                 <div class="${content.type}">
                     ${contentHtml}
                 </div>
@@ -426,7 +441,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 设置事件监听器
     function setupEventListeners() {
-        addNewBtn.addEventListener('click', () => openModal());
+        if (addNewBtn) {
+            addNewBtn.className = 'btn add-new-content';
+            addNewBtn.addEventListener('click', () => openModal());
+        }
         editForm.addEventListener('submit', handleFormSubmit);
         editImage.addEventListener('change', handleImagePreview);
     }

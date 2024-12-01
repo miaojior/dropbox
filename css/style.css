@@ -191,7 +191,10 @@ code {
 }
 
 /* 按钮基础样式 */
-.btn {
+.btn,
+button[type="submit"],
+.btn-add,
+.add-new-btn {
     padding: 0.5rem 1rem;
     border-radius: 6px;
     font-size: 0.875rem;
@@ -206,20 +209,11 @@ code {
     color: white;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.1);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
 /* 主要操作按钮 */
 .btn-primary,
 button[type="submit"],
 .btn-save,
-.btn-add {
+.add-new-btn {
     background-color: #2563eb;
     color: white;
     font-weight: 600;
@@ -229,21 +223,9 @@ button[type="submit"],
 .btn-primary:hover,
 button[type="submit"]:hover,
 .btn-save:hover,
-.btn-add:hover {
+.add-new-btn:hover {
     background-color: #1d4ed8;
     transform: translateY(-1px);
-}
-
-/* 次要按钮 */
-.btn-secondary,
-.btn-cancel {
-    background-color: #6b7280;
-    color: white;
-}
-
-.btn-secondary:hover,
-.btn-cancel:hover {
-    background-color: #4b5563;
 }
 
 /* 功能按钮 */
@@ -263,18 +245,39 @@ button[type="submit"]:hover,
     background-color: #dc2626;
 }
 
+/* 次要按钮 */
+.btn-secondary,
+.btn-cancel {
+    background-color: #6b7280;
+}
+
+.btn-secondary:hover,
+.btn-cancel:hover {
+    background-color: #4b5563;
+}
+
+/* 按钮悬停效果 */
+.btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
 /* 添加新内容按钮特殊样式 */
-.add-new-btn {
-    background-color: #2563eb;
-    color: white;
+.add-new-content {
+    background-color: #2563eb !important;
+    color: white !important;
     font-weight: 600;
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
     box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
-.add-new-btn:hover {
-    background-color: #1d4ed8;
+.add-new-content:hover {
+    background-color: #1d4ed8 !important;
     box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
 }
 
@@ -1301,4 +1304,57 @@ select {
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
     background: var(--card-bg);
+}
+
+/* 卡片头部样式 */
+.text-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.text-block-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--heading-color);
+    flex: 1;
+}
+
+.text-block-meta {
+    font-size: 0.875rem;
+    color: #666;
+    margin-left: 1rem;
+}
+
+.modified-date {
+    display: inline-flex;
+    align-items: center;
+    color: #666;
+}
+
+.modified-date::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'%3E%3C/path%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] .text-block-meta {
+    color: #999;
+}
+
+[data-theme="dark"] .modified-date {
+    color: #999;
+}
+
+[data-theme="dark"] .modified-date::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23999999'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'%3E%3C/path%3E%3C/svg%3E");
 }
