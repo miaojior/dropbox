@@ -8,43 +8,27 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- 主题切换按钮 -->
-    <button class="theme-toggle" aria-label="切换主题"></button>
-
     <div class="container">
         <header>
             <h1>Drop中转站</h1>
-            <button id="addNewBtn" class="btn add-new-content">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14"></path>
-                </svg>
-                添加新内容
-            </button>
+            <button id="addNewBtn" class="btn">添加新内容</button>
         </header>
         
         <main id="content-container">
             <!-- 内容将通过JavaScript动态加载 -->
         </main>
 
-        <!-- 编辑侧边栏 -->
-        <div id="editModal" class="edit-modal">
-            <div class="edit-modal-header">
-                <h3 class="edit-modal-title">编辑内容</h3>
-                <button class="edit-modal-close" aria-label="关闭">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="edit-form-container">
-                <form id="editForm" class="edit-form">
+        <!-- 编辑模态框 -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <h2>编辑内容</h2>
+                <form id="editForm">
                     <input type="hidden" id="editId">
-                    
                     <div class="form-group">
-                        <label for="editType">类型</label>
+                        <label for="editType">类型：</label>
                         <select id="editType" onchange="handleTypeChange(this.value)">
                             <option value="text">普通文本</option>
                             <option value="code">代码</option>
@@ -53,65 +37,31 @@
                             <option value="file">文件</option>
                         </select>
                     </div>
-
                     <div class="form-group" id="titleGroup">
-                        <label for="editTitle">标题</label>
-                        <input type="text" id="editTitle" required 
-                               placeholder="请输入标题">
+                        <label for="editTitle">标题：</label>
+                        <input type="text" id="editTitle" required>
                     </div>
-
                     <div class="form-group" id="contentGroup">
-                        <label for="editContent">内容</label>
-                        <textarea id="editContent" required 
-                                  placeholder="请输入内容"></textarea>
+                        <label for="editContent">内容：</label>
+                        <textarea id="editContent" required></textarea>
                     </div>
-
                     <div class="form-group" id="imageGroup" style="display: none;">
-                        <label for="editImage">图片</label>
-                        <div class="file-upload-wrapper">
-                            <input type="file" id="editImage" accept="image/*" 
-                                   onchange="handleImagePreview(event)">
-                            <div class="file-upload-message">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                                </svg>
-                                <span>点击或拖拽上传图片</span>
-                            </div>
-                        </div>
+                        <label for="editImage">图片：</label>
+                        <input type="file" id="editImage" accept="image/*" onchange="handleImagePreview(event)">
                         <div id="imagePreview" class="image-preview"></div>
                     </div>
-
                     <div class="form-group" id="fileGroup" style="display: none;">
-                        <label for="editFile">文件</label>
-                        <div class="file-upload-wrapper">
-                            <input type="file" id="editFile" 
-                                   onchange="handleFileSelect(event)">
-                            <div class="file-upload-message">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                                </svg>
-                                <span>点击或拖拽上传文件</span>
-                            </div>
-                        </div>
+                        <label for="editFile">文件：</label>
+                        <input type="file" id="editFile" onchange="handleFileSelect(event)">
                         <div class="file-info">支持所有类型的文件</div>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn">保存</button>
+                        <button type="button" class="btn btn-cancel" onclick="closeModal()">取消</button>
                     </div>
                 </form>
             </div>
-
-            <div class="edit-modal-footer">
-                <button type="button" class="btn btn-cancel" onclick="closeModal()">取消</button>
-                <button type="submit" form="editForm" class="btn btn-save">保存</button>
-            </div>
         </div>
-
-        <!-- Toast 提示 -->
-        <div id="toast" class="toast" role="alert"></div>
-    </div>
-
-    <!-- 加载动画 -->
-    <div id="loading" class="loading" style="display: none;">
-        <div class="loading-spinner"></div>
-        <span class="loading-text">加载中...</span>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>

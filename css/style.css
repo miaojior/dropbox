@@ -210,7 +210,7 @@ button[type="submit"],
     color: white;
 }
 
-/* 主操作按钮 */
+/* 主��操作按钮 */
 .btn-primary,
 button[type="submit"],
 .btn-save,
@@ -1404,218 +1404,128 @@ select {
     right: 0;
     bottom: 0;
     width: 500px;
-    max-width: 100%;
-    background: var(--card-bg);
-    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.1);
-    border-left: 1px solid var(--border-color);
-    padding: 0;
+    background: var(--background-color);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 12px 0 0 12px;
     overflow: hidden;
     z-index: 1000;
+}
+
+.edit-form {
+    height: calc(100% - 60px);
+    overflow-y: auto;
+    padding-right: 20px;
+    margin-right: -20px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* 加载动画 */
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+.loading {
     display: flex;
     flex-direction: column;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.edit-modal.show {
-    transform: translateX(0);
-}
-
-/* 模态框头部 */
-.edit-modal-header {
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
     align-items: center;
-    justify-content: space-between;
-    background: var(--card-bg);
+    justify-content: center;
+    min-height: 200px;
+    color: var(--text-color-secondary);
 }
 
-.edit-modal-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--heading-color);
-    margin: 0;
-}
-
-.edit-modal-close {
-    background: none;
-    border: none;
-    padding: 0.5rem;
-    cursor: pointer;
-    color: var(--text-color);
-    opacity: 0.6;
-    transition: opacity 0.2s;
-}
-
-.edit-modal-close:hover {
-    opacity: 1;
-}
-
-/* 编辑表单容器 */
-.edit-form-container {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-}
-
-/* 编辑表单 */
-.edit-form {
-    height: 100%;
-    padding: 2rem;
-    overflow-y: auto;
-    background: var(--card-bg);
-}
-
-/* 表单组样式优化 */
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
+.loading::before {
+    content: "";
     display: block;
-    margin-bottom: 0.75rem;
-    font-weight: 500;
-    color: var(--text-color);
-    font-size: 0.875rem;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 15px;
+    border: 3px solid var(--text-color-secondary);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
 }
 
-/* 输入框样式优化 */
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--input-border);
-    border-radius: 8px;
-    background: var(--input-bg);
-    color: var(--input-text);
-    font-size: 0.9375rem;
-    transition: all 0.2s ease;
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: var(--input-focus-border);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    outline: none;
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--text-color-secondary);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
 }
 
-/* 文本域特殊样式 */
-.form-group textarea {
-    min-height: 150px;
-    resize: vertical;
-    line-height: 1.6;
-}
-
-/* 模态框底部 */
-.edit-modal-footer {
-    padding: 1.5rem 2rem;
-    border-top: 1px solid var(--border-color);
-    background: var(--card-bg);
+/* 空状态动画 */
+.empty {
     display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--text-color-secondary);
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-/* 按钮样式优化 */
-.edit-modal-footer .btn {
-    padding: 0.625rem 1.25rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    min-width: 5rem;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.btn-save {
-    background: #3498db;
-    color: white;
+.empty::before {
+    content: "📝";
+    font-size: 48px;
+    margin-bottom: 15px;
+    animation: pulse 2s infinite;
 }
 
-.btn-cancel {
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    border: 1px solid var(--border-color);
+/* 加载��画 */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* 自定义滚动条 */
-.edit-form::-webkit-scrollbar {
-    width: 8px;
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    color: var(--text-color-secondary);
 }
 
-.edit-form::-webkit-scrollbar-track {
-    background: transparent;
+.loading::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
-.edit-form::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-}
-
-.edit-form::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.2);
+.loading-text {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
 }
 
 /* 深色模式适配 */
-[data-theme="dark"] .edit-modal {
-    background: var(--card-bg);
-    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.3);
+[data-theme="dark"] .loading::before {
+    border-color: #333;
+    border-top-color: #3498db;
 }
 
-[data-theme="dark"] .edit-form::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .edit-form::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* 响应式设计 */
-@media (max-width: 600px) {
-    .edit-modal {
-        width: 100%;
-        border-radius: 0;
-    }
-    
-    .edit-modal-header,
-    .edit-form,
-    .edit-modal-footer {
-        padding: 1rem;
-    }
-    
-    .edit-modal-footer {
-        flex-direction: column;
-    }
-    
-    .edit-modal-footer .btn {
-        width: 100%;
-    }
-}
-
-/* 动画效果 */
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-    }
-    to {
-        transform: translateX(0);
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(100%);
-    }
-}
-
-.edit-modal.animate-in {
-    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.edit-modal.animate-out {
-    animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+[data-theme="dark"] .loading-text {
+    color: #999;
 }
