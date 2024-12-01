@@ -8,51 +8,13 @@ let lastUpdateTime = Date.now();
 let updateCheckInterval;
 let contentCache = [];
 
-// 复制内容到剪贴板
-window.copyContent = async function(content, type) {
-    try {
-        await navigator.clipboard.writeText(content);
-        showToast('复制成功！');
-    } catch (err) {
-        console.error('复制失败:', err);
-        // 使用备用复制方法
-        const textarea = document.createElement('textarea');
-        textarea.value = content;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            showToast('复制成功！');
-        } catch (e) {
-            showToast('复制失败，请手动复制');
-        }
-        document.body.removeChild(textarea);
-    }
-}
-
-// 显示提示信息
-function showToast(message) {
-    // 移除现有的toast
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    // 添加显示类
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
+// 复制函数
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('复制成功！');
+    }).catch(() => {
+        alert('复制失败，请手动复制');
     });
-    
-    // 2秒后消失
-    setTimeout(() => {
-        toast.classList.add('fade-out');
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
 }
 
 // DOM元素
@@ -90,139 +52,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 渲染内容
     function renderContents(contents) {
-        // 如果内容为空，显示空状态
         if (!contents || contents.length === 0) {
             contentContainer.innerHTML = '<div class="empty">还没有任何内容，点击"添加新内容"开始创建</div>';
             return;
         }
 
-        // 创建新的内容HTML
-        const tempContainer = document.createElement('div');
-        
+        let html = '';
         contents.forEach(content => {
-            const section = document.createElement('section');
-            section.className = 'text-block';
-            section.dataset.id = content.id;
-            
-            const h2 = document.createElement('h2');
-            h2.textContent = content.title;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = content.type;
-            
+            let contentHtml = '';
             if (content.type === 'image') {
-                const img = document.createElement('img');
-                img.src = content.content;
-                img.alt = content.title;
-                contentDiv.appendChild(img);
+                contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
             } else if (content.type === 'code') {
-                const pre = document.createElement('pre');
-                const code = document.createElement('code');
-                code.className = 'language-javascript';
-                code.textContent = content.content;
-                pre.appendChild(code);
-                contentDiv.appendChild(pre);
+                contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
             } else if (content.type === 'poetry') {
-                content.content.split('\n').forEach(line => {
-                    const p = document.createElement('p');
-                    p.textContent = line;
-                    contentDiv.appendChild(p);
-                });
+                contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
             } else {
-                const p = document.createElement('p');
-                p.textContent = content.content;
-                contentDiv.appendChild(p);
+                contentHtml = `<p>${content.content}</p>`;
             }
-            
-            const actions = document.createElement('div');
-            actions.className = 'text-block-actions';
-            
-            // 添加复制按钮
-            const copyButton = document.createElement('button');
-            copyButton.className = 'btn btn-copy';
-            copyButton.innerHTML = '<span class="icon">📋</span> 复制';
-            copyButton.onclick = () => copyToClipboard(content.content);
-            actions.appendChild(copyButton);
-            
-            // 添加编辑和删除按钮
-            const editButton = document.createElement('button');
-            editButton.className = 'btn btn-edit';
-            editButton.textContent = '编辑';
-            editButton.onclick = () => editContent(content.id);
-            actions.appendChild(editButton);
-            
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'btn btn-delete';
-            deleteButton.textContent = '删除';
-            deleteButton.onclick = () => deleteContent(content.id);
-            actions.appendChild(deleteButton);
-            
-            section.appendChild(h2);
-            section.appendChild(contentDiv);
-            section.appendChild(actions);
-            tempContainer.appendChild(section);
+
+            html += `
+                <section class="text-block">
+                    <h2>${content.title}</h2>
+                    <div class="${content.type}">
+                        ${contentHtml}
+                    </div>
+                    <div class="text-block-actions">
+                        <button class="btn" onclick="copyText('${content.content.replace(/'/g, "\\'")}')">复制</button>
+                        <button class="btn" onclick="editContent(${content.id})">编辑</button>
+                        <button class="btn" onclick="deleteContent(${content.id})">删除</button>
+                    </div>
+                </section>
+            `;
         });
 
-        // 只有当内容真正变化时才更新DOM
-        if (contentContainer.innerHTML !== tempContainer.innerHTML) {
-            contentContainer.innerHTML = tempContainer.innerHTML;
-            // 重新初始化代码高亮
-            Prism.highlightAll();
-        }
+        contentContainer.innerHTML = html;
+        Prism.highlightAll();
     }
-
-    // 复制到剪贴板
-    async function copyToClipboard(text) {
-        try {
-            // 创建一个临时的textarea元素
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            
-            // 尝试使用新API
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(text);
-            } else {
-                // 回退到旧方法
-                document.execCommand('copy');
-            }
-            
-            document.body.removeChild(textarea);
-            showToast('复制成功！');
-        } catch (err) {
-            console.error('复制失败:', err);
-            showToast('复制失败，请手动复制');
-        }
-    }
-
-    // 处理类型切换
-    window.handleTypeChange = function(type) {
-        const contentGroup = document.getElementById('contentGroup');
-        const imageGroup = document.getElementById('imageGroup');
-        const editContent = document.getElementById('editContent');
-        const editImage = document.getElementById('editImage');
-        const imagePreview = document.getElementById('imagePreview');
-
-        if (type === 'image') {
-            contentGroup.style.display = 'none';
-            imageGroup.style.display = 'block';
-            editContent.required = false;
-            editImage.required = !editContent.value; // 只有在没有现有图片时才需要
-            
-            // 如果有现有图片，显示预览
-            if (editContent.value) {
-                imagePreview.innerHTML = `<img src="${editContent.value}" alt="预览">`;
-            }
-        } else {
-            contentGroup.style.display = 'block';
-            imageGroup.style.display = 'none';
-            editContent.required = true;
-            editImage.required = false;
-        }
-    };
 
     // 开始更新检查
     function startUpdateCheck() {
