@@ -42,6 +42,14 @@
     --file-text: #e0e0e0;
     --file-subtext: #a0a0a0;
     --code-bg: #2d2d2d;
+    --code-text: #e0e0e0;
+    --code-border: #404040;
+    --code-comment: #6a9955;
+    --code-string: #ce9178;
+    --code-number: #b5cea8;
+    --code-keyword: #569cd6;
+    --code-function: #dcdcaa;
+    --code-property: #9cdcfe;
     --modal-bg: #2d2d2d;
     --modal-overlay: rgba(0, 0, 0, 0.7);
     --btn-bg: #3d3d3d;
@@ -51,17 +59,6 @@
     --input-border: #404040;
     --input-text: #e0e0e0;
     --toast-bg: rgba(45, 45, 45, 0.9);
-    --loading-bg: #2d2d2d;
-    --loading-text: #e0e0e0;
-    --error-bg: #2d2d2d;
-    --error-text: #e74c3c;
-    --empty-bg: #2d2d2d;
-    --empty-text: #95a5a6;
-    --dialog-bg: #2d2d2d;
-    --dialog-text: #e0e0e0;
-    --dialog-border: #404040;
-    --spinner-border: #3498db;
-    --spinner-bg: #2d2d2d;
 }
 
 body {
@@ -1011,4 +1008,52 @@ code {
 [data-theme="dark"] .file:hover {
     background: var(--btn-hover);
     border-color: var(--border-color);
+}
+
+/* 代码区域深色模式样式 */
+[data-theme="dark"] pre,
+[data-theme="dark"] code {
+    background-color: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--code-border);
+}
+
+[data-theme="dark"] .language-javascript {
+    color: var(--code-text);
+}
+
+/* 代码高亮深色模式样式 */
+[data-theme="dark"] .token.comment,
+[data-theme="dark"] .token.prolog,
+[data-theme="dark"] .token.doctype,
+[data-theme="dark"] .token.cdata {
+    color: var(--code-comment);
+}
+
+[data-theme="dark"] .token.string,
+[data-theme="dark"] .token.attr-value {
+    color: var(--code-string);
+}
+
+[data-theme="dark"] .token.number,
+[data-theme="dark"] .token.boolean {
+    color: var(--code-number);
+}
+
+[data-theme="dark"] .token.keyword,
+[data-theme="dark"] .token.operator {
+    color: var(--code-keyword);
+}
+
+[data-theme="dark"] .token.function {
+    color: var(--code-function);
+}
+
+[data-theme="dark"] .token.property,
+[data-theme="dark"] .token.attr-name {
+    color: var(--code-property);
+}
+
+[data-theme="dark"] .token.punctuation {
+    color: var(--text-color);
 }

@@ -202,13 +202,24 @@ function getFileIconUrl(filename) {
 
 // 下载文件函数
 async function downloadFile(url, filename) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+        const response = await fetch(url);
+        const contentType = response.headers.get('content-type');
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error('下载失败:', error);
+        // 如果fetch失败，尝试直接打开链接
+        window.open(url, '_blank');
+    }
 }
 
 // 渲染内容函数
@@ -669,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || '更新内容���败');
+            throw new Error(errorData.error || '更新内容败');
         }
         
         return await response.json();
