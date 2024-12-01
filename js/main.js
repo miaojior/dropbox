@@ -242,7 +242,13 @@ function renderContents(contents) {
     }
     
     if (!contents || contents.length === 0) {
-        contentContainer.innerHTML = '<div class="empty">还没有任何内容，点击"添加新内容"开始创建</div>';
+        contentContainer.innerHTML = `
+            <div class="empty">
+                <div class="empty-icon">📝</div>
+                <div class="empty-text">还没有任何内容</div>
+                <div class="empty-hint">点击"添加新内容"开始创建</div>
+            </div>
+        `;
         return;
     }
 
@@ -632,11 +638,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const data = await response.json();
             
-            // 只有在内容真正发生变化时才更新UI
-            if (JSON.stringify(data) !== JSON.stringify(contentCache)) {
-                contentCache = data;
-                renderContents(data);
-            }
+            // 确保即使是空数组也会触发渲染
+            contentCache = data || [];
+            renderContents(contentCache);
             
             lastUpdateTime = Date.now();
         } catch (error) {
