@@ -23,42 +23,17 @@ export async function onRequestPost({ request, env }) {
         const extension = file.name.split('.').pop().toLowerCase();
         const filename = `${timestamp}-${randomString}.${extension}`;
 
-        // 将文件转换为ArrayBuffer
+        // 将文件转换为ArrayBuffer并保存
         const arrayBuffer = await file.arrayBuffer();
-        
-        // 创建Blob对象
-        const blob = new Blob([arrayBuffer], { type: file.type || 'application/octet-stream' });
-        const blobArrayBuffer = await blob.arrayBuffer();
-        
-        // 记录上传前的信息
-        console.log('Uploading file:', {
-            originalName: file.name,
-            size: blob.size,
-            type: file.type,
-            generatedName: filename
-        });
-
-        // 将文件保存到KV存储
-        await env.FILES.put(filename, blobArrayBuffer, {
+        await env.FILES.put(filename, arrayBuffer, {
             metadata: {
                 contentType: file.type || 'application/octet-stream',
                 originalName: file.name,
-                size: blob.size,
-                uploadTime: new Date().toISOString()
+                size: arrayBuffer.byteLength
             }
         });
 
-        // 验证文件是否成功保存
-        const savedFile = await env.FILES.get(filename, { type: 'arrayBuffer' });
-        if (!savedFile || savedFile.byteLength !== blob.size) {
-            throw new Error('File verification failed after upload');
-        }
-
-        console.log('File saved successfully:', {
-            name: filename,
-            size: savedFile.byteLength,
-            expectedSize: blob.size
-        });
+        console.log('File saved:', filename, 'Size:', arrayBuffer.byteLength, 'Type:', file.type);
 
         // 返回完整的文件URL
         const url = new URL(request.url);
@@ -68,9 +43,9 @@ export async function onRequestPost({ request, env }) {
         return new Response(
             JSON.stringify({
                 url: fileUrl,
-                size: blob.size,
                 filename: filename,
-                originalName: file.name
+                size: arrayBuffer.byteLength,
+                type: file.type
             }), {
                 headers: {
                     'Content-Type': 'application/json',

@@ -7,44 +7,24 @@ export async function onRequestGet({ request, env, params }) {
         const filename = params.name;
         console.log('Requesting file:', filename);
         
-        // 从KV存储获取文件和元数据
-        const { value, metadata } = await env.FILES.getWithMetadata(filename, 'arrayBuffer');
-        if (!value) {
-            console.log('File not found:', filename);
-            return new Response('File not found', { 
-                status: 404,
-                headers: {
-                    'Content-Type': 'text/plain',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            });
+        // 从KV存储获取文件
+        const metadata = await env.FILES.getWithMetadata(filename);
+        if (!metadata.value) {
+            return new Response('File not found', { status: 404 });
         }
 
-        console.log('File found:', {
-            size: value.byteLength,
-            metadata: metadata
-        });
-
         // 返回文件
-        return new Response(value, {
+        return new Response(metadata.value, {
             headers: {
-                'Content-Type': metadata?.contentType || 'application/octet-stream',
-                'Content-Disposition': `attachment; filename="${encodeURIComponent(metadata?.originalName || filename)}"`,
-                'Content-Length': value.byteLength.toString(),
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'no-store, no-cache, must-revalidate',
-                'Pragma': 'no-cache'
+                'Content-Type': metadata.metadata?.contentType || 'application/octet-stream',
+                'Content-Disposition': `attachment; filename="${encodeURIComponent(metadata.metadata?.originalName || filename)}"`,
+                'Cache-Control': 'public, max-age=31536000',
+                'Access-Control-Allow-Origin': '*'
             }
         });
     } catch (error) {
         console.error('Get file error:', error);
-        return new Response('Error fetching file: ' + error.message, { 
-            status: 500,
-            headers: {
-                'Content-Type': 'text/plain',
-                'Access-Control-Allow-Origin': '*'
-            }
-        });
+        return new Response('Error fetching file', { status: 500 });
     }
 }
 
