@@ -332,14 +332,18 @@ function renderContents(contents) {
         return;
     }
 
-    let html = '';
+    // 使用DocumentFragment提升性能
+    const fragment = document.createDocumentFragment();
     contents.forEach(content => {
+        const section = document.createElement('section');
+        section.className = 'text-block';
+        
         let contentHtml = '';
         let downloadButton = '';
         
         if (content.type === 'image' || content.type === 'file') {
             if (content.type === 'image') {
-                contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
+                contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}" loading="lazy"></div>`;
             } else {
                 const fileIcon = getFileIcon(content.title);
                 const fileType = getFileTypeDescription(content.title);
@@ -364,29 +368,35 @@ function renderContents(contents) {
         const encodedContent = encodeContent(content.content);
         const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
 
-        html += `
-            <section class="text-block">
-                <div class="text-block-header">
-                    <h2>${content.title}</h2>
-                    <div class="text-block-meta">
-                        <span class="modified-date">修改于 ${modifiedDate}</span>
-                    </div>
+        section.innerHTML = `
+            <div class="text-block-header">
+                <h2>${content.title}</h2>
+                <div class="text-block-meta">
+                    <span class="modified-date">修改于 ${modifiedDate}</span>
                 </div>
-                <div class="${content.type}">
-                    ${contentHtml}
-                </div>
-                <div class="text-block-actions">
-                    <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
-                    ${downloadButton}
-                    <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                    <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
-                </div>
-            </section>
+            </div>
+            <div class="${content.type}">
+                ${contentHtml}
+            </div>
+            <div class="text-block-actions">
+                <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
+                ${downloadButton}
+                <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
+                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
+            </div>
         `;
+        
+        fragment.appendChild(section);
     });
 
-    contentContainer.innerHTML = html;
-    Prism.highlightAll();
+    // 一次性更新DOM
+    contentContainer.innerHTML = '';
+    contentContainer.appendChild(fragment);
+    
+    // 延迟高亮代码
+    requestAnimationFrame(() => {
+        Prism.highlightAll();
+    });
 }
 
 // 删除内容函数
@@ -518,11 +528,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await getSyncInterval();
     
     contentContainer = document.getElementById('content-container');
-    const editModal = document.getElementById('editModal');
-    const editForm = document.getElementById('editForm');
-    const addNewBtn = document.getElementById('addNewBtn');
-    const editImage = document.getElementById('editImage');
-
+    
+    // 显示初始空状态
+    renderContents([]);
+    
     // 初始化
     loadContents(true);
     setupEventListeners();
@@ -703,6 +712,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 加载有内容
     async function loadContents(showLoading = true) {
+        if (!contentContainer) {
+            contentContainer = document.getElementById('content-container');
+        }
+
+        // 显示骨架屏
+        if (showLoading && (!contentCache || contentCache.length === 0)) {
+            contentContainer.innerHTML = Array(3).fill(`
+                <section class="text-block skeleton">
+                    <div class="text-block-header">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-meta"></div>
+                    </div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </section>
+            `).join('');
+        }
+
         try {
             const response = await fetch(API_BASE_URL, {
                 headers: {
@@ -717,9 +747,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const data = await response.json();
             
-            // 确保即使是空数组也会触发渲染
-            contentCache = data || [];
-            renderContents(contentCache);
+            // 只有当数据发生变化时才重新渲染
+            if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
+                contentCache = data || [];
+                renderContents(contentCache);
+            }
             
             lastUpdateTime = Date.now();
         } catch (error) {
