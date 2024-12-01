@@ -204,30 +204,34 @@ function getFileIconUrl(filename) {
 // 下载文件函数
 async function downloadFile(url, filename) {
     try {
-        showToast('准备下载...');
+        // 获取文件扩展名
+        const ext = filename.toLowerCase().split('.').pop();
         
-        // 创建一个隐藏的下载链接
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename || '';  // 如果没有文件名，浏览器会使用URL中的文件名
-        link.style.display = 'none';
-        
-        // 添加到文档中并触发点击
-        document.body.appendChild(link);
-        link.click();
-        
-        // 清理DOM
-        setTimeout(() => {
+        // 图片和图片类型的文件使用 Blob 下载
+        const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'];
+        if (imageTypes.includes(ext)) {
+            showToast('准备下载图片...');
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
             document.body.removeChild(link);
-        }, 100);
-        
-        showToast('下载已开始');
+            window.URL.revokeObjectURL(blobUrl);
+            
+            showToast('图片下载完成');
+        } else {
+            // 其他类型的文件直接在新窗口打开
+            showToast('正在打开文件...');
+            window.open(url, '_blank');
+        }
     } catch (error) {
         console.error('下载失败:', error);
-        showToast('下载失败，请右键链接另存为', 'error');
-        
-        // 如果下载失败，打开新窗口显示文件
-        window.open(url, '_blank');
+        showToast('下载失败，请重试', 'error');
     }
 }
 
@@ -250,6 +254,7 @@ function renderContents(contents) {
         if (content.type === 'image' || content.type === 'file') {
             if (content.type === 'image') {
                 contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
+                downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
             } else {
                 const fileIcon = getFileIcon(content.title);
                 const fileType = getFileTypeDescription(content.title);
@@ -261,13 +266,9 @@ function renderContents(contents) {
                             <div class="file-type">${fileType}</div>
                         </div>
                     </div>`;
+                // 对于文件类型，显示"打开"而不是"下载"
+                downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">打开</button>`;
             }
-            // 添加下载按钮和备用链接
-            downloadButton = `
-                <button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>
-                <div class="download-fallback" style="display:none;">
-                    <a href="${content.content}" download="${content.title}" class="btn btn-download">备用下载</a>
-                </div>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
         } else if (content.type === 'poetry') {
@@ -476,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新
     }
 
-    // 加载��有内容
+    // 加载有内容
     async function loadContents(showLoading = true) {
         try {
             if (showLoading) {

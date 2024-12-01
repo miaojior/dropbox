@@ -14,8 +14,8 @@
     /* 浅色主题变量 */
     --bg-color: #f5f5f5;
     --text-color: #333;
-    --grid-color: rgba(0, 0, 0, 0.84);
-    --card-bg: white;
+    --grid-color: rgba(0, 0, 0, 0.1);
+    --card-bg: #ffffff;
     --card-shadow: rgba(0, 0, 0, 0.1);
     --heading-color: #2c3e50;
     --border-color: #eee;
@@ -102,6 +102,7 @@ h1 {
     margin-bottom: 2rem;
     box-shadow: 0 2px 4px var(--card-shadow);
     transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
 }
 
 .text-block:hover {
@@ -791,7 +792,7 @@ code {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%233498db' d='M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z'/%3E%3C/svg%3E");
 }
 
-/* 压缩文件���标 */
+/* 压缩文件图标 */
 .file-icon.archive {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffa000' d='M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z'/%3E%3C/svg%3E");
 }
