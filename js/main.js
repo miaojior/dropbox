@@ -1,23 +1,27 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // 等待所有资源加载完成
-    window.addEventListener('load', function() {
-        setTimeout(() => {
-            const loadingOverlay = document.querySelector('.loading-overlay');
-            loadingOverlay.classList.add('hidden');
-            // 1秒后完全移除遮罩层
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-            }, 1000);
-        }, 500); // 增加500ms延迟以确保动画流畅
-    });
-});
-
 // API配置
 const API_BASE_URL = '/contents';
 const IMAGES_API_URL = '/images';
 const FILES_API_URL = '/files';
 const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
+
+// 初始化加载动画
+document.addEventListener('DOMContentLoaded', () => {
+    // 创建加载动画容器
+    const loadingContainer = document.createElement('div');
+    loadingContainer.className = 'loading';
+    loadingContainer.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+    `;
+    document.body.appendChild(loadingContainer);
+    
+    // 确保所有资源加载完成后移除加载动画
+    window.addEventListener('load', () => {
+        loadingContainer.style.display = 'none';
+        document.body.classList.add('loaded');
+    });
+});
 
 // 全局变量
 let currentEditId = null;
