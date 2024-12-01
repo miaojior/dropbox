@@ -13,96 +13,44 @@
 }
 
 body {
-    margin: 0;
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-sans);
     line-height: 1.6;
     color: #333;
-    background-color: #f8f9fa;
+    background-color: #f5f5f5;
     background-image: 
-        linear-gradient(rgba(130, 130, 130, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(130, 130, 130, 0.1) 1px, transparent 1px);
-    background-size: 30px 30px;
+        linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
 }
 
 .container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 2rem;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    padding: 2rem 1rem;
 }
 
 header {
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    text-align: center;
+    margin-bottom: 3rem;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 2rem;
+h1 {
+    font-size: 2.5rem;
     color: #2c3e50;
+    margin-bottom: 1rem;
 }
 
 .text-block {
     background: white;
-    border: 1px solid #e9ecef;
     border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.2s ease;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
 }
 
 .text-block:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transform: translateY(-2px);
-}
-
-.text-block h2 {
-    margin: 0 0 1rem 0;
-    color: #2c3e50;
-    font-size: 1.5rem;
-}
-
-.text-block-actions {
-    margin-top: 1rem;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background-color: #3498db;
-    color: white;
-}
-
-.btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.btn-copy {
-    background-color: #2ecc71;
-}
-
-.btn-edit {
-    background-color: #f1c40f;
-}
-
-.btn-delete {
-    background-color: #e74c3c;
-}
-
-.btn-download {
-    background-color: #9b59b6;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .text-block.fade-out {
@@ -114,8 +62,13 @@ header h1 {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 h2 {
@@ -190,7 +143,7 @@ code {
 
 .btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     opacity: 0.9;
 }
 
@@ -238,7 +191,7 @@ code {
     transition: all 0.3s ease;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -285,12 +238,12 @@ code {
     border-radius: 8px;
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease;
 }
 
 .text-block:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .text-block-actions {
@@ -380,7 +333,7 @@ code {
     .modal {
         padding: 10px;
     }
-    
+
     .modal-content {
         margin: 10px auto;
         padding: 1rem;
@@ -395,20 +348,22 @@ code {
     .btn {
         width: 100%;
     }
-    
+
     .image-preview img {
         max-height: 200px;
     }
 }
 
 /* 状态显示样式 */
-.loading, .error, .empty {
+.loading,
+.error,
+.empty {
     text-align: center;
     padding: 2rem;
     background: white;
     border-radius: 8px;
     margin: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .loading {
@@ -431,8 +386,13 @@ code {
 
 /* 加载动画 */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* 优化过渡效果 */
@@ -450,8 +410,13 @@ code {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* 图片相关样式 */
@@ -463,7 +428,7 @@ code {
     max-width: 100%;
     height: auto;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .image-preview {
@@ -478,7 +443,7 @@ code {
     max-width: 100%;
     max-height: 300px;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #editImage {
@@ -567,7 +532,7 @@ code {
     max-width: 100%;
     height: auto;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 图片相关样式 */
@@ -579,7 +544,7 @@ code {
     max-width: 100%;
     height: auto;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .image-preview {
@@ -594,7 +559,7 @@ code {
     max-width: 100%;
     max-height: 300px;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #editImage {
@@ -664,7 +629,7 @@ code {
     background: white;
     padding: 24px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     max-width: 400px;
     width: 90%;
 }
@@ -703,7 +668,7 @@ code {
 
 .file:hover {
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-color: #dee2e6;
 }
 
@@ -791,4 +756,3 @@ code {
 .file-icon.generic {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2395a5a6' d='M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z'/%3E%3C/svg%3E");
 }
-  
