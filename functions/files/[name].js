@@ -7,12 +7,8 @@ export async function onRequestGet({ request, env, params }) {
         const filename = params.name;
         console.log('Requesting file:', filename);
 
-        // 先获取元数据
-        const { metadata } = await env.FILES.getWithMetadata(filename);
-        console.log('Metadata:', metadata);
-
-        // 直接获取文件内容
-        const fileData = await env.FILES.get(filename, { type: 'stream' });
+        // 获取文件内容（使用arrayBuffer）
+        const fileData = await env.FILES.get(filename, { type: 'arrayBuffer' });
         
         if (!fileData) {
             console.log('File not found:', filename);
@@ -25,21 +21,25 @@ export async function onRequestGet({ request, env, params }) {
             });
         }
 
+        // 获取元数据
+        const { metadata } = await env.FILES.getWithMetadata(filename);
+
         // 打印调试信息
         console.log('File found:', {
             contentType: metadata?.contentType,
             originalName: metadata?.originalName,
-            size: metadata?.size
+            size: fileData.byteLength
         });
 
-        // 返回文件流
+        // 返回文件内容
         return new Response(fileData, {
             headers: {
                 'Content-Type': metadata?.contentType || 'application/octet-stream',
-                'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(metadata?.originalName || filename)}`,
+                'Content-Disposition': `attachment; filename="${encodeURIComponent(metadata?.originalName || filename)}"`,
+                'Content-Length': fileData.byteLength.toString(),
                 'Access-Control-Allow-Origin': '*',
                 'Cache-Control': 'no-store, no-cache, must-revalidate',
-                'Transfer-Encoding': 'chunked'
+                'Accept-Ranges': 'bytes'
             }
         });
     } catch (error) {
