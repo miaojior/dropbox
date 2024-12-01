@@ -16,7 +16,7 @@
     --text-color: #333;
     --grid-color: rgba(0, 0, 0, 0.84);
     --card-bg: #fafafa;
-    --card-shadow: rgba(0, 0, 0, 0.1);
+    --card-shadow: rgba(0, 0, 0, 0.15);
     --heading-color: #2c3e50;
     --border-color: #eee;
     --file-bg: var(--card-bg);
@@ -97,16 +97,16 @@ h1 {
 
 .text-block {
     background: var(--card-bg);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: 0 2px 4px var(--card-shadow);
+    box-shadow: 0 4px 6px var(--card-shadow);
     transition: box-shadow 0.3s ease;
     border: 1px solid var(--border-color);
 }
 
 .text-block:hover {
-    box-shadow: 0 4px 8px var(--card-shadow);
+    box-shadow: 0 6px 12px var(--card-shadow);
 }
 
 .text-block.fade-out {
@@ -307,8 +307,8 @@ code {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    margin-top: 1rem;
-    padding-top: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
     border-top: 1px solid #eee;
 }
 
@@ -719,15 +719,15 @@ code {
     background: var(--card-bg);
     display: flex;
     align-items: center;
-    padding: 1rem;
-    border-radius: 4px;
+    padding: 1.5rem;
+    border-radius: 8px;
     border: 1px solid var(--file-border);
     margin: 1rem 0;
     transition: box-shadow 0.2s ease;
 }
 
 .file:hover {
-    box-shadow: 0 2px 4px var(--card-shadow);
+    box-shadow: 0 4px 8px var(--card-shadow);
 }
 
 .file-icon {
