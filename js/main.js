@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!items) return;
         
         for (const item of items) {
-            console.log('粘贴类型:', item.type); // 调试日志
+            console.log('粘贴类型:', item.type);
             
             // 处理图片
             if (item.type.indexOf('image') !== -1) {
@@ -501,19 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     handleTypeChange('file');
                     
-                    // 更新文件信息显示
-                    const fileInfo = document.querySelector('.file-info');
-                    const fileIcon = getFileIcon(file.name);
-                    fileInfo.innerHTML = `
-                        <div class="file-preview">
-                            <i class="file-icon ${fileIcon}"></i>
-                            <div class="file-details">
-                                <div class="file-name">${file.name}</div>
-                                <div class="file-type">${getFileTypeDescription(file.name)}</div>
-                                <div class="file-size">${formatFileSize(file.size)}</div>
-                            </div>
-                        </div>
-                    `;
+                    // 使用统一的文件信息显示函数
+                    updateFileInfo(file);
                     
                     document.getElementById('editModal').style.display = 'block';
                     return;
@@ -587,19 +576,24 @@ document.addEventListener('DOMContentLoaded', () => {
             titleInput.value = file.name;
             
             // 更新文件信息显示
-            const fileInfo = document.querySelector('.file-info');
-            const fileIcon = getFileIcon(file.type);
-            fileInfo.innerHTML = `
-                <div class="file-preview">
-                    <i class="file-icon ${fileIcon}"></i>
-                    <div class="file-details">
-                        <div class="file-name">${file.name}</div>
-                        <div class="file-type">${getFileTypeDescription(file.type)}</div>
-                        <div class="file-size">${formatFileSize(file.size)}</div>
-                    </div>
-                </div>
-            `;
+            updateFileInfo(file);
         }
+    }
+
+    // 统一的文件信息更新函数
+    function updateFileInfo(file) {
+        const fileInfo = document.querySelector('.file-info');
+        const fileIcon = getFileIcon(file.name);
+        fileInfo.innerHTML = `
+            <div class="file-preview">
+                <i class="file-icon ${fileIcon}"></i>
+                <div class="file-details">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-type">${getFileTypeDescription(file.name)}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+            </div>
+        `;
     }
 
     // 开始更新检查
@@ -690,9 +684,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // 清除图片预览
         imagePreview.innerHTML = '';
         
-        // 清除文件信息
+        // 重置文件信息为默认状态
         if (fileInfo) {
-            fileInfo.innerHTML = '支持所有类型的文件';
+            fileInfo.innerHTML = `
+                <div class="file-preview">
+                    <i class="file-icon generic"></i>
+                    <div class="file-details">
+                        <div class="file-type">支持所有类型的文件</div>
+                    </div>
+                </div>
+            `;
         }
         
         // 清除文件输入框的值
