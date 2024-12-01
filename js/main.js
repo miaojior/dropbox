@@ -32,12 +32,23 @@ window.copyContent = async function(content, type) {
 
 // 显示提示信息
 function showToast(message) {
+    // 移除现有的toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;
     document.body.appendChild(toast);
+
+    // 添加显示类
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
     
-    // 2秒后自动消失
+    // 2秒后消失
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => toast.remove(), 300);
@@ -127,18 +138,24 @@ document.addEventListener('DOMContentLoaded', () => {
             actions.className = 'text-block-actions';
             
             // 添加复制按钮
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'btn btn-copy';
-            copyBtn.innerHTML = '<span class="icon">📋</span> 复制';
-            copyBtn.onclick = () => copyContent(content.content, content.type);
-            
-            actions.appendChild(copyBtn);
+            const copyButton = document.createElement('button');
+            copyButton.className = 'btn btn-copy';
+            copyButton.innerHTML = '<span class="icon">📋</span> 复制';
+            copyButton.onclick = () => copyToClipboard(content.content);
+            actions.appendChild(copyButton);
             
             // 添加编辑和删除按钮
-            actions.innerHTML += `
-                <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
-            `;
+            const editButton = document.createElement('button');
+            editButton.className = 'btn btn-edit';
+            editButton.textContent = '编辑';
+            editButton.onclick = () => editContent(content.id);
+            actions.appendChild(editButton);
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'btn btn-delete';
+            deleteButton.textContent = '删除';
+            deleteButton.onclick = () => deleteContent(content.id);
+            actions.appendChild(deleteButton);
             
             section.appendChild(h2);
             section.appendChild(contentDiv);
@@ -151,6 +168,33 @@ document.addEventListener('DOMContentLoaded', () => {
             contentContainer.innerHTML = tempContainer.innerHTML;
             // 重新初始化代码高亮
             Prism.highlightAll();
+        }
+    }
+
+    // 复制到剪贴板
+    async function copyToClipboard(text) {
+        try {
+            // 创建一个临时的textarea元素
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            // 尝试使用新API
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                // 回退到旧方法
+                document.execCommand('copy');
+            }
+            
+            document.body.removeChild(textarea);
+            showToast('复制成功！');
+        } catch (err) {
+            console.error('复制失败:', err);
+            showToast('复制失败，请手动复制');
         }
     }
 
