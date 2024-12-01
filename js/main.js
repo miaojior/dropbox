@@ -8,9 +8,20 @@ let lastUpdateTime = Date.now();
 let updateCheckInterval;
 let contentCache = [];
 
+// Base64编码和解码函数
+function encodeContent(text) {
+    return btoa(unescape(encodeURIComponent(text)));
+}
+
+function decodeContent(encoded) {
+    return decodeURIComponent(escape(atob(encoded)));
+}
+
 // 复制函数
-function copyText(text, type) {
+function copyText(encodedText, type) {
+    const text = decodeContent(encodedText);
     let copyContent = text;
+    
     if (type === 'poetry') {
         // 保持诗歌的换行格式
         copyContent = text.split('\n').join('\r\n');
@@ -150,6 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 contentHtml = `<p>${content.content}</p>`;
             }
 
+            // 使用Base64编码内容
+            const encodedContent = encodeContent(content.content);
+
             html += `
                 <section class="text-block">
                     <h2>${content.title}</h2>
@@ -157,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${contentHtml}
                     </div>
                     <div class="text-block-actions">
-                        <button class="btn" onclick="copyText('${content.content.replace(/'/g, "\\'")}', '${content.type}')">复制</button>
+                        <button class="btn" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
                         <button class="btn" onclick="editContent(${content.id})">编辑</button>
                         <button class="btn" onclick="deleteContent(${content.id})">删除</button>
                     </div>
