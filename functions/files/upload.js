@@ -20,24 +20,38 @@ export async function onRequest(context) {
     const extension = originalName.split('.').pop();
     const filename = `${timestamp}-${randomString}.${extension}`;
 
-    // 上传文件到 KV 存储
-    await context.env.FILES.put(filename, file.stream(), {
-      httpMetadata: {
+    // 将文件转换为arrayBuffer并上传
+    const arrayBuffer = await file.arrayBuffer();
+    await context.env.FILES.put(filename, arrayBuffer, {
+      metadata: {
         contentType: file.type,
-        contentDisposition: `attachment; filename="${originalName}"`
+        filename: originalName,
+        size: arrayBuffer.byteLength,
+        httpMetadata: {
+          contentType: file.type,
+          contentDisposition: `attachment; filename="${originalName}"`
+        }
       }
     });
+
+    console.log('File saved:', filename, 'Size:', arrayBuffer.byteLength, 'Type:', file.type);
 
     // 返回文件的URL
     const url = `${new URL(context.request.url).origin}/files/${filename}`;
     
-    return new Response(JSON.stringify({ url }), {
+    return new Response(JSON.stringify({ 
+      url,
+      filename,
+      size: arrayBuffer.byteLength,
+      type: file.type
+    }), {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
     });
   } catch (error) {
+    console.error('Upload error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: {
