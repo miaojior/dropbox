@@ -224,13 +224,52 @@ function getFileIconUrl(filename) {
 async function downloadFile(url, filename) {
     try {
         showToast('准备下载文件...');
-        const response = await fetch(url);
-        const blob = await response.blob();
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': '*/*'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`下载失败: ${response.status} ${response.statusText}`);
+        }
+
+        // 获取响应头中的文件名
+        const contentDisposition = response.headers.get('content-disposition');
+        const match = contentDisposition?.match(/filename="(.+)"/);
+        const actualFilename = match ? decodeURIComponent(match[1]) : filename;
+
+        // 使用 streams API 处理大文件下载
+        const reader = response.body.getReader();
+        const contentLength = response.headers.get('content-length');
+        let receivedLength = 0;
+        const chunks = [];
+
+        while(true) {
+            const {done, value} = await reader.read();
+            
+            if (done) {
+                break;
+            }
+            
+            chunks.push(value);
+            receivedLength += value.length;
+            
+            // 更新下载进度
+            if (contentLength) {
+                const progress = ((receivedLength / contentLength) * 100).toFixed(2);
+                showToast(`下载进度: ${progress}%`);
+            }
+        }
+
+        // 合并所有chunks
+        const blob = new Blob(chunks);
         const blobUrl = window.URL.createObjectURL(blob);
         
         const link = document.createElement('a');
         link.href = blobUrl;
-        link.download = filename;
+        link.download = actualFilename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -239,7 +278,7 @@ async function downloadFile(url, filename) {
         showToast('文件下载完成');
     } catch (error) {
         console.error('下载失败:', error);
-        showToast('下载失败，请重试', 'error');
+        showToast('下载失败: ' + error.message, 'error');
     }
 }
 
