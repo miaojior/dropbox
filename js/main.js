@@ -433,6 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = document.getElementById('editType').value;
             const title = document.getElementById('editTitle').value;
             let content = '';
+            let fileType = '';
+            let fileSize = 0;
             
             if (type === 'image') {
                 const imageFile = document.getElementById('editImage').files[0];
@@ -479,6 +481,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const { url } = await uploadResponse.json();
                     content = url;
+                    fileType = file.type;
+                    fileSize = file.size;
                 } else {
                     throw new Error('请选择文件');
                 }
@@ -486,7 +490,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 content = document.getElementById('editContent').value;
             }
             
-            const formData = { type, title, content };
+            const formData = { 
+                type, 
+                title, 
+                content,
+                fileType,
+                fileSize
+            };
             
             if (currentEditId) {
                 await updateContent(currentEditId, formData);
@@ -496,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             closeModal();
             await loadContents(false);
+            showToast('保存成功！');
         } catch (error) {
             console.error('保存失败:', error);
             showToast(error.message, 'error');
