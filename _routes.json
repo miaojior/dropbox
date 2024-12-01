@@ -18,6 +18,10 @@
     "/images/*": {
       "function": "images",
       "method": ["GET", "OPTIONS"]
+    },
+    "/_vars/*": {
+      "function": "_vars/[name]",
+      "method": ["GET", "OPTIONS"]
     }
   }
 } 

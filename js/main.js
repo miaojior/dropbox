@@ -10,6 +10,25 @@ let lastUpdateTime = Date.now();
 let updateCheckInterval;
 let contentCache = [];
 let contentContainer;
+let syncInterval = 30000; // 默认30秒
+
+// 获取同步间隔配置
+async function getSyncInterval() {
+    try {
+        const response = await fetch('/_vars/SYNC_INTERVAL');
+        if (response.ok) {
+            const interval = await response.text();
+            // 确保interval是一个有效的数字且不小于5秒
+            const parsedInterval = parseInt(interval);
+            if (!isNaN(parsedInterval) && parsedInterval >= 5000) {
+                syncInterval = parsedInterval;
+                console.log('已从环境变量加载同步间隔:', syncInterval, 'ms');
+            }
+        }
+    } catch (error) {
+        console.warn('无法获取同步间隔配置，使用默认值:', syncInterval, 'ms');
+    }
+}
 
 // 工具函数
 function getFileIcon(filename) {
@@ -433,7 +452,10 @@ window.editContent = function(id) {
 }
 
 // DOM元素
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // 初始化前先获取同步间隔
+    await getSyncInterval();
+    
     contentContainer = document.getElementById('content-container');
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
@@ -615,7 +637,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 开始更新检查
     function startUpdateCheck() {
-        updateCheckInterval = setInterval(() => loadContents(false), 4000); // 每4秒静默更新
+        updateCheckInterval = setInterval(() => loadContents(false), syncInterval);
     }
 
     // 加载有内容
