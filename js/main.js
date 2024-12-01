@@ -199,21 +199,46 @@ window.handleTypeChange = function(type) {
 // 编辑内容函数
 window.editContent = function(id) {
     const content = contentCache.find(item => item.id === id);
-    if (content) {
-        currentEditId = content.id;
-        document.getElementById('editType').value = content.type;
-        document.getElementById('editTitle').value = content.title;
-        document.getElementById('editContent').value = content.content;
-        
-        // 如果是图片类型，显示预览
-        if (content.type === 'image') {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = `<img src="${content.content}" alt="预览">`;
-        }
-        
-        handleTypeChange(content.type);
-        document.getElementById('editModal').style.display = 'block';
+    if (!content) return;
+
+    const form = document.createElement('form');
+    form.className = 'edit-form';
+    form.innerHTML = `
+        <div class="form-group">
+            <label for="edit-title">标题</label>
+            <input type="text" id="edit-title" value="${content.title}" required>
+        </div>
+        <div class="form-group">
+            <label for="edit-type">类型</label>
+            <select id="edit-type">
+                <option value="text" ${content.type === 'text' ? 'selected' : ''}>普通文本</option>
+                <option value="code" ${content.type === 'code' ? 'selected' : ''}>代码</option>
+                <option value="poetry" ${content.type === 'poetry' ? 'selected' : ''}>诗歌</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="edit-content">内容</label>
+            <textarea id="edit-content" required>${content.content}</textarea>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-cancel" onclick="cancelEdit()">取消</button>
+            <button type="submit" class="btn btn-save">保存</button>
+        </div>
+    `;
+
+    currentEditId = content.id;
+    document.getElementById('editType').value = content.type;
+    document.getElementById('editTitle').value = content.title;
+    document.getElementById('editContent').value = content.content;
+    
+    // 如果是图片类型，显示预览
+    if (content.type === 'image') {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = `<img src="${content.content}" alt="预览">`;
     }
+    
+    handleTypeChange(content.type);
+    document.getElementById('editModal').style.display = 'block';
 }
 
 // DOM元素
