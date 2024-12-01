@@ -28,6 +28,31 @@ document.addEventListener('DOMContentLoaded', () => {
         editImage.addEventListener('change', handleImagePreview);
     }
 
+    // 复制内容到剪贴板
+    window.copyContent = async function(content, type) {
+        try {
+            await navigator.clipboard.writeText(content);
+            showToast('复制成功！');
+        } catch (err) {
+            console.error('复制失败:', err);
+            showToast('复制失败，请手动复制');
+        }
+    }
+
+    // 显示提示信息
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 2秒后自动消失
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+
     // 处理图片预览
     function handleImagePreview(event) {
         const file = event.target.files[0];
@@ -38,6 +63,83 @@ document.addEventListener('DOMContentLoaded', () => {
                 preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
             };
             reader.readAsDataURL(file);
+        }
+    }
+
+    // 渲染内容
+    function renderContents(contents) {
+        // 如果内容为空，显示空状态
+        if (!contents || contents.length === 0) {
+            contentContainer.innerHTML = '<div class="empty">还没有任何内容，点击"添加新内容"开始创建</div>';
+            return;
+        }
+
+        // 创建新的内容HTML
+        const tempContainer = document.createElement('div');
+        
+        contents.forEach(content => {
+            const section = document.createElement('section');
+            section.className = 'text-block';
+            section.dataset.id = content.id;
+            
+            const h2 = document.createElement('h2');
+            h2.textContent = content.title;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = content.type;
+            
+            if (content.type === 'image') {
+                const img = document.createElement('img');
+                img.src = content.content;
+                img.alt = content.title;
+                contentDiv.appendChild(img);
+            } else if (content.type === 'code') {
+                const pre = document.createElement('pre');
+                const code = document.createElement('code');
+                code.className = 'language-javascript';
+                code.textContent = content.content;
+                pre.appendChild(code);
+                contentDiv.appendChild(pre);
+            } else if (content.type === 'poetry') {
+                content.content.split('\n').forEach(line => {
+                    const p = document.createElement('p');
+                    p.textContent = line;
+                    contentDiv.appendChild(p);
+                });
+            } else {
+                const p = document.createElement('p');
+                p.textContent = content.content;
+                contentDiv.appendChild(p);
+            }
+            
+            const actions = document.createElement('div');
+            actions.className = 'text-block-actions';
+            
+            // 添加复制按钮
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'btn btn-copy';
+            copyBtn.innerHTML = '<span class="icon">📋</span> 复制';
+            copyBtn.onclick = () => copyContent(content.content, content.type);
+            
+            actions.appendChild(copyBtn);
+            
+            // 添加编辑和删除按钮
+            actions.innerHTML += `
+                <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
+                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
+            `;
+            
+            section.appendChild(h2);
+            section.appendChild(contentDiv);
+            section.appendChild(actions);
+            tempContainer.appendChild(section);
+        });
+
+        // 只有当内容真正变化时才更新DOM
+        if (contentContainer.innerHTML !== tempContainer.innerHTML) {
+            contentContainer.innerHTML = tempContainer.innerHTML;
+            // 重新初始化代码高亮
+            Prism.highlightAll();
         }
     }
 
@@ -132,73 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="btn" onclick="location.reload()">重试</button>
             </div>
         `;
-    }
-
-    // 渲染内容
-    function renderContents(contents) {
-        // 如果内容为空，显示空状态
-        if (!contents || contents.length === 0) {
-            contentContainer.innerHTML = '<div class="empty">还没有任何内容，点击"添加新内容"开始创建</div>';
-            return;
-        }
-
-        // 创建新的内容HTML
-        const tempContainer = document.createElement('div');
-        
-        contents.forEach(content => {
-            const section = document.createElement('section');
-            section.className = 'text-block';
-            section.dataset.id = content.id;
-            
-            const h2 = document.createElement('h2');
-            h2.textContent = content.title;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = content.type;
-            
-            if (content.type === 'image') {
-                const img = document.createElement('img');
-                img.src = content.content;
-                img.alt = content.title;
-                contentDiv.appendChild(img);
-            } else if (content.type === 'code') {
-                const pre = document.createElement('pre');
-                const code = document.createElement('code');
-                code.className = 'language-javascript';
-                code.textContent = content.content;
-                pre.appendChild(code);
-                contentDiv.appendChild(pre);
-            } else if (content.type === 'poetry') {
-                content.content.split('\n').forEach(line => {
-                    const p = document.createElement('p');
-                    p.textContent = line;
-                    contentDiv.appendChild(p);
-                });
-            } else {
-                const p = document.createElement('p');
-                p.textContent = content.content;
-                contentDiv.appendChild(p);
-            }
-            
-            const actions = document.createElement('div');
-            actions.className = 'text-block-actions';
-            actions.innerHTML = `
-                <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
-            `;
-            
-            section.appendChild(h2);
-            section.appendChild(contentDiv);
-            section.appendChild(actions);
-            tempContainer.appendChild(section);
-        });
-
-        // 只有当内容真正变化时才更新DOM
-        if (contentContainer.innerHTML !== tempContainer.innerHTML) {
-            contentContainer.innerHTML = tempContainer.innerHTML;
-            // 重新初始化代码高亮
-            Prism.highlightAll();
-        }
     }
 
     // 打开模态框
