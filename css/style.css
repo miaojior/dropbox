@@ -32,7 +32,7 @@
 [data-theme="dark"] {
     --bg-color: #1a1a1a;
     --text-color: #e0e0e0;
-    --grid-color: rgba(255, 255, 255, 0.84);
+    --grid-color: rgba(255, 255, 255, 0.1);
     --card-bg: #2d2d2d;
     --card-shadow: rgba(0, 0, 0, 0.3);
     --heading-color: #ffffff;
@@ -44,6 +44,13 @@
     --code-bg: #2d2d2d;
     --modal-bg: #2d2d2d;
     --modal-overlay: rgba(0, 0, 0, 0.7);
+    --btn-bg: #3d3d3d;
+    --btn-text: #ffffff;
+    --btn-hover: #4a4a4a;
+    --input-bg: #2d2d2d;
+    --input-border: #404040;
+    --input-text: #e0e0e0;
+    --toast-bg: rgba(45, 45, 45, 0.9);
 }
 
 body {
@@ -836,4 +843,61 @@ code {
 
 .theme-toggle:hover {
     opacity: 0.9;
+}
+
+/* 按钮样式适配深色模式 */
+[data-theme="dark"] .btn {
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .btn:hover {
+    background-color: var(--btn-hover);
+}
+
+/* 表单元素适配深色模式 */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--input-text);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+/* 文件卡片深色模式样式 */
+[data-theme="dark"] .file {
+    background-color: var(--file-bg);
+    border-color: var(--file-border);
+}
+
+[data-theme="dark"] .file:hover {
+    background-color: var(--btn-hover);
+    border-color: #3498db;
+}
+
+/* 模态框深色模式样式 */
+[data-theme="dark"] .modal-content {
+    background-color: var(--modal-bg);
+    border: 1px solid var(--border-color);
+}
+
+/* 提示框深色模式样式 */
+[data-theme="dark"] .toast {
+    background-color: var(--toast-bg);
+}
+
+/* 确保所有元素都有平滑的主题切换效果 */
+* {
+    transition: background-color 0.3s ease, 
+                color 0.3s ease, 
+                border-color 0.3s ease, 
+                box-shadow 0.3s ease;
 }
