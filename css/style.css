@@ -1843,3 +1843,285 @@ select {
 .file-list::-webkit-scrollbar-thumb:hover {
     background: #bbb;
 }
+
+/* 文件卡片样式 */
+.content-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.content-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.file-info-block {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.file-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f7fa;
+    border-radius: 12px;
+    font-size: 24px;
+}
+
+.file-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #666;
+    font-size: 13px;
+}
+
+.file-size, .file-type {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-download, .btn-edit, .btn-delete {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-download {
+    background: #4a90e2;
+    color: white;
+    border: none;
+}
+
+.btn-download:hover {
+    background: #357abd;
+}
+
+.btn-edit {
+    background: #fff;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.btn-edit:hover {
+    border-color: #4a90e2;
+    color: #4a90e2;
+}
+
+.btn-delete {
+    background: #fff;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.btn-delete:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* 文件类型图标颜色 */
+[data-file-type="image"] .file-icon { color: #4CAF50; }
+[data-file-type="video"] .file-icon { color: #2196F3; }
+[data-file-type="audio"] .file-icon { color: #9C27B0; }
+[data-file-type="document"] .file-icon { color: #FF5722; }
+[data-file-type="archive"] .file-icon { color: #795548; }
+
+/* 响应式调整 */
+@media (max-width: 640px) {
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .card-actions {
+        width: 100%;
+        justify-content: flex-end;
+        padding-top: 12px;
+        border-top: 1px solid #eee;
+        margin-top: 12px;
+    }
+}
+
+/* 模态框动画 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+.modal-content {
+    position: relative;
+    background: #fff;
+    margin: 40px auto;
+    padding: 24px;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 12px;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* 消息提示样式 */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 6px;
+    font-size: 14px;
+    z-index: 1100;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-info {
+    background: rgba(74, 144, 226, 0.9);
+}
+
+.toast-success {
+    background: rgba(76, 175, 80, 0.9);
+}
+
+.toast-error {
+    background: rgba(244, 67, 54, 0.9);
+}
+
+/* 表单样式优化 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group select,
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.form-group select:focus,
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    outline: none;
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.form-buttons button {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.form-buttons button[type="submit"] {
+    background: #4a90e2;
+    color: white;
+    border: none;
+}
+
+.form-buttons button[type="submit"]:hover {
+    background: #357abd;
+}
+
+.form-buttons .btn-cancel {
+    background: #fff;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.form-buttons .btn-cancel:hover {
+    border-color: #999;
+    color: #333;
+}
