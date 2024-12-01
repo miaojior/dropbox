@@ -18,6 +18,31 @@ function decodeContent(encoded) {
     return decodeURIComponent(escape(atob(encoded)));
 }
 
+// 显示提示函数
+function showToast(message, type = 'success') {
+    // 移除现有的toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    // 添加显示类
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+    
+    // 2秒后消失
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
 // 复制函数
 function copyText(encodedText, type) {
     const text = decodeContent(encodedText);
@@ -30,7 +55,7 @@ function copyText(encodedText, type) {
     }
     
     navigator.clipboard.writeText(copyContent).then(() => {
-        alert('复制成功！');
+        showToast('复制成功！');
     }).catch(() => {
         const textarea = document.createElement('textarea');
         textarea.value = copyContent;
@@ -38,9 +63,9 @@ function copyText(encodedText, type) {
         textarea.select();
         try {
             document.execCommand('copy');
-            alert('复制成功！');
+            showToast('复制成功！');
         } catch (e) {
-            alert('复制失败，请手动复制');
+            showToast('复制失败，请手动复制', 'error');
         }
         document.body.removeChild(textarea);
     });
@@ -106,10 +131,10 @@ window.deleteContent = function(id) {
             }
             contentCache = contentCache.filter(item => item.id !== id);
             renderContents(contentCache);
-            alert('删除成功');
+            showToast('删除成功！');
         }).catch(error => {
             console.error('删除失败:', error);
-            alert('删除失败: ' + error.message);
+            showToast(error.message, 'error');
         });
     }
 }
