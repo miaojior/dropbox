@@ -45,11 +45,12 @@ export async function onRequestPut({ request, env, params }) {
 
 export async function onRequestDelete({ env, params }) {
   try {
-    const { success } = await env.DB.prepare(
-      'DELETE FROM content_blocks WHERE id = ?'
-    ).bind(params.id).run();
+    // 首先获取内容信息
+    const content = await env.DB.prepare(
+      'SELECT type, content FROM content_blocks WHERE id = ?'
+    ).bind(params.id).first();
 
-    if (!success) {
+    if (!content) {
       return new Response(JSON.stringify({ error: '内容不存在' }), {
         status: 404,
         headers: { 
@@ -58,6 +59,23 @@ export async function onRequestDelete({ env, params }) {
         }
       });
     }
+
+    // 如果是图片类型，删除对应的图片文件
+    if (content.type === 'image' && content.content) {
+      try {
+        const imageFilename = content.content.split('/').pop();
+        if (imageFilename && env.IMAGES) {
+          await env.IMAGES.delete(imageFilename);
+        }
+      } catch (imageError) {
+        console.error('删除图片失败:', imageError);
+      }
+    }
+
+    // 删除内容记录
+    const { success } = await env.DB.prepare(
+      'DELETE FROM content_blocks WHERE id = ?'
+    ).bind(params.id).run();
 
     return new Response(JSON.stringify({ message: '删除成功' }), {
       headers: { 
