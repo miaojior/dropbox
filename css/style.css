@@ -14,17 +14,18 @@
     /* 浅色主题变量 */
     --bg-color: #f5f5f5;
     --text-color: #333;
-    --grid-color: rgba(0, 0, 0, 0.92);
+    --grid-color: rgba(0, 0, 0, 0.88);
     --card-bg: #d0d0d0;
+    --card-hover-bg: #c0c0c0;
     --card-shadow: rgba(0, 0, 0, 0.1);
     --heading-color: #2c3e50;
-    --border-color: #eee;
-    --file-bg: #f8f9fa;
-    --file-border: #e9ecef;
+    --border-color: #ccc;
+    --file-bg: var(--card-bg);
+    --file-border: #ccc;
     --file-text: #2c3e50;
     --file-subtext: #7f8c8d;
-    --code-bg: #f8f9fa;
-    --modal-bg: white;
+    --code-bg: var(--card-bg);
+    --modal-bg: var(--card-bg);
     --modal-overlay: rgba(0, 0, 0, 0.5);
 }
 
@@ -106,6 +107,7 @@ h1 {
 }
 
 .text-block:hover {
+    background: var(--card-hover-bg);
     box-shadow: 0 4px 8px var(--card-shadow);
 }
 
@@ -716,10 +718,10 @@ code {
 
 /* 文件相关样式 */
 .file {
+    background: var(--card-bg);
     display: flex;
     align-items: center;
     padding: 1rem;
-    background-color: var(--file-bg);
     border-radius: 4px;
     border: 1px solid var(--file-border);
     margin: 1rem 0;
@@ -727,9 +729,7 @@ code {
 }
 
 .file:hover {
-    background-color: var(--card-bg);
-    box-shadow: 0 2px 4px var(--card-shadow);
-    border-color: var(--border-color);
+    background: var(--card-hover-bg);
 }
 
 .file-icon {
