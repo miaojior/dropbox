@@ -6,39 +6,48 @@ const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
 
 // 初始化加载动画
-document.addEventListener('DOMContentLoaded', () => {
-    // 创建加载动画容器
-    const loadingContainer = document.createElement('div');
-    loadingContainer.className = 'loading';
+const loadingContainer = document.createElement('div');
+loadingContainer.className = 'loading';
+loadingContainer.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.98);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+`;
+loadingContainer.innerHTML = `
+    <div class="loading-spinner"></div>
+    <div class="loading-text">加载中...</div>
+`;
+document.body.appendChild(loadingContainer);
+
+// 显示加载动画函数
+window.showLoading = () => {
+    loadingContainer.style.display = 'flex';
+    // 强制重排以触发过渡动画
+    loadingContainer.offsetHeight;
+    loadingContainer.style.opacity = '1';
+};
+
+// 隐藏加载动画函数
+window.hideLoading = () => {
     loadingContainer.style.opacity = '0';
-    loadingContainer.style.transition = 'opacity 0.3s ease-in-out';
-    loadingContainer.innerHTML = `
-        <div class="loading-spinner"></div>
-        <div class="loading-text">加载中...</div>
-    `;
-    document.body.appendChild(loadingContainer);
-    
-    // 显示加载动画函数
-    window.showLoading = () => {
-        loadingContainer.style.display = 'flex';
-        // 强制重排以触发过渡动画
-        loadingContainer.offsetHeight;
-        loadingContainer.style.opacity = '1';
-    };
-    
-    // 隐藏加载动画函数
-    window.hideLoading = () => {
-        loadingContainer.style.opacity = '0';
-        setTimeout(() => {
-            loadingContainer.style.display = 'none';
-        }, 300); // 等待过渡动画完成
-    };
-    
-    // 确保所有资源加载完成后移除加载动画
-    window.addEventListener('load', () => {
-        hideLoading();
-        document.body.classList.add('loaded');
-    });
+    setTimeout(() => {
+        loadingContainer.style.display = 'none';
+    }, 300); // 等待过渡动画完成
+};
+
+// 确保所有资源加载完成后移除加载动画
+window.addEventListener('load', () => {
+    hideLoading();
+    document.body.classList.add('loaded');
 });
 
 // 全局变量
