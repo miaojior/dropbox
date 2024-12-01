@@ -47,12 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageGroup = document.getElementById('imageGroup');
         const editContent = document.getElementById('editContent');
         const editImage = document.getElementById('editImage');
+        const imagePreview = document.getElementById('imagePreview');
 
         if (type === 'image') {
             contentGroup.style.display = 'none';
             imageGroup.style.display = 'block';
             editContent.required = false;
-            editImage.required = true;
+            editImage.required = !editContent.value; // 只有在没有现有图片时才需要
+            
+            // 如果有现有图片，显示预览
+            if (editContent.value) {
+                imagePreview.innerHTML = `<img src="${editContent.value}" alt="预览">`;
+            }
         } else {
             contentGroup.style.display = 'block';
             imageGroup.style.display = 'none';
@@ -201,6 +207,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editType').value = content ? content.type : 'prose';
         document.getElementById('editTitle').value = content ? content.title : '';
         document.getElementById('editContent').value = content ? content.content : '';
+        
+        // 如果是图片类型，显示预览
+        if (content && content.type === 'image') {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = `<img src="${content.content}" alt="${content.title}">`;
+        }
+        
+        // 触发类型切换处理
+        handleTypeChange(content ? content.type : 'prose');
+        
         editModal.style.display = 'block';
     }
 
@@ -227,25 +243,30 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (type === 'image') {
                 const imageFile = document.getElementById('editImage').files[0];
-                if (!imageFile) {
+                const existingContent = document.getElementById('editContent').value;
+                
+                // 如果没有选择新图片且有现有图片，保持现有图片
+                if (!imageFile && existingContent) {
+                    content = existingContent;
+                } else if (imageFile) {
+                    // 上传新图片
+                    const formData = new FormData();
+                    formData.append('image', imageFile);
+                    
+                    const uploadResponse = await fetch(IMAGES_API_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        throw new Error('图片上传失败');
+                    }
+                    
+                    const { url } = await uploadResponse.json();
+                    content = url;
+                } else {
                     throw new Error('请选择图片文件');
                 }
-                
-                // 上传图片到KV存储
-                const formData = new FormData();
-                formData.append('image', imageFile);
-                
-                const uploadResponse = await fetch(IMAGES_API_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!uploadResponse.ok) {
-                    throw new Error('图片上传失败');
-                }
-                
-                const { url } = await uploadResponse.json();
-                content = url;
             } else {
                 content = document.getElementById('editContent').value;
             }

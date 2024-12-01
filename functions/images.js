@@ -25,10 +25,14 @@ export async function onRequestPost({ request, env }) {
             }
         });
 
-        // 返回图片URL
+        // 获取当前域名
+        const url = new URL(request.url);
+        const baseUrl = `${url.protocol}//${url.host}`;
+
+        // 返回完整的图片URL
         return new Response(
             JSON.stringify({
-                url: `/images/${filename}`
+                url: `${baseUrl}/images/${filename}`
             }), {
                 headers: {
                     'Content-Type': 'application/json',
