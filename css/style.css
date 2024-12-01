@@ -16,7 +16,6 @@
     --text-color: #333;
     --grid-color: rgba(0, 0, 0, 0.84);
     --card-bg: #fafafa;
-    --card-hover-bg: #f0f0f0;
     --card-shadow: rgba(0, 0, 0, 0.1);
     --heading-color: #2c3e50;
     --border-color: #eee;
@@ -102,12 +101,11 @@ h1 {
     padding: 2rem;
     margin-bottom: 2rem;
     box-shadow: 0 2px 4px var(--card-shadow);
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease;
     border: 1px solid var(--border-color);
 }
 
 .text-block:hover {
-    background: var(--card-hover-bg);
     box-shadow: 0 4px 8px var(--card-shadow);
 }
 
@@ -725,11 +723,11 @@ code {
     border-radius: 4px;
     border: 1px solid var(--file-border);
     margin: 1rem 0;
-    transition: all 0.2s ease;
+    transition: box-shadow 0.2s ease;
 }
 
 .file:hover {
-    background: var(--card-hover-bg);
+    box-shadow: 0 2px 4px var(--card-shadow);
 }
 
 .file-icon {
