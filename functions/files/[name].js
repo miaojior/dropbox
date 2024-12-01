@@ -7,11 +7,10 @@ export async function onRequestGet({ request, env, params }) {
         const filename = params.name;
         console.log('Requesting file:', filename);
         
-        // 分别获取文件内容和元数据
-        const fileData = await env.FILES.get(filename, { type: 'arrayBuffer' });
-        const { metadata } = await env.FILES.getWithMetadata(filename);
+        // 获取文件元数据
+        const { value, metadata } = await env.FILES.getWithMetadata(filename);
         
-        if (!fileData) {
+        if (!value) {
             console.log('File not found:', filename);
             return new Response('File not found', { 
                 status: 404,
@@ -24,26 +23,21 @@ export async function onRequestGet({ request, env, params }) {
 
         // 打印调试信息
         console.log('File found:', {
-            size: fileData.byteLength,
             contentType: metadata?.contentType,
-            originalName: metadata?.originalName
+            originalName: metadata?.originalName,
+            size: metadata?.size
         });
 
-        // 创建文件的 Blob
-        const blob = new Blob([fileData], { 
-            type: metadata?.contentType || 'application/octet-stream' 
+        // 直接返回KV中的原始数据
+        return new Response(value, {
+            headers: {
+                'Content-Type': metadata?.contentType || 'application/octet-stream',
+                'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(metadata?.originalName || filename)}`,
+                'Content-Length': metadata?.size?.toString() || '0',
+                'Access-Control-Allow-Origin': '*',
+                'Cache-Control': 'no-cache'
+            }
         });
-
-        // 构建响应头
-        const headers = new Headers({
-            'Content-Type': metadata?.contentType || 'application/octet-stream',
-            'Content-Length': blob.size.toString(),
-            'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(metadata?.originalName || filename)}`,
-            'Access-Control-Allow-Origin': '*'
-        });
-
-        // 返回文件
-        return new Response(blob, { headers });
     } catch (error) {
         console.error('Get file error:', error);
         return new Response('Error fetching file: ' + error.message, { 
