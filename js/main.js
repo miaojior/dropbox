@@ -672,12 +672,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // 打开模态框
     window.openModal = function() {
         currentEditId = null;
-        document.getElementById('editType').value = 'prose';
-        document.getElementById('editTitle').value = '';
-        document.getElementById('editContent').value = '';
-        document.getElementById('imagePreview').innerHTML = '';
-        document.getElementById('editImage').value = '';
-        handleTypeChange('prose');
+        const editForm = document.getElementById('editForm');
+        const editType = document.getElementById('editType');
+        const editTitle = document.getElementById('editTitle');
+        const editContent = document.getElementById('editContent');
+        const imagePreview = document.getElementById('imagePreview');
+        const editImage = document.getElementById('editImage');
+        const editFile = document.getElementById('editFile');
+        const fileInfo = document.querySelector('.file-info');
+
+        // 重置所有表单元素
+        editForm.reset();
+        editType.value = 'text';
+        editTitle.value = '';
+        editContent.value = '';
+        
+        // 清除图片预览
+        imagePreview.innerHTML = '';
+        
+        // 清除文件信息
+        if (fileInfo) {
+            fileInfo.innerHTML = '支持所有类型的文件';
+        }
+        
+        // 清除文件输入框的值
+        if (editImage) {
+            editImage.value = '';
+        }
+        if (editFile) {
+            editFile.value = '';
+        }
+
+        handleTypeChange('text');
         document.getElementById('editModal').style.display = 'block';
     }
 
