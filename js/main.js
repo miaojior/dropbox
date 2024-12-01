@@ -33,7 +33,7 @@ async function getSyncInterval() {
 
 // 工具函数
 function getFileIcon(filename) {
-    // ���取文件扩展名
+    // 取文件扩展名
     const ext = filename.toLowerCase().split('.').pop();
     
     // Markdown文件
@@ -533,9 +533,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addNewBtn = document.getElementById('addNewBtn');
     const editImage = document.getElementById('editImage');
 
-    // 立即显示初始空状态
-    renderContents([]);
-    
     // 初始化
     await loadContents(true);
     setupEventListeners();
@@ -640,7 +637,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 检��文本是否为代码
+    // 检文本是否为代码
     function detectCodeContent(text) {
         // 代码特征检测规则
         const codePatterns = [
@@ -717,23 +714,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadContents(showLoading = true) {
         if (!contentContainer) {
             contentContainer = document.getElementById('content-container');
-        }
-
-        // 显示骨架屏
-        if (showLoading && (!contentCache || contentCache.length === 0)) {
-            contentContainer.innerHTML = Array(3).fill(`
-                <section class="text-block skeleton">
-                    <div class="text-block-header">
-                        <div class="skeleton-title"></div>
-                        <div class="skeleton-meta"></div>
-                    </div>
-                    <div class="skeleton-content">
-                        <div class="skeleton-line"></div>
-                        <div class="skeleton-line"></div>
-                        <div class="skeleton-line"></div>
-                    </div>
-                </section>
-            `).join('');
         }
 
         try {

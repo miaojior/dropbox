@@ -9,53 +9,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="js/theme.js"></script>
-    <style>
-        /* 骨架屏动画 */
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-        
-        .skeleton {
-            background: #f6f7f8;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .skeleton-title {
-            height: 28px;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite linear;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            width: 60%;
-        }
-        
-        .skeleton-meta {
-            height: 16px;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite linear;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            width: 40%;
-        }
-        
-        .skeleton-line {
-            height: 16px;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite linear;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-        
-        .skeleton-line:nth-child(1) { width: 100%; }
-        .skeleton-line:nth-child(2) { width: 90%; }
-        .skeleton-line:nth-child(3) { width: 80%; }
-    </style>
 </head>
 
 <body>
@@ -66,7 +19,40 @@
         </header>
 
         <main id="content-container">
-            <!-- 内容将通过JavaScript动态加载 -->
+            <!-- 初始骨架屏 -->
+            <section class="text-block skeleton">
+                <div class="text-block-header">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-meta"></div>
+                </div>
+                <div class="skeleton-content">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </section>
+            <section class="text-block skeleton">
+                <div class="text-block-header">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-meta"></div>
+                </div>
+                <div class="skeleton-content">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </section>
+            <section class="text-block skeleton">
+                <div class="text-block-header">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-meta"></div>
+                </div>
+                <div class="skeleton-content">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </section>
         </main>
 
         <!-- 编辑模态框 -->
