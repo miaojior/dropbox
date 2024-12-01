@@ -204,31 +204,20 @@ function getFileIconUrl(filename) {
 // 下载文件函数
 async function downloadFile(url, filename) {
     try {
-        // 获取文件扩展名
-        const ext = filename.toLowerCase().split('.').pop();
+        showToast('准备下载文件...');
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
         
-        // 图片和图片类型的文件使用 Blob 下载
-        const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'];
-        if (imageTypes.includes(ext)) {
-            showToast('准备下载图片...');
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(blobUrl);
-            
-            showToast('图片下载完成');
-        } else {
-            // 其他类型的文件直接在新窗口打开
-            showToast('正在打开文件...');
-            window.open(url, '_blank');
-        }
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        
+        showToast('文件下载完成');
     } catch (error) {
         console.error('下载失败:', error);
         showToast('下载失败，请重试', 'error');
