@@ -7,10 +7,11 @@ export async function onRequestGet({ request, env, params }) {
         const filename = params.name;
         console.log('Requesting file:', filename);
         
-        // 先获取文件的元数据
-        const { value: file, metadata } = await env.FILES.getWithMetadata(filename, { type: 'arrayBuffer' });
+        // 分别获取文件内容和元数据
+        const fileData = await env.FILES.get(filename, { type: 'arrayBuffer' });
+        const { metadata } = await env.FILES.getWithMetadata(filename);
         
-        if (!file) {
+        if (!fileData) {
             console.log('File not found:', filename);
             return new Response('File not found', { 
                 status: 404,
@@ -21,23 +22,28 @@ export async function onRequestGet({ request, env, params }) {
             });
         }
 
+        // 打印调试信息
         console.log('File found:', {
-            size: file.byteLength,
+            size: fileData.byteLength,
             contentType: metadata?.contentType,
             originalName: metadata?.originalName
+        });
+
+        // 创建文件的 Blob
+        const blob = new Blob([fileData], { 
+            type: metadata?.contentType || 'application/octet-stream' 
         });
 
         // 构建响应头
         const headers = new Headers({
             'Content-Type': metadata?.contentType || 'application/octet-stream',
-            'Content-Length': file.byteLength.toString(),
-            'Content-Disposition': `attachment; filename="${encodeURIComponent(metadata?.originalName || filename)}"`,
-            'Cache-Control': 'public, max-age=31536000',
+            'Content-Length': blob.size.toString(),
+            'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(metadata?.originalName || filename)}`,
             'Access-Control-Allow-Origin': '*'
         });
 
         // 返回文件
-        return new Response(file, { headers });
+        return new Response(blob, { headers });
     } catch (error) {
         console.error('Get file error:', error);
         return new Response('Error fetching file: ' + error.message, { 

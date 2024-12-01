@@ -26,34 +26,38 @@ export async function onRequestPost({ request, env }) {
         // 将文件转换为ArrayBuffer
         const arrayBuffer = await file.arrayBuffer();
         
+        // 创建Blob对象
+        const blob = new Blob([arrayBuffer], { type: file.type || 'application/octet-stream' });
+        const blobArrayBuffer = await blob.arrayBuffer();
+        
         // 记录上传前的信息
         console.log('Uploading file:', {
             originalName: file.name,
-            size: arrayBuffer.byteLength,
+            size: blob.size,
             type: file.type,
             generatedName: filename
         });
 
         // 将文件保存到KV存储
-        await env.FILES.put(filename, arrayBuffer, {
+        await env.FILES.put(filename, blobArrayBuffer, {
             metadata: {
                 contentType: file.type || 'application/octet-stream',
                 originalName: file.name,
-                size: arrayBuffer.byteLength,
+                size: blob.size,
                 uploadTime: new Date().toISOString()
             }
         });
 
         // 验证文件是否成功保存
-        const savedFile = await env.FILES.getWithMetadata(filename, { type: 'arrayBuffer' });
-        if (!savedFile.value || savedFile.value.byteLength !== arrayBuffer.byteLength) {
+        const savedFile = await env.FILES.get(filename, { type: 'arrayBuffer' });
+        if (!savedFile || savedFile.byteLength !== blob.size) {
             throw new Error('File verification failed after upload');
         }
 
         console.log('File saved successfully:', {
             name: filename,
-            size: savedFile.value.byteLength,
-            metadata: savedFile.metadata
+            size: savedFile.byteLength,
+            expectedSize: blob.size
         });
 
         // 返回完整的文件URL
@@ -64,7 +68,7 @@ export async function onRequestPost({ request, env }) {
         return new Response(
             JSON.stringify({
                 url: fileUrl,
-                size: arrayBuffer.byteLength,
+                size: blob.size,
                 filename: filename,
                 originalName: file.name
             }), {
