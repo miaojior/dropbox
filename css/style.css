@@ -40,14 +40,14 @@ button[type="submit"],
     opacity: 1 !important;
 }
 
-/* 全局加载动画容器 */
+/* 加载动画样式 */
 .loading {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
-    background: rgba(255, 255, 255, 0.98);
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -55,233 +55,34 @@ button[type="submit"],
     z-index: 9999;
 }
 
-/* 加载动画主体 */
 .loading-spinner {
-    position: relative;
-    width: 160px;
-    height: 160px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.loading-spinner:before,
-.loading-spinner:after {
-    content: '';
-    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
     border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-.loading-spinner:before {
-    width: 100%;
-    height: 100%;
-    border: 8px solid #f0f0f0;
-    border-top-color: #3498db;
-    border-right-color: #3498db;
-    animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-}
-
-.loading-spinner:after {
-    width: 70%;
-    height: 70%;
-    border: 8px solid #f0f0f0;
-    border-top-color: #2ecc71;
-    border-right-color: #2ecc71;
-    animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite reverse;
-}
-
-/* 加载文字样式 */
-.loading-text {
-    margin-top: 2rem;
-    font-size: 1.25rem;
-    color: #2c3e50;
-    font-weight: 500;
-    text-align: center;
-    opacity: 0.9;
-    animation: fadeInOut 2s ease-in-out infinite;
-}
-
-/* 动画关键帧 */
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 0.8;
-    }
-}
-
-@keyframes fadeInOut {
-    0%, 100% {
-        opacity: 0.7;
-    }
-    50% {
-        opacity: 1;
-    }
-}
-
-/* 深色模式支持 */
-[data-theme="dark"] .loading {
-    background: rgba(28, 28, 28, 0.98);
-}
-
-[data-theme="dark"] .loading-spinner:before {
-    border-color: #333;
-    border-top-color: #3498db;
-    border-right-color: #3498db;
-}
-
-[data-theme="dark"] .loading-spinner:after {
-    border-color: #333;
-    border-top-color: #2ecc71;
-    border-right-color: #2ecc71;
-}
-
-[data-theme="dark"] .loading-text {
-    color: #e0e0e0;
-}
-
-/* 页面加载完成后的状态 */
-body.loaded .loading {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
-}
-
-/* 内容加载动画样式 */
-.content-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    padding: 2rem;
-    margin: 1rem auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* 高级加载动画样式 */
-.loading-spinner {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    margin: 0 auto;
-}
-
-.loading-spinner:before,
-.loading-spinner:after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-.loading-spinner:before {
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border: 6px solid #f0f0f0;
     animation: spin 1s linear infinite;
 }
 
-.loading-spinner:after {
-    top: -6px;
-    left: -6px;
-    right: -6px;
-    bottom: -6px;
-    border: 6px solid transparent;
-    border-top-color: #3498db;
-    border-right-color: #3498db;
-    animation: spin 1.5s linear infinite reverse;
-}
-
-/* 加载文字样式 */
 .loading-text {
-    margin-top: 2rem;
-    font-size: 1.25rem;
-    color: #2c3e50;
-    font-weight: 500;
-    text-align: center;
-    opacity: 0.9;
-    animation: fadeInOut 2s ease-in-out infinite;
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: #333;
 }
 
-/* 动画关键帧 */
 @keyframes spin {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
 }
 
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 0.8;
-    }
-}
-
-@keyframes fadeInOut {
-    0%, 100% {
-        opacity: 0.7;
-    }
-    50% {
-        opacity: 1;
-    }
-}
-
 /* 页面加载完成后的状态 */
 body.loaded .loading {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
-}
-
-/* 深色模式支持 */
-@media (prefers-color-scheme: dark) {
-    .loading {
-        background: rgba(28, 28, 28, 0.98);
-    }
-    
-    .content-loading {
-        background: rgba(28, 28, 28, 0.9);
-    }
-    
-    .loading-spinner:before {
-        border-color: #333;
-    }
-    
-    .loading-spinner:after {
-        border-top-color: #3498db;
-        border-right-color: #3498db;
-    }
-    
-    .loading-text {
-        color: #e0e0e0;
-    }
+    display: none;
 }
 
 /* 功能按钮样式 */
@@ -1306,7 +1107,7 @@ code {
     border-radius: 0 0 12px 12px;
 }
 
-/* 代码区域深色��式样式 */
+/* 代码区域深色模式样式 */
 [data-theme="dark"] pre {
     background-color: var(--code-block-bg);
     border: none;
