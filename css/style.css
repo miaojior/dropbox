@@ -51,6 +51,17 @@
     --input-border: #404040;
     --input-text: #e0e0e0;
     --toast-bg: rgba(45, 45, 45, 0.9);
+    --loading-bg: #2d2d2d;
+    --loading-text: #e0e0e0;
+    --error-bg: #2d2d2d;
+    --error-text: #e74c3c;
+    --empty-bg: #2d2d2d;
+    --empty-text: #95a5a6;
+    --dialog-bg: #2d2d2d;
+    --dialog-text: #e0e0e0;
+    --dialog-border: #404040;
+    --spinner-border: #3498db;
+    --spinner-bg: #2d2d2d;
 }
 
 body {
@@ -900,4 +911,75 @@ code {
                 color 0.3s ease, 
                 border-color 0.3s ease, 
                 box-shadow 0.3s ease;
+}
+
+/* 状态显示样式深色模式适配 */
+[data-theme="dark"] .loading,
+[data-theme="dark"] .error,
+[data-theme="dark"] .empty {
+    background: var(--loading-bg);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .loading {
+    color: var(--loading-text);
+}
+
+[data-theme="dark"] .error {
+    color: var(--error-text);
+}
+
+[data-theme="dark"] .empty {
+    color: var(--empty-text);
+}
+
+/* 确认对话框深色模式样式 */
+[data-theme="dark"] .confirm-dialog-content {
+    background: var(--dialog-bg);
+    color: var(--dialog-text);
+    border: 1px solid var(--dialog-border);
+}
+
+[data-theme="dark"] .confirm-dialog-title {
+    color: var(--heading-color);
+}
+
+[data-theme="dark"] .confirm-dialog-message {
+    color: var(--text-color);
+}
+
+/* 加载动画深色模式样式 */
+[data-theme="dark"] .loading-spinner {
+    border: 2px solid var(--spinner-bg);
+    border-top: 2px solid var(--spinner-border);
+}
+
+/* 文件信息深色模式样式 */
+[data-theme="dark"] .file-preview {
+    background-color: var(--file-bg);
+    border-color: var(--file-border);
+}
+
+[data-theme="dark"] .file-name {
+    color: var(--file-text);
+}
+
+[data-theme="dark"] .file-type,
+[data-theme="dark"] .file-size {
+    color: var(--file-subtext);
+}
+
+/* 图片预览深色模式样式 */
+[data-theme="dark"] #imagePreview {
+    background-color: var(--file-bg);
+    border-color: var(--file-border);
+}
+
+[data-theme="dark"] #editImage {
+    background-color: var(--file-bg);
+    border-color: var(--file-border);
+}
+
+[data-theme="dark"] #editImage:hover {
+    border-color: #3498db;
 }
