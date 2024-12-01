@@ -34,7 +34,7 @@
                             <option value="file">文件</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="titleGroup">
                         <label for="editTitle">标题：</label>
                         <input type="text" id="editTitle" required>
                     </div>
@@ -44,12 +44,12 @@
                     </div>
                     <div class="form-group" id="imageGroup" style="display: none;">
                         <label for="editImage">图片：</label>
-                        <input type="file" id="editImage" accept="image/*">
+                        <input type="file" id="editImage" accept="image/*" onchange="handleImagePreview(event)">
                         <div id="imagePreview" class="image-preview"></div>
                     </div>
                     <div class="form-group" id="fileGroup" style="display: none;">
                         <label for="editFile">文件：</label>
-                        <input type="file" id="editFile">
+                        <input type="file" id="editFile" onchange="handleFileSelect(event)">
                         <div class="file-info">支持所有类型的文件</div>
                     </div>
                     <div class="form-buttons">

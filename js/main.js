@@ -121,7 +121,16 @@ function renderContents(contents) {
             contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}"></div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'file') {
-            contentHtml = `<div class="file"><i class="file-icon"></i>${content.title}</div>`;
+            const fileIcon = getFileIcon(content.fileType || 'application/octet-stream');
+            contentHtml = `
+                <div class="file">
+                    <i class="file-icon ${fileIcon}"></i>
+                    <div class="file-details">
+                        <div class="file-name">${content.title}</div>
+                        <div class="file-type">${getFileTypeDescription(content.fileType || 'application/octet-stream')}</div>
+                        ${content.fileSize ? `<div class="file-size">${formatFileSize(content.fileSize)}</div>` : ''}
+                    </div>
+                </div>`;
             downloadButton = `<button class="btn btn-download" onclick="window.open('${content.content}', '_blank')">下载</button>`;
         } else if (content.type === 'code') {
             contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
@@ -192,20 +201,28 @@ window.handleTypeChange = function(type) {
     const editContent = document.getElementById('editContent');
     const editImage = document.getElementById('editImage');
     const editFile = document.getElementById('editFile');
+    const titleInput = document.getElementById('editTitle');
+    const titleGroup = document.getElementById('titleGroup');
 
     contentGroup.style.display = 'none';
     imageGroup.style.display = 'none';
     fileGroup.style.display = 'none';
+    titleGroup.style.display = 'block';
     editContent.required = false;
     editImage.required = false;
     editFile.required = false;
+    titleInput.required = true;
 
     if (type === 'image') {
         imageGroup.style.display = 'block';
         editImage.required = true;
+        titleGroup.style.display = 'none';
+        titleInput.required = false;
     } else if (type === 'file') {
         fileGroup.style.display = 'block';
         editFile.required = true;
+        titleGroup.style.display = 'none';
+        titleInput.required = false;
     } else {
         contentGroup.style.display = 'block';
         editContent.required = true;
@@ -277,16 +294,42 @@ document.addEventListener('DOMContentLoaded', () => {
         editImage.addEventListener('change', handleImagePreview);
     }
 
-    // 处理图片预览
+    // 处理图片预览和标题
     function handleImagePreview(event) {
         const file = event.target.files[0];
         if (file) {
+            // 设置标题为完整文件名
+            document.getElementById('editTitle').value = file.name;
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 const preview = document.getElementById('imagePreview');
                 preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
             };
             reader.readAsDataURL(file);
+        }
+    }
+
+    // 处理文件选择和标题
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // 设置标题为完整文件名
+            document.getElementById('editTitle').value = file.name;
+
+            // 更新文件信息显示
+            const fileInfo = document.querySelector('.file-info');
+            const fileIcon = getFileIcon(file.type);
+            fileInfo.innerHTML = `
+                <div class="file-preview">
+                    <i class="file-icon ${fileIcon}"></i>
+                    <div class="file-details">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-type">${getFileTypeDescription(file.type)}</div>
+                        <div class="file-size">${formatFileSize(file.size)}</div>
+                    </div>
+                </div>
+            `;
         }
     }
 
@@ -498,5 +541,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         return await response.json();
+    }
+
+    // 获取文件图标类名
+    function getFileIcon(mimeType) {
+        const iconMap = {
+            'application/pdf': 'pdf',
+            'application/msword': 'word',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'word',
+            'application/vnd.ms-excel': 'excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'excel',
+            'application/vnd.ms-powerpoint': 'powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'powerpoint',
+            'text/plain': 'text',
+            'application/json': 'code',
+            'text/html': 'code',
+            'text/css': 'code',
+            'text/javascript': 'code',
+            'application/zip': 'archive',
+            'application/x-rar-compressed': 'archive',
+            'application/x-7z-compressed': 'archive',
+            'video/mp4': 'video',
+            'video/quicktime': 'video',
+            'audio/mpeg': 'audio',
+            'audio/wav': 'audio'
+        };
+        
+        const type = mimeType.split('/')[0];
+        return iconMap[mimeType] || iconMap[type] || 'generic';
+    }
+
+    // 获取文件类型描述
+    function getFileTypeDescription(mimeType) {
+        const typeMap = {
+            'application/pdf': 'PDF文档',
+            'application/msword': 'Word文档',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word文档',
+            'application/vnd.ms-excel': 'Excel表格',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel表格',
+            'application/vnd.ms-powerpoint': 'PowerPoint演示文稿',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PowerPoint演示文稿',
+            'text/plain': '文本文件',
+            'application/json': 'JSON文件',
+            'text/html': 'HTML文件',
+            'text/css': 'CSS文件',
+            'text/javascript': 'JavaScript文件',
+            'application/zip': 'ZIP压缩包',
+            'application/x-rar-compressed': 'RAR压缩包',
+            'application/x-7z-compressed': '7Z压缩包',
+            'video/mp4': 'MP4视频',
+            'video/quicktime': 'QuickTime视频',
+            'audio/mpeg': 'MP3音频',
+            'audio/wav': 'WAV音频'
+        };
+        
+        return typeMap[mimeType] || mimeType;
+    }
+
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 }); 
