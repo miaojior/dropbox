@@ -1,5 +1,5 @@
 // API配置
-const API_BASE_URL = '/api/contents';
+const API_BASE_URL = '/contents';
 
 // 全局变量
 let currentEditId = null;

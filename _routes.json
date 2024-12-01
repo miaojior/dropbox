@@ -3,11 +3,11 @@
   "include": ["/*"],
   "exclude": [],
   "functions": {
-    "/api/contents": {
+    "/contents": {
       "function": "contents",
       "method": ["GET", "POST", "OPTIONS"]
     },
-    "/api/contents/*": {
+    "/contents/*": {
       "function": "contents/[id]",
       "method": ["GET", "PUT", "DELETE", "OPTIONS"]
     }
