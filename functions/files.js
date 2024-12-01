@@ -36,11 +36,7 @@ export async function onRequestPost({ request, env }) {
 
         return new Response(
             JSON.stringify({
-                url: fileUrl,
-                filename: filename,
-                originalName: file.name,
-                size: arrayBuffer.byteLength,
-                type: file.type || 'application/octet-stream'
+                url: fileUrl
             }), {
                 headers: {
                     'Content-Type': 'application/json',

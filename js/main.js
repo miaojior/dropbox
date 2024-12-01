@@ -296,9 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleImagePreview(event) {
         const file = event.target.files[0];
         if (file) {
-            // 设置标题为完整文件名
             document.getElementById('editTitle').value = file.name;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const preview = document.getElementById('imagePreview');
@@ -312,10 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleFileSelect(event) {
         const file = event.target.files[0];
         if (file) {
-            // 设置标题为完整文件名
             document.getElementById('editTitle').value = file.name;
-
-            // 更新文件信息显示
             const fileInfo = document.querySelector('.file-info');
             const fileIcon = getFileIcon(file.type);
             fileInfo.innerHTML = `
@@ -472,7 +467,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     
                     if (!uploadResponse.ok) {
-                        throw new Error('文件上传失败');
+                        const errorData = await uploadResponse.json();
+                        throw new Error(errorData.error || '文件上传失败');
                     }
                     
                     const { url } = await uploadResponse.json();
@@ -482,6 +478,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 content = document.getElementById('editContent').value;
+            }
+
+            if (!type || !title || !content) {
+                throw new Error('请填写所有必要字段');
             }
             
             const formData = { type, title, content };
@@ -516,8 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (!response.ok) {
-            const responseData = await response.json();
-            throw new Error(responseData.details || responseData.error || '创建内容失败');
+            const errorData = await response.json();
+            throw new Error(errorData.error || '创建内容失败');
         }
         
         return await response.json();
@@ -535,8 +535,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (!response.ok) {
-            const responseData = await response.json();
-            throw new Error(responseData.details || responseData.error || '更新内容失败');
+            const errorData = await response.json();
+            throw new Error(errorData.error || '更新内容失败');
         }
         
         return await response.json();
