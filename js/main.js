@@ -10,7 +10,95 @@ let updateCheckInterval;
 let contentCache = [];
 let contentContainer;
 
-// Base64编码和解码函数
+// 工具函数
+function getFileIcon(mimeType) {
+    const iconMap = {
+        'application/pdf': 'pdf',
+        'application/msword': 'word',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'word',
+        'application/vnd.ms-excel': 'excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'excel',
+        'application/vnd.ms-powerpoint': 'powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'powerpoint',
+        'text/plain': 'text',
+        'application/json': 'code',
+        'text/html': 'code',
+        'text/css': 'code',
+        'text/javascript': 'code',
+        'application/zip': 'archive',
+        'application/x-rar-compressed': 'archive',
+        'application/x-7z-compressed': 'archive',
+        'video/mp4': 'video',
+        'video/quicktime': 'video',
+        'audio/mpeg': 'audio',
+        'audio/wav': 'audio'
+    };
+    
+    // 如果没有MIME类型，根据文件扩展名判断
+    if (!mimeType && typeof mimeType === 'string') {
+        const ext = mimeType.toLowerCase().split('.').pop();
+        if (ext === 'pdf') return 'pdf';
+        if (['doc', 'docx'].includes(ext)) return 'word';
+        if (['xls', 'xlsx'].includes(ext)) return 'excel';
+        if (['ppt', 'pptx'].includes(ext)) return 'powerpoint';
+        if (['txt', 'log'].includes(ext)) return 'text';
+        if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return 'code';
+        if (['zip', 'rar', '7z'].includes(ext)) return 'archive';
+        if (['mp4', 'avi', 'mov'].includes(ext)) return 'video';
+        if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
+    }
+    
+    return iconMap[mimeType] || 'generic';
+}
+
+function getFileTypeDescription(mimeType) {
+    const typeMap = {
+        'application/pdf': 'PDF文档',
+        'application/msword': 'Word文档',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word文档',
+        'application/vnd.ms-excel': 'Excel表格',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel表格',
+        'application/vnd.ms-powerpoint': 'PowerPoint演示文稿',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PowerPoint演示文稿',
+        'text/plain': '文本文件',
+        'application/json': 'JSON文件',
+        'text/html': 'HTML文件',
+        'text/css': 'CSS文件',
+        'text/javascript': 'JavaScript文件',
+        'application/zip': 'ZIP压缩包',
+        'application/x-rar-compressed': 'RAR压缩包',
+        'application/x-7z-compressed': '7Z压缩包',
+        'video/mp4': 'MP4视频',
+        'video/quicktime': 'QuickTime视频',
+        'audio/mpeg': 'MP3音频',
+        'audio/wav': 'WAV音频'
+    };
+    
+    // 如果没有MIME类型，根据文件扩展名判断
+    if (!mimeType && typeof mimeType === 'string') {
+        const ext = mimeType.toLowerCase().split('.').pop();
+        if (ext === 'pdf') return 'PDF文档';
+        if (['doc', 'docx'].includes(ext)) return 'Word文档';
+        if (['xls', 'xlsx'].includes(ext)) return 'Excel表格';
+        if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint演示文稿';
+        if (['txt', 'log'].includes(ext)) return '文本文件';
+        if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return '代码文件';
+        if (['zip', 'rar', '7z'].includes(ext)) return '压缩文件';
+        if (['mp4', 'avi', 'mov'].includes(ext)) return '视频文件';
+        if (['mp3', 'wav', 'ogg'].includes(ext)) return '音频文件';
+    }
+    
+    return typeMap[mimeType] || '未知类型';
+}
+
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '未知大小';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 function encodeContent(text) {
     return btoa(unescape(encodeURIComponent(text)));
 }
@@ -21,7 +109,6 @@ function decodeContent(encoded) {
 
 // 显示提示函数
 function showToast(message, type = 'success') {
-    // 移除现有的toast
     const existingToast = document.querySelector('.toast');
     if (existingToast) {
         existingToast.remove();
@@ -32,12 +119,10 @@ function showToast(message, type = 'success') {
     toast.textContent = message;
     document.body.appendChild(toast);
 
-    // 添加显示类
     requestAnimationFrame(() => {
         toast.classList.add('show');
     });
     
-    // 2秒后消失
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => toast.remove(), 300);
@@ -464,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const { url } = await uploadResponse.json();
                     content = url;
                 } else {
-                    throw new Error('请选择图片文件');
+                    throw new Error('请选择���片文件');
                 }
             } else if (type === 'file') {
                 const file = document.getElementById('editFile').files[0];
@@ -563,96 +648,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         return await response.json();
-    }
-
-    // 获取文件图标类名
-    function getFileIcon(mimeType) {
-        const iconMap = {
-            'application/pdf': 'pdf',
-            'application/msword': 'word',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'word',
-            'application/vnd.ms-excel': 'excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'excel',
-            'application/vnd.ms-powerpoint': 'powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'powerpoint',
-            'text/plain': 'text',
-            'application/json': 'code',
-            'text/html': 'code',
-            'text/css': 'code',
-            'text/javascript': 'code',
-            'application/zip': 'archive',
-            'application/x-rar-compressed': 'archive',
-            'application/x-7z-compressed': 'archive',
-            'video/mp4': 'video',
-            'video/quicktime': 'video',
-            'audio/mpeg': 'audio',
-            'audio/wav': 'audio'
-        };
-        
-        // 如果没有MIME类型，根据文件扩展名判断
-        if (!mimeType && typeof mimeType === 'string') {
-            const ext = mimeType.toLowerCase().split('.').pop();
-            if (ext === 'pdf') return 'pdf';
-            if (['doc', 'docx'].includes(ext)) return 'word';
-            if (['xls', 'xlsx'].includes(ext)) return 'excel';
-            if (['ppt', 'pptx'].includes(ext)) return 'powerpoint';
-            if (['txt', 'log'].includes(ext)) return 'text';
-            if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return 'code';
-            if (['zip', 'rar', '7z'].includes(ext)) return 'archive';
-            if (['mp4', 'avi', 'mov'].includes(ext)) return 'video';
-            if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
-        }
-        
-        return iconMap[mimeType] || 'generic';
-    }
-
-    // 获取文件类型描述
-    function getFileTypeDescription(mimeType) {
-        const typeMap = {
-            'application/pdf': 'PDF文档',
-            'application/msword': 'Word文档',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word文档',
-            'application/vnd.ms-excel': 'Excel表格',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel表格',
-            'application/vnd.ms-powerpoint': 'PowerPoint演示文稿',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PowerPoint演示文稿',
-            'text/plain': '文本文件',
-            'application/json': 'JSON文件',
-            'text/html': 'HTML文件',
-            'text/css': 'CSS文件',
-            'text/javascript': 'JavaScript文件',
-            'application/zip': 'ZIP压缩包',
-            'application/x-rar-compressed': 'RAR压缩包',
-            'application/x-7z-compressed': '7Z压缩包',
-            'video/mp4': 'MP4视频',
-            'video/quicktime': 'QuickTime视频',
-            'audio/mpeg': 'MP3音频',
-            'audio/wav': 'WAV音频'
-        };
-        
-        // 如果没有MIME类型，根据文件扩展名判断
-        if (!mimeType && typeof mimeType === 'string') {
-            const ext = mimeType.toLowerCase().split('.').pop();
-            if (ext === 'pdf') return 'PDF文档';
-            if (['doc', 'docx'].includes(ext)) return 'Word文档';
-            if (['xls', 'xlsx'].includes(ext)) return 'Excel表格';
-            if (['ppt', 'pptx'].includes(ext)) return 'PowerPoint演示文稿';
-            if (['txt', 'log'].includes(ext)) return '文本文件';
-            if (['js', 'json', 'html', 'css', 'php', 'py'].includes(ext)) return '代码文件';
-            if (['zip', 'rar', '7z'].includes(ext)) return '压缩文件';
-            if (['mp4', 'avi', 'mov'].includes(ext)) return '视频文件';
-            if (['mp3', 'wav', 'ogg'].includes(ext)) return '音频文件';
-        }
-        
-        return typeMap[mimeType] || '未知类型';
-    }
-
-    // 格式化文件大小
-    function formatFileSize(bytes) {
-        if (!bytes || bytes === 0) return '未知大小';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 }); 
