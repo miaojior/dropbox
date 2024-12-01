@@ -9,11 +9,31 @@ let updateCheckInterval;
 let contentCache = [];
 
 // 复制函数
-function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => {
+function copyText(text, type) {
+    let copyContent = text;
+    if (type === 'poetry') {
+        // 保持诗歌的换行格式
+        copyContent = text.split('\n').join('\r\n');
+    } else if (type === 'image') {
+        // 对于图片，复制URL
+        copyContent = text;
+    }
+    
+    navigator.clipboard.writeText(copyContent).then(() => {
         alert('复制成功！');
     }).catch(() => {
-        alert('复制失败，请手动复制');
+        // 备用复制方法
+        const textarea = document.createElement('textarea');
+        textarea.value = copyContent;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            alert('复制成功！');
+        } catch (e) {
+            alert('复制失败，请手动复制');
+        }
+        document.body.removeChild(textarea);
     });
 }
 
@@ -137,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${contentHtml}
                     </div>
                     <div class="text-block-actions">
-                        <button class="btn" onclick="copyText('${content.content.replace(/'/g, "\\'")}')">复制</button>
+                        <button class="btn" onclick="copyText('${content.content.replace(/'/g, "\\'")}', '${content.type}')">复制</button>
                         <button class="btn" onclick="editContent(${content.id})">编辑</button>
                         <button class="btn" onclick="deleteContent(${content.id})">删除</button>
                     </div>
