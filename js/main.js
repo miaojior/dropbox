@@ -11,9 +11,6 @@ let updateCheckInterval;
 let contentCache = [];
 let contentContainer;
 
-// 存储已选择的文件
-let selectedFiles = new Map();
-
 // 工具函数
 function getFileIcon(filename) {
     // 获取文件扩展名
@@ -310,7 +307,7 @@ function renderContents(contents) {
 window.deleteContent = async function(id) {
     const confirmed = await showConfirmDialog(
         '确认删除',
-        '确定要删除这条内容吗？此操作无法销。'
+        '确定要删除这条内容吗？此操作无法撤销。'
     );
     
     if (confirmed) {
@@ -418,183 +415,6 @@ window.editContent = function(id) {
     document.getElementById('editModal').style.display = 'block';
 }
 
-// 初始化拖拽和粘贴功能
-function initializeUploadFeatures() {
-    const uploadArea = document.getElementById('uploadArea');
-    const selectedFilesDiv = document.getElementById('selectedFiles');
-    
-    if (!uploadArea || !selectedFilesDiv) {
-        console.error('Upload area or selected files container not found');
-        return;
-    }
-
-    // 初始化文件列表显示
-    selectedFilesDiv.style.display = 'none';
-    updateFileList();
-
-    // 设置拖放区域事件
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    // 拖放效果
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => {
-            uploadArea.classList.add('dragover');
-        }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => {
-            uploadArea.classList.remove('dragover');
-        }, false);
-    });
-
-    // 处理文件拖放
-    uploadArea.addEventListener('drop', handleDrop, false);
-
-    // 全局粘贴处理
-    document.addEventListener('paste', handlePaste, false);
-}
-
-// 处理拖拽文件
-function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-
-    if (files.length > 0) {
-        handleFileSelect(e);
-    }
-}
-
-// 处理粘贴事件
-function handlePaste(e) {
-    const items = e.clipboardData.items;
-    let hasFiles = false;
-    let hasText = false;
-
-    // 处理文件
-    for (let item of items) {
-        if (item.kind === 'file') {
-            hasFiles = true;
-            const file = item.getAsFile();
-            if (file) {
-                createFileContent(file);
-            }
-        } else if (item.type === 'text/plain') {
-            hasText = true;
-        }
-    }
-
-    // 如果有文件被粘贴，显示提示
-    if (hasFiles) {
-        showPasteIndicator('文件已添加到列表');
-    }
-
-    // 如果只有文本内容，则按原来的方式处理
-    if (!hasFiles && hasText) {
-        for (let item of items) {
-            if (item.type === 'text/plain') {
-                item.getAsString((text) => {
-                    handlePastedText(text);
-                });
-            }
-        }
-    }
-}
-
-// 处理粘贴的文本
-function handlePastedText(text) {
-    // 检测是否是代码
-    const isCode = detectIfCode(text);
-    
-    // 如果模态框未打开，则打开它
-    if (!document.getElementById('editModal').classList.contains('show')) {
-        openModal();
-    }
-
-    // 设置类型和内容
-    document.getElementById('editType').value = isCode ? 'code' : 'text';
-    document.getElementById('editContent').value = text;
-    
-    // 如果是代码，可以尝试检测语言类型
-    if (isCode) {
-        const language = detectCodeLanguage(text);
-        // 这里可以添加语言选择的逻辑
-    }
-
-    showPasteIndicator(isCode ? '已粘贴代码内容' : '已粘贴文本内容');
-}
-
-// 检测是否是代码
-function detectIfCode(text) {
-    // 简单的代码检测规则
-    const codeIndicators = [
-        /^(function|class|import|export|const|let|var|if|for|while)\s/m,  // 关键字开头
-        /[{}\[\]()];$/m,  // 以分隔符结尾的行
-        /^\s*(public|private|protected)\s/m,  // 访问修饰符
-        /^\s*@\w+/m,  // 装饰器
-        /\s{2,}[\w$_]/m,  // 缩进
-        /<\/?[a-z][\s\S]*>/i,  // HTML标签
-    ];
-
-    return codeIndicators.some(pattern => pattern.test(text));
-}
-
-// 显示粘贴提示
-function showPasteIndicator(message) {
-    // 移除已有的提示
-    const existingIndicator = document.querySelector('.paste-indicator');
-    if (existingIndicator) {
-        existingIndicator.remove();
-    }
-
-    const indicator = document.createElement('div');
-    indicator.className = 'paste-indicator';
-    indicator.textContent = message;
-    document.body.appendChild(indicator);
-
-    // 2秒后自动移除提示
-    setTimeout(() => {
-        indicator.remove();
-    }, 2000);
-}
-
-// 处理文件上传
-function handleFiles(files) {
-    for (let file of files) {
-        if (file.type.startsWith('image/')) {
-            // 处理图片文件
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if (!document.getElementById('editModal').classList.contains('show')) {
-                    openModal();
-                }
-                document.getElementById('editType').value = 'image';
-                handleTypeChange('image');
-                
-                const preview = document.getElementById('imagePreview');
-                preview.innerHTML = `<img src="${e.target.result}" alt="预览图片">`;
-                
-                // 可以在这里添加自动生成标题的逻辑
-                if (!document.getElementById('editTitle').value) {
-                    document.getElementById('editTitle').value = file.name;
-                }
-            };
-            reader.readAsDataURL(file);
-        } else {
-            // 处理其他类型文件
-            if (!document.getElementById('editModal').classList.contains('show')) {
-                openModal();
-            }
-            document.getElementById('editType').value = 'file';
-            handleTypeChange('file');
-            handleFileSelect({ target: { files: [file] } });
-        }
-    }
-}
-
 // DOM元素
 document.addEventListener('DOMContentLoaded', () => {
     contentContainer = document.getElementById('content-container');
@@ -607,7 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadContents(true);
     setupEventListeners();
     startUpdateCheck();
-    initializeUploadFeatures();
 
     // 设置事件监听器
     function setupEventListeners() {
@@ -617,6 +436,109 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         editForm.addEventListener('submit', handleFormSubmit);
         editImage.addEventListener('change', handleImagePreview);
+        
+        // 添加全局粘贴事件监听
+        document.addEventListener('paste', handlePaste);
+    }
+
+    // 处理粘贴事件
+    async function handlePaste(event) {
+        event.preventDefault();
+        const items = event.clipboardData.items;
+        
+        for (const item of items) {
+            // 处理图片
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) {
+                    currentEditId = null;
+                    document.getElementById('editType').value = 'image';
+                    document.getElementById('editTitle').value = `粘贴的图片_${new Date().getTime()}.png`;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('imagePreview');
+                        preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    handleTypeChange('image');
+                    document.getElementById('editImage').files = new FileList([file]);
+                    document.getElementById('editModal').style.display = 'block';
+                    return;
+                }
+            }
+            
+            // 处理文件
+            if (item.type.startsWith('application/') || 
+                item.type.startsWith('text/') && item.type !== 'text/plain') {
+                const file = item.getAsFile();
+                if (file) {
+                    currentEditId = null;
+                    document.getElementById('editType').value = 'file';
+                    document.getElementById('editTitle').value = file.name;
+                    
+                    handleTypeChange('file');
+                    document.getElementById('editFile').files = new FileList([file]);
+                    
+                    // 更新文件信息显示
+                    const fileInfo = document.querySelector('.file-info');
+                    const fileIcon = getFileIcon(file.name);
+                    fileInfo.innerHTML = `
+                        <div class="file-preview">
+                            <i class="file-icon ${fileIcon}"></i>
+                            <div class="file-details">
+                                <div class="file-name">${file.name}</div>
+                                <div class="file-type">${getFileTypeDescription(file.name)}</div>
+                                <div class="file-size">${formatFileSize(file.size)}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('editModal').style.display = 'block';
+                    return;
+                }
+            }
+            
+            // 处理文本
+            if (item.type === 'text/plain') {
+                item.getAsString(async (text) => {
+                    // 检测是否为代码
+                    const isCode = detectCodeContent(text);
+                    
+                    currentEditId = null;
+                    document.getElementById('editType').value = isCode ? 'code' : 'text';
+                    document.getElementById('editTitle').value = '';
+                    document.getElementById('editContent').value = text;
+                    
+                    handleTypeChange(isCode ? 'code' : 'text');
+                    document.getElementById('editModal').style.display = 'block';
+                });
+                return;
+            }
+        }
+    }
+
+    // 检测文本是否为代码
+    function detectCodeContent(text) {
+        // 代码特征检测规则
+        const codePatterns = [
+            /^(const|let|var|function|class|import|export|if|for|while)\s/m,  // 常见的代码关键字
+            /{[\s\S]*}/m,  // 包含花括号的代码块
+            /\(\s*\)\s*=>/m,  // 箭头函数
+            /\b(function|class)\s+\w+\s*\(/m,  // 函数或类声明
+            /\b(if|for|while)\s*\([^)]*\)/m,  // 控制结构
+            /\b(return|break|continue)\s/m,  // 控制流关键字
+            /[{};]\s*$/m,  // 行尾的分号或花括号
+            /^\s*(public|private|protected)\s/m,  // 访问修饰符
+            /\b(try|catch|finally)\s*{/m,  // 异常处理
+            /\b(async|await|Promise)\b/m,  // 异步编程关键字
+            /\b(import|export)\s+.*\bfrom\s+['"][^'"]+['"]/m,  // ES6 模块语法
+            /\b(const|let|var)\s+\w+\s*=\s*require\s*\(/m,  // CommonJS 模块语法
+        ];
+
+        // 如果文本匹配任何一个代码模式，就认为是代码
+        return codePatterns.some(pattern => pattern.test(text));
     }
 
     // 处理图片预览和标题
@@ -636,134 +558,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 处理文件选择
+    // 处理文件选择和标题
     function handleFileSelect(event) {
-        const files = event.target.files || event.dataTransfer.files;
-        if (!files || files.length === 0) return;
-
-        // 关闭当前模态框
-        closeModal();
-
-        // 为每个文件创建独立的内容卡片
-        Array.from(files).forEach(file => {
-            createFileContent(file);
-        });
-
-        // 清空input以允许重复选择相同文件
-        if (event.target.tagName === 'INPUT') {
-            event.target.value = '';
-        }
-    }
-
-    // 创建文件内容卡片
-    function createFileContent(file) {
-        const id = generateId();
-        const content = {
-            id: id,
-            type: 'file',
-            title: file.name,
-            file: file,
-            createTime: new Date().toISOString(),
-            updateTime: new Date().toISOString()
-        };
-
-        // 添加到内容缓存
-        contentCache.push(content);
-
-        // 创建并显示内容卡片
-        const card = createContentCard(content);
-        contentContainer.insertBefore(card, contentContainer.firstChild);
-
-        // 保存到本地存储
-        saveContents();
-    }
-
-    // 更新文件列表显示
-    function updateFileList() {
-        const selectedFilesDiv = document.getElementById('selectedFiles');
-        const fileList = selectedFilesDiv.querySelector('.file-list');
-        
-        // 确保文件列表元素存在
-        if (!fileList) {
-            console.error('File list element not found');
-            return;
-        }
-
-        // 清空当前列表
-        fileList.innerHTML = '';
-
-        // 如果没有文件，显示提示信息
-        if (selectedFiles.size === 0) {
-            fileList.innerHTML = '<li class="no-files">暂无选择的文件</li>';
-            return;
-        }
-
-        // 添加所有文件到列表
-        selectedFiles.forEach((file, fileId) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <div class="file-info-block">
-                    <div class="file-icon">${getFileIcon(file.type)}</div>
+        const file = event.target.files[0];
+        if (file) {
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
+            
+            // 更新文件信息显示
+            const fileInfo = document.querySelector('.file-info');
+            const fileIcon = getFileIcon(file.type);
+            fileInfo.innerHTML = `
+                <div class="file-preview">
+                    <i class="file-icon ${fileIcon}"></i>
                     <div class="file-details">
                         <div class="file-name">${file.name}</div>
+                        <div class="file-type">${getFileTypeDescription(file.type)}</div>
                         <div class="file-size">${formatFileSize(file.size)}</div>
                     </div>
                 </div>
-                <button type="button" class="file-remove" onclick="removeFile('${fileId}')">删除</button>
             `;
-            fileList.appendChild(li);
-        });
-
-        // 更新文件信息提示
-        const fileInfo = document.querySelector('.file-info');
-        if (fileInfo) {
-            const count = selectedFiles.size;
-            fileInfo.textContent = count > 0 ? 
-                `已选择 ${count} 个文件` : 
-                '支持所有类型的文件';
         }
-
-        // 显示文件列表区域
-        selectedFilesDiv.style.display = selectedFiles.size > 0 ? 'block' : 'none';
-    }
-
-    // 获取文件图标
-    function getFileIcon(fileType) {
-        if (fileType.startsWith('image/')) return '📷';
-        if (fileType.startsWith('video/')) return '🎥';
-        if (fileType.startsWith('audio/')) return '🎵';
-        if (fileType.includes('pdf')) return '📄';
-        if (fileType.includes('word')) return '📝';
-        if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
-        if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z')) return '📦';
-        return '📄';
-    }
-
-    // 格式化文件大小
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // 移除文件
-    function removeFile(fileId) {
-        if (selectedFiles.has(fileId)) {
-            selectedFiles.delete(fileId);
-            updateFileList();
-            showPasteIndicator('文件已移除');
-        }
-    }
-
-    // 清空文件列表
-    function clearFiles() {
-        selectedFiles.clear();
-        updateFileList();
-        // 清空文件输入框
-        document.getElementById('editFile').value = '';
-        showPasteIndicator('文件列表已清空');
     }
 
     // 开始更新检查
@@ -995,246 +811,4 @@ document.addEventListener('DOMContentLoaded', () => {
         
         return await response.json();
     }
-
-    // 创建内容卡片
-    function createContentCard(content) {
-        const card = document.createElement('div');
-        card.className = 'content-card';
-        card.dataset.id = content.id;
-
-        if (content.type === 'file') {
-            // 获取文件图标
-            const fileIcon = getFileIcon(content.file.type);
-            
-            // 格式化文件大小
-            const fileSize = formatFileSize(content.file.size);
-
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="file-info-block">
-                        <div class="file-icon">${fileIcon}</div>
-                        <div class="file-details">
-                            <h3 class="file-name">${content.title}</h3>
-                            <div class="file-meta">
-                                <span class="file-size">${fileSize}</span>
-                                <span class="file-type">${getFileTypeDescription(content.file.type)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn btn-download" onclick="downloadFile('${content.id}')">下载</button>
-                        <button class="btn btn-edit" onclick="editContent('${content.id}')">编辑</button>
-                        <button class="btn btn-delete" onclick="deleteContent('${content.id}')">删除</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        return card;
-    }
-
-    // 获取文件类型描述
-    function getFileTypeDescription(mimeType) {
-        const types = {
-            'image/': '图片',
-            'video/': '视频',
-            'audio/': '音频',
-            'text/': '文本',
-            'application/pdf': 'PDF文档',
-            'application/msword': 'Word文档',
-            'application/vnd.ms-excel': 'Excel表格',
-            'application/zip': '压缩文件'
-        };
-
-        for (let type in types) {
-            if (mimeType.startsWith(type)) {
-                return types[type];
-            }
-        }
-
-        return '文件';
-    }
-
-    // 下载文件
-    function downloadFile(id) {
-        const content = contentCache.find(item => item.id === id);
-        if (content && content.file) {
-            const url = URL.createObjectURL(content.file);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = content.title;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-    }
-
-    // 模态框相关函数
-    function openModal(id = null) {
-        const modal = document.getElementById('editModal');
-        const form = document.getElementById('editForm');
-        
-        // 重置表单
-        form.reset();
-        
-        // 清空文件列表
-        selectedFiles.clear();
-        updateFileList();
-
-        // 如果是编辑模式
-        if (id) {
-            const content = contentCache.find(item => item.id === id);
-            if (content) {
-                document.getElementById('editId').value = content.id;
-                document.getElementById('editType').value = content.type;
-                document.getElementById('editTitle').value = content.title;
-                
-                if (content.type === 'file') {
-                    handleTypeChange('file');
-                    if (content.file) {
-                        const fileId = `${content.file.name}-${content.file.lastModified}`;
-                        selectedFiles.set(fileId, content.file);
-                        updateFileList();
-                    }
-                } else {
-                    document.getElementById('editContent').value = content.content || '';
-                    handleTypeChange(content.type);
-                }
-            }
-        } else {
-            // 新建模式
-            document.getElementById('editId').value = '';
-            handleTypeChange('text'); // 默认选择文本类型
-        }
-
-        // 显示模态框
-        modal.style.display = 'block';
-        modal.classList.add('show');
-
-        // 添加关闭事件
-        modal.onclick = function(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
-        };
-    }
-
-    function closeModal() {
-        const modal = document.getElementById('editModal');
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-    }
-
-    // 处理表单提交
-    function handleFormSubmit(event) {
-        event.preventDefault();
-        
-        const form = event.target;
-        const id = document.getElementById('editId').value;
-        const type = document.getElementById('editType').value;
-        const title = document.getElementById('editTitle').value;
-        
-        let content;
-        
-        if (type === 'file') {
-            // 处理文件类型
-            if (selectedFiles.size === 0) {
-                showMessage('请选择文件');
-                return;
-            }
-            
-            // 获取第一个文件（如果有多个文件，创建多个内容）
-            selectedFiles.forEach((file, fileId) => {
-                createFileContent(file);
-            });
-        } else {
-            // 处理其他类型
-            content = document.getElementById('editContent').value;
-            
-            if (!content) {
-                showMessage('请输入内容');
-                return;
-            }
-            
-            // 创建或更新内容
-            if (id) {
-                // 更新现有内容
-                const index = contentCache.findIndex(item => item.id === id);
-                if (index !== -1) {
-                    contentCache[index] = {
-                        ...contentCache[index],
-                        type,
-                        title,
-                        content,
-                        updateTime: new Date().toISOString()
-                    };
-                    
-                    // 更新显示
-                    const card = document.querySelector(`.content-card[data-id="${id}"]`);
-                    if (card) {
-                        card.replaceWith(createContentCard(contentCache[index]));
-                    }
-                }
-            } else {
-                // 创建新内容
-                const newContent = {
-                    id: generateId(),
-                    type,
-                    title,
-                    content,
-                    createTime: new Date().toISOString(),
-                    updateTime: new Date().toISOString()
-                };
-                
-                contentCache.unshift(newContent);
-                const card = createContentCard(newContent);
-                contentContainer.insertBefore(card, contentContainer.firstChild);
-            }
-        }
-        
-        // 保存到本地存储
-        saveContents();
-        
-        // 关闭模态框
-        closeModal();
-        
-        // 显示成功消息
-        showMessage('保存成功');
-    }
-
-    // 显示消息提示
-    function showMessage(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 10);
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 300);
-        }, 3000);
-    }
-
-    // 初始化事件监听
-    document.addEventListener('DOMContentLoaded', () => {
-        // 初始化表单提交事件
-        const form = document.getElementById('editForm');
-        form.addEventListener('submit', handleFormSubmit);
-
-        // 初始化添加新内容按钮
-        const addNewBtn = document.getElementById('addNewBtn');
-        addNewBtn.addEventListener('click', () => openModal());
-
-        // 初始化文件上传功能
-        initializeUploadFeatures();
-    });
 }); 
