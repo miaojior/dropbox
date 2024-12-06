@@ -2055,10 +2055,29 @@ select {
 }
 
 .error-message {
-    padding: 10px;
-    color: #721c24;
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
+    padding: 15px;
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
     border-radius: 4px;
     margin: 10px 0;
+}
+
+.error-message .error-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #dc3545;
+}
+
+.error-message .error-details {
+    font-size: 14px;
+}
+
+.error-message pre {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 5px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
 }

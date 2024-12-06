@@ -582,7 +582,14 @@ function renderContents(contents) {
                     contentHtml = cardMd.render(content.content);
                 } catch (mdError) {
                     console.error('Markdown rendering error for card:', content.id, mdError);
-                    contentHtml = `<div class="error-message">内容渲染失败</div>`;
+                    contentHtml = `<div class="error-message">
+                        <div class="error-title">Markdown 格式错误</div>
+                        <div class="error-details">
+                            <p>原始内容：</p>
+                            <pre>${content.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                            <p>错误信息：${mdError.message}</p>
+                        </div>
+                    </div>`;
                 }
             }
         } catch (error) {
