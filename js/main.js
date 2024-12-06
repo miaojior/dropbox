@@ -1018,95 +1018,65 @@ document.addEventListener('DOMContentLoaded', async () => {
             const title = document.getElementById('editTitle').value;
             let content = '';
 
+            // 根据类型获取内容
             if (type === 'image') {
                 const imageFile = document.getElementById('editImage').files[0];
                 const existingContent = document.getElementById('editContent').value;
 
-                if (!imageFile && existingContent) {
-                    content = existingContent;
-                } else if (imageFile) {
-                    // 确保设置标题
-                    if (!title) {
-                        document.getElementById('editTitle').value = imageFile.name;
-                    }
+                if (!imageFile && !existingContent) {
+                    throw new Error('请选择图片文件或提供图片URL');
+                }
+                content = existingContent || '';
 
+                if (imageFile) {
                     const formData = new FormData();
                     formData.append('image', imageFile);
-
                     const uploadResponse = await fetch(IMAGES_API_URL, {
                         method: 'POST',
                         body: formData
                     });
 
                     if (!uploadResponse.ok) {
-                        const errorData = await uploadResponse.json();
-                        throw new Error(errorData.error || '图片上传失败');
+                        throw new Error('图片上传失败');
                     }
 
                     const { url } = await uploadResponse.json();
                     content = url;
-                } else {
-                    throw new Error('请选择图片文件');
                 }
             } else if (type === 'file') {
                 const file = document.getElementById('editFile').files[0];
                 const existingContent = document.getElementById('editContent').value;
 
-                if (!file && existingContent) {
-                    content = existingContent;
-                } else if (file) {
-                    // 确保设置标题
-                    if (!title) {
-                        document.getElementById('editTitle').value = file.name;
-                    }
+                if (!file && !existingContent) {
+                    throw new Error('请选择文件或提供文件URL');
+                }
+                content = existingContent || '';
 
+                if (file) {
                     const formData = new FormData();
                     formData.append('file', file);
-
-                    console.log('开始上传文件:', file.name);
                     const uploadResponse = await fetch(FILES_UPLOAD_URL, {
                         method: 'POST',
                         body: formData
                     });
 
-                    console.log('上传响应状态:', uploadResponse.status);
-                    const responseText = await uploadResponse.text();
-                    console.log('上传响应内容:', responseText);
-
-                    let responseData;
-                    try {
-                        responseData = JSON.parse(responseText);
-                    } catch (e) {
-                        console.error('解析响应失败:', e);
-                        throw new Error('服务器响应格式错误');
-                    }
-
                     if (!uploadResponse.ok) {
-                        throw new Error(responseData.error || '文件上传失败');
+                        throw new Error('文件上传失败');
                     }
 
-                    if (!responseData.url) {
-                        console.error('响应数据:', responseData);
-                        throw new Error('上传成功但未返回文件URL');
-                    }
-
-                    content = responseData.url;
-                    console.log('文件上传成功:', content);
-                } else {
-                    throw new Error('请选择文件');
+                    const { url } = await uploadResponse.json();
+                    content = url;
                 }
             } else {
-                content = document.getElementById('editContent').value;
+                content = document.getElementById('editContent').value || '';
             }
 
-            // 重新获取标题，因为可能在上传过程中被设置
-            const finalTitle = document.getElementById('editTitle').value;
-
-            if (!type || !finalTitle || !content) {
+            // 验证所有必要字段
+            if (!type || !title || !content) {
                 throw new Error('请填写所有必要字段');
             }
 
-            const formData = { type, title: finalTitle, content };
+            const formData = { type, title, content };
 
             if (currentEditId) {
                 await updateContent(currentEditId, formData);
