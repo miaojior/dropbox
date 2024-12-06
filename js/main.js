@@ -334,6 +334,27 @@ const md = window.markdownit({
         labelAfter: true
     });
 
+// 初始化灯箱效果
+const zoom = mediumZoom();
+
+// 自定义图片渲染规则
+md.renderer.rules.image = function (tokens, idx, options, env, slf) {
+    const token = tokens[idx];
+    const src = token.attrGet('src');
+    const alt = token.content || '';
+    const title = token.attrGet('title') || '';
+    
+    // 创建图片元素并添加到灯箱中
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = alt;
+    img.title = title;
+    img.setAttribute('loading', 'lazy');
+    zoom.attach(img);
+    
+    return img.outerHTML;
+};
+
 // 添加视频链接解析规则
 function parseVideoUrl(url) {
     // YouTube（支持普通视频和shorts）
@@ -404,16 +425,6 @@ md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
     return self.renderToken(tokens, idx, options);
 };
 
-// 自定义图片渲染规则
-md.renderer.rules.image = function (tokens, idx, options, env, slf) {
-    const token = tokens[idx];
-    const src = token.attrGet('src');
-    const alt = token.content || '';
-    const title = token.attrGet('title') || '';
-    
-    return `<img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable>`;
-};
-
 // 自定义代码块渲染规则
 md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
     const token = tokens[idx];
@@ -448,15 +459,6 @@ window.copyCode = function (button) {
         showToast('复制失败，请手动复制', 'error');
     });
 };
-
-// 初始化灯箱效果
-function initZoom() {
-    mediumZoom('[data-zoomable]', {
-        margin: 24,
-        background: 'rgba(0, 0, 0, 0.9)',
-        scrollOffset: 0,
-    });
-}
 
 // 渲染内容函数
 function renderContents(contents) {
@@ -628,7 +630,6 @@ function renderContents(contents) {
     // 初始化功能
     requestAnimationFrame(() => {
         Prism.highlightAll();
-        initZoom();
     });
 }
 
