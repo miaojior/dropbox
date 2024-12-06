@@ -12,6 +12,7 @@ let updateCheckInterval;
 let contentCache = [];
 let contentContainer;
 let syncInterval = 30000; // 默认30秒
+let zoomInstance = null; // 追踪灯箱实例
 
 // 获取同步间隔配置
 async function getSyncInterval() {
@@ -450,10 +451,17 @@ window.copyCode = function (button) {
 
 // 初始化图片灯箱
 function initImageZoom() {
-    mediumZoom('[data-zoomable]');
+    // 如果已经存在实例，先销毁
+    if (zoomInstance) {
+        zoomInstance.detach();
+    }
+    // 创建新实例
+    zoomInstance = mediumZoom('[data-zoomable]', {
+        background: 'var(--modal-overlay)',
+        margin: 20,
+    });
 }
 
-// 渲染内容函数
 // 渲染内容函数
 function renderContents(contents) {
     if (!contentContainer) {
@@ -621,11 +629,15 @@ function renderContents(contents) {
     contentContainer.innerHTML = '';
     contentContainer.appendChild(fragment);
 
-    // 初始化功能
-    requestAnimationFrame(() => {
-        Prism.highlightAll();
-        initImageZoom();
-    });
+    // 使用Promise确保初始化顺序
+    Promise.resolve()
+        .then(() => {
+            Prism.highlightAll();
+            // 确保DOM更新完成后再初始化灯箱
+            requestAnimationFrame(() => {
+                initImageZoom();
+            });
+        });
 }
 
 // 删除内容函数
@@ -1051,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 只有当数据发生变化时才重新渲染
             if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
                 contentCache = data || [];
-                renderContents(contentCache);
+                await renderContents(contentCache);  // 等待渲染完成
             }
 
             lastUpdateTime = Date.now();
