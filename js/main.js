@@ -335,8 +335,8 @@ const md = window.markdownit({
 
 // 添加视频链接解析规则
 function parseVideoUrl(url) {
-    // YouTube
-    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+    // YouTube（支持普通视频和shorts）
+    const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^?&\s]+)/);
     if (youtubeMatch) {
         return {
             type: 'youtube',
@@ -345,7 +345,7 @@ function parseVideoUrl(url) {
         };
     }
 
-    // 哔哩哔哩
+    // 哔哩哔哩（保持不变）
     const bilibiliMatch = url.match(/(?:bilibili\.com\/video\/)([^?&\s/]+)/);
     if (bilibiliMatch) {
         return {
