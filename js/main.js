@@ -33,7 +33,7 @@ async function getSyncInterval() {
 
 // 工具函数
 function getFileIcon(filename) {
-    // 取文件扩展名
+    // 获取文件拓展名
     const ext = filename.toLowerCase().split('.').pop();
     
     // Markdown文件
@@ -552,6 +552,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 处理粘贴事件
     async function handlePaste(event) {
+        // 如果编辑模态框是打开状态，不处理粘贴事件
+        const editModal = document.getElementById('editModal');
+        if (editModal.style.display === 'block') {
+            return;
+        }
+
         const items = event.clipboardData?.items;
         if (!items) return;
         
