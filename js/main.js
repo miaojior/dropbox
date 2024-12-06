@@ -307,15 +307,14 @@ async function downloadFile(url, filename) {
 // 格式化日期
 function formatDate(timestamp) {
     const date = new Date(timestamp);
-    // 转换为北京时间
-    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
-    const year = beijingTime.getFullYear();
-    const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
-    const day = String(beijingTime.getDate()).padStart(2, '0');
-    const hours = String(beijingTime.getHours()).padStart(2, '0');
-    const minutes = String(beijingTime.getMinutes()).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
+
 // 初始化 markdown-it
 const md = window.markdownit({
     html: true,        // 启用 HTML 标签
