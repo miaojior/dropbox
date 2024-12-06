@@ -410,7 +410,16 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
 
-    return `<div class="image"><img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable></div>`;
+    // 添加 max-width:100% 样式确保图片不会超出容器宽度
+    // 添加 height:auto 保持图片比例
+    return `<div class="image">
+        <img src="${src}" 
+             alt="${alt}" 
+             title="${title}" 
+             loading="lazy" 
+             data-zoomable 
+             style="max-width:100%; height:auto;">
+    </div>`;
 };
 
 // 自定义代码块渲染规则

@@ -413,17 +413,12 @@ code {
 /* 图片样式 */
 .image {
     text-align: center;
-    width: 100%;
-    overflow-x: auto;
-    /* 添加横向滚动 */
 }
 
 .image img {
-    max-width: none;
-    /* 移除最大宽度限制 */
+    max-width: 100%;
     height: auto;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 模态框样式 */
