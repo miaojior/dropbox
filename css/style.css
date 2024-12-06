@@ -1414,7 +1414,7 @@ select {
     padding-right: 2.5rem;
 }
 
-/* 表单组样式 */
+/* 表单样式 */
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -1973,4 +1973,60 @@ select {
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
+}
+
+/* 移动端响应式布局 */
+@media (max-width: 768px) {
+    /* 容器内边距调整 */
+    .container {
+        padding: 1rem;
+    }
+
+    /* 标题大小调整 */
+    h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    /* 头部按钮组移动端优化 */
+    .header-buttons {
+        flex-direction: row;
+        width: 100%;
+        padding: 0;
+        margin-top: 1rem;
+    }
+
+    .header-buttons .btn {
+        flex: 1;
+        min-width: unset;
+        padding: 8px;
+        font-size: 14px;
+        white-space: nowrap;
+        height: 36px;
+    }
+
+    /* 按钮内图标优化 */
+    .header-buttons .btn-icon {
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+    }
+
+    /* 内容块padding调整 */
+    .text-block {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* 表单元素移动端优化 */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 8px;
+        font-size: 14px;
+    }
 }
