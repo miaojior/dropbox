@@ -633,6 +633,65 @@ function initBackToTop() {
     });
 }
 
+// 清空全部内容
+window.clearAllContent = async function() {
+    const confirmDialog = document.createElement('div');
+    confirmDialog.innerHTML = `
+        <div class="confirm-dialog-overlay"></div>
+        <div class="confirm-dialog">
+            <h3>确认清空</h3>
+            <p>此操作将清空所有内容，包括：</p>
+            <ul>
+                <li>所有文本、代码和诗歌</li>
+                <li>所有上传的图片</li>
+                <li>所有上传的文件</li>
+            </ul>
+            <p style="color: #dc3545;">此操作不可恢复，请确认！</p>
+            <div class="confirm-dialog-buttons">
+                <button class="btn" onclick="this.closest('.confirm-dialog').parentElement.remove()">取消</button>
+                <button class="btn btn-danger" onclick="executeContentClear(this)">确认清空</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(confirmDialog);
+};
+
+// 执行清空操作
+async function executeContentClear(button) {
+    try {
+        button.disabled = true;
+        button.innerHTML = '清空中... <span class="loading-spinner"></span>';
+        
+        // 清空数据库内容
+        const response = await fetch('/clear-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('清空失败');
+        }
+
+        // 清空本地缓存
+        contentCache = [];
+        
+        // 重新渲染内容（显示空状态）
+        renderContents([]);
+        
+        // 关闭确认对话框
+        button.closest('.confirm-dialog').parentElement.remove();
+        
+        showToast('已清空所有内容');
+    } catch (error) {
+        console.error('清空失败:', error);
+        showToast('清空失败: ' + error.message, 'error');
+        button.disabled = false;
+        button.textContent = '确认清空';
+    }
+}
+
 // DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
     // 初始化前先获取同步间隔

@@ -30,6 +30,10 @@
     "/files/*": {
       "function": "files",
       "method": ["GET", "OPTIONS"]
+    },
+    "/clear-all": {
+      "function": "clear-all",
+      "method": ["POST", "OPTIONS"]
     }
   }
 } 
