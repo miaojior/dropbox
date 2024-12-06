@@ -410,7 +410,7 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
 
-    return `<div class="image"><img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable></div>`;
+    return `<img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable>`;
 };
 
 // 自定义代码块渲染规则
@@ -450,18 +450,7 @@ window.copyCode = function (button) {
 
 // 初始化图片灯箱
 function initImageZoom() {
-    const zoom = mediumZoom('[data-zoomable]', {
-        margin: 24,
-        background: 'rgba(0, 0, 0, 0.9)',
-        scrollOffset: 40,
-    });
-
-    // 添加键盘事件监听
-    document.addEventListener('keyup', event => {
-        if (event.key === 'Escape') {
-            zoom.close();
-        }
-    });
+    mediumZoom('[data-zoomable]');
 }
 
 // 渲染内容函数

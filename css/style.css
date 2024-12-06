@@ -2051,3 +2051,20 @@ select {
 [data-theme="dark"] .medium-zoom-overlay {
     background: rgba(0, 0, 0, 0.95) !important;
 }
+
+/* 图片样式 */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    margin: 1rem auto;
+}
+
+.medium-zoom-overlay {
+    background: var(--modal-overlay) !important;
+}
+
+.medium-zoom-image--opened {
+    border-radius: 0;
+}
