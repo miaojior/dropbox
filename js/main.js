@@ -334,33 +334,27 @@ const md = window.markdownit({
     });
 
 // 添加视频链接解析规则
-// 修改 parseVideoUrl 函数，添加对空链接文本的处理
-function parseVideoUrl(url, text) {
-    // 如果链接文本为空，使用 "视频" 作为默认文本
-    const displayText = text.trim() || '视频';
-    
+function parseVideoUrl(url) {
     // YouTube（支持普通视频和shorts）
     const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^?&\s]+)/);
     if (youtubeMatch) {
         return {
             type: 'youtube',
             id: youtubeMatch[1],
-            embed: `https://www.youtube.com/embed/${youtubeMatch[1]}`,
-            text: displayText
+            embed: `https://www.youtube.com/embed/${youtubeMatch[1]}`
         };
     }
-    
-    // 哔哩哔哩
+
+    // 哔哩哔哩（保持不变）
     const bilibiliMatch = url.match(/(?:bilibili\.com\/video\/)([^?&\s/]+)/);
     if (bilibiliMatch) {
         return {
             type: 'bilibili',
             id: bilibiliMatch[1],
-            embed: `//player.bilibili.com/player.html?bvid=${bilibiliMatch[1]}&page=1`,
-            text: displayText
+            embed: `//player.bilibili.com/player.html?bvid=${bilibiliMatch[1]}&page=1`
         };
     }
-    
+
     return null;
 }
 
