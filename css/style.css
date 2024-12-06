@@ -2031,14 +2031,14 @@ select {
     }
 }
 
-/* 视频容器样式 */
 .video-container {
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 比例 */
+    padding-bottom: 56.25%;
+    /* 16:9 比例 */
     height: 0;
     overflow: hidden;
     max-width: 100%;
-    margin: 1rem 0;
+    margin: 1em 0;
 }
 
 .video-container iframe {
@@ -2047,5 +2047,9 @@ select {
     left: 0;
     width: 100%;
     height: 100%;
-    border: none;
+}
+
+.video-container.bilibili {
+    padding-bottom: 75%;
+    /* B站播放器比例 */
 }

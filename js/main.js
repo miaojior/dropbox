@@ -333,6 +333,73 @@ const md = window.markdownit({
         labelAfter: true
     });
 
+// 添加视频链接解析规则
+function parseVideoUrl(url) {
+    // YouTube
+    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+    if (youtubeMatch) {
+        return {
+            type: 'youtube',
+            id: youtubeMatch[1],
+            embed: `https://www.youtube.com/embed/${youtubeMatch[1]}`
+        };
+    }
+
+    // 哔哩哔哩
+    const bilibiliMatch = url.match(/(?:bilibili\.com\/video\/)([^?&\s/]+)/);
+    if (bilibiliMatch) {
+        return {
+            type: 'bilibili',
+            id: bilibiliMatch[1],
+            embed: `//player.bilibili.com/player.html?bvid=${bilibiliMatch[1]}&page=1`
+        };
+    }
+
+    return null;
+}
+
+// 自定义链接渲染规则
+md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+    const token = tokens[idx];
+    const href = token.attrGet('href');
+
+    if (href) {
+        const video = parseVideoUrl(href);
+        if (video) {
+            // 设置标记，告诉 link_close 这是一个视频链接
+            token.video = video;
+            return ''; // 不渲染开始标签
+        }
+    }
+
+    return self.renderToken(tokens, idx, options);
+};
+
+md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
+    const openToken = tokens[idx - 2]; // link_open token
+    if (openToken.video) {
+        const video = openToken.video;
+        if (video.type === 'youtube') {
+            return `<div class="video-container youtube">
+                <iframe src="${video.embed}" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>`;
+        } else if (video.type === 'bilibili') {
+            return `<div class="video-container bilibili">
+                <iframe src="${video.embed}"
+                    frameborder="0"
+                    allowfullscreen>
+                </iframe>
+            </div>`;
+        }
+    }
+
+    return self.renderToken(tokens, idx, options);
+};
+
 // 自定义图片渲染规则
 md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const token = tokens[idx];
