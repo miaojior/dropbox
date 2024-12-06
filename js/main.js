@@ -358,10 +358,26 @@ function renderContents(contents) {
             }
             downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
         } else if (content.type === 'code') {
-            contentHtml = `<pre><code class="language-javascript">${content.content}</code></pre>`;
+            // 对代码类型，使用 HTML 转义来防止被解析为 Markdown
+            const escapedContent = content.content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            contentHtml = `<pre><code class="language-javascript">${escapedContent}</code></pre>`;
         } else if (content.type === 'poetry') {
-            contentHtml = content.content.split('\n').map(line => `<p>${line}</p>`).join('');
+            // 对诗歌类型，直接转换换行符为段落，不进行 Markdown 渲染
+            contentHtml = content.content
+                .split('\n')
+                .map(line => `<p>${line.replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;')}</p>`)
+                .join('');
         } else {
+            // 只对普通文本类型使用 Markdown 渲染
             contentHtml = marked.parse(content.content);
         }
 
