@@ -418,7 +418,7 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
              title="${title}" 
              loading="lazy" 
              data-zoomable 
-             style="max-width:100%; height:auto;">
+             style="max-width:50%; height:auto;">
     </div>`;
 };
 
