@@ -208,8 +208,8 @@ body {
     background-image:
         linear-gradient(var(--grid-color) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-    background-size: 29px 29px;
-    background-position: 24px 24px;
+    background-size: 30px 30px;  /* 改为统一的20px大小 */
+    background-position: 0 0;    /* 改为从原点(0,0)开始 */
     background-attachment: fixed;
     transition: background-color 0.3s, color 0.3s;
 }
