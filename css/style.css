@@ -413,12 +413,22 @@ code {
 /* 图片样式 */
 .image {
     text-align: center;
+    padding: 1rem 0;
 }
 
 .image img {
-    max-width: 100%;
-    height: auto;
+    max-width: 800px; /* 设置最大宽度 */
+    width: 100%;     /* 自适应容器宽度 */
+    height: auto;    /* 保持比例 */
     border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 在小屏幕下自适应 */
+@media (max-width: 800px) {
+    .image img {
+        max-width: 100%;
+    }
 }
 
 /* 模态框样式 */
@@ -687,10 +697,18 @@ code {
 }
 
 .image img {
-    max-width: 100%;
-    height: auto;
+    max-width: 800px; /* 设置最大宽度 */
+    width: 100%;     /* 自适应容器宽度 */
+    height: auto;    /* 保持比例 */
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 在小屏幕下自适应 */
+@media (max-width: 800px) {
+    .image img {
+        max-width: 100%;
+    }
 }
 
 /* 图片相关样式 */
