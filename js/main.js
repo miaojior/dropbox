@@ -336,15 +336,19 @@ const md = window.markdownit({
 
 // 初始化灯箱效果
 const zoom = mediumZoom('[data-zoomable]', {
-    margin: 24,
+    margin: 48,
     background: 'rgba(0, 0, 0, 0.9)',
     scrollOffset: 0,
-    container: {
-        top: 24,
-        bottom: 24,
-        right: 24,
-        left: 24,
-    }
+    container: '#content-container',
+});
+
+// 添加打开和关闭的动画效果
+zoom.on('open', () => {
+    document.body.style.overflow = 'hidden';
+});
+
+zoom.on('closed', () => {
+    document.body.style.overflow = '';
 });
 
 // 自定义图片渲染规则
@@ -458,7 +462,7 @@ window.copyCode = function (button) {
         }, 2000);
     }).catch(err => {
         console.error('复制失败:', err);
-        showToast('复制失败，请手动复制', 'error');
+        showToast('复制失败，请手��复制', 'error');
     });
 };
 
@@ -547,7 +551,7 @@ function renderContents(contents) {
                 <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
                 ${downloadButton}
                 <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
+                <button class="btn btn-delete" onclick="deleteContent(${content.id})">��除</button>
             </div>
         `;
 
