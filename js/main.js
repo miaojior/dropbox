@@ -394,10 +394,6 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
             token.video = video;
             return ''; // 不渲染开始标签
         }
-
-        // 为普通链接添加新标签页打开属性
-        token.attrPush(['target', '_blank']);
-        token.attrPush(['rel', 'noopener noreferrer']);
     }
 
     return self.renderToken(tokens, idx, options);
