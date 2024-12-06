@@ -315,6 +315,18 @@ function formatDate(timestamp) {
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
+// 配置 marked.js
+marked.use({
+    breaks: true, // 支持回车换行
+    gfm: true,    // 启用 GitHub 风格的 Markdown
+    renderer: {
+        // 自定义图片渲染
+        image(href, title, text) {
+            return `<div class="image"><img src="${href}" alt="${text || ''}" title="${title || ''}" loading="lazy"></div>`;
+        }
+    }
+});
+
 // 渲染内容函数
 function renderContents(contents) {
     if (!contentContainer) {
