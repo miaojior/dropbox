@@ -366,7 +366,7 @@ function parseVideoUrl(url, text) {
 
 // 自定义链接渲染规则
 // 修改 link_open 规则
-Md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     const token = tokens[idx];
     const href = token.attrGet('href');
 
@@ -392,7 +392,7 @@ Md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
 };
 
 // 修改 link_close 规则
-Md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
+md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
     if (idx >= 2 && tokens[idx - 2]) {
         const openToken = tokens[idx - 2];
         if (openToken && openToken.video) {
