@@ -2032,21 +2032,6 @@ select {
     white-space: pre-wrap;
     word-break: break-all;
 }
-
-.medium-zoom-overlay {
-    background: var(--modal-overlay) !important;
-    z-index: 1000;
-}
-
-.medium-zoom-image--opened {
-    z-index: 1001;
-}
-
-/* 添加过渡动画 */
-.medium-zoom-image {
-    transition: transform 0.3s ease-in-out !important;
-}
-
 /* 深色模式适配 */
 [data-theme="dark"] .medium-zoom-overlay {
     background: rgba(0, 0, 0, 0.95) !important;
@@ -2063,8 +2048,14 @@ img {
 
 .medium-zoom-overlay {
     background: var(--modal-overlay) !important;
+    z-index: 1000;
 }
 
 .medium-zoom-image--opened {
+    z-index: 1001;
     border-radius: 0;
+}
+
+.medium-zoom-image {
+    transition: transform 0.3s ease-in-out !important;
 }
