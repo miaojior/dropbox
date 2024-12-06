@@ -1,7 +1,7 @@
 export async function onRequestGet({ request, env }) {
   try {
     const { results } = await env.DB.prepare(
-      'SELECT id, type, title, content FROM content_blocks ORDER BY id DESC'
+      'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks ORDER BY id DESC'
     ).all();
     
     return new Response(JSON.stringify(results), {
@@ -36,19 +36,19 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    const { success } = await env.DB.prepare(
-      'INSERT INTO content_blocks (type, title, content) VALUES (?, ?, ?)'
+    const { success, lastRowId } = await env.DB.prepare(
+      'INSERT INTO content_blocks (type, title, content, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
     ).bind(type, title, content).run();
 
     if (!success) {
       throw new Error('创建内容失败');
     }
 
-    return new Response(JSON.stringify({ 
-      type, 
-      title, 
-      content
-    }), {
+    const { results } = await env.DB.prepare(
+      'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks WHERE id = ?'
+    ).bind(lastRowId).all();
+
+    return new Response(JSON.stringify(results[0]), {
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'

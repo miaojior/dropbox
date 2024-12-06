@@ -12,7 +12,7 @@ export async function onRequestPut({ request, env, params }) {
     }
 
     const { success } = await env.DB.prepare(
-      'UPDATE content_blocks SET type = ?, title = ?, content = ? WHERE id = ?'
+      'UPDATE content_blocks SET type = ?, title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
     ).bind(type, title, content, params.id).run();
 
     if (!success) {
@@ -25,7 +25,11 @@ export async function onRequestPut({ request, env, params }) {
       });
     }
 
-    return new Response(JSON.stringify({ id: params.id, type, title, content }), {
+    const { results } = await env.DB.prepare(
+      'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks WHERE id = ?'
+    ).bind(params.id).all();
+
+    return new Response(JSON.stringify(results[0]), {
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
