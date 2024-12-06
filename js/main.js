@@ -552,10 +552,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 处理粘贴事件
     async function handlePaste(event) {
-        // 如果编辑模态框是打开状态，不处理粘贴事件
-        const editModal = document.getElementById('editModal');
-        if (editModal.style.display === 'block') {
-            return;
+        // 检查粘贴事件的目标元素
+        const target = event.target;
+        if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.isContentEditable) {
+            return; // 如果是在输入框中粘贴，不触发全局粘贴处理
         }
 
         const items = event.clipboardData?.items;
