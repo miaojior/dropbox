@@ -410,13 +410,13 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
 
-    return `<div class="image" style="display: flex; justify-content: center; width: 100%;">
+    return `<div class="image markdown-image" style="max-width: 800px; margin: 0 auto;">
         <img src="${src}" 
              alt="${alt}" 
              title="${title}" 
              loading="lazy" 
              data-zoomable 
-             style="max-width: 100%; width: auto; object-fit: contain;">
+             style="max-width: 100%; width: 100%; height: auto; display: block;">
     </div>`;
 };
 
