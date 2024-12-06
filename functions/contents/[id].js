@@ -11,9 +11,14 @@ export async function onRequestPut({ request, env, params }) {
       });
     }
 
+    const safeType = String(type);
+    const safeTitle = String(title);
+    const safeContent = String(content);
+    const safeId = String(params.id);
+
     const { success } = await env.DB.prepare(
       'UPDATE content_blocks SET type = ?, title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).bind(type, title, content, params.id).run();
+    ).bind(safeType, safeTitle, safeContent, safeId).run();
 
     if (!success) {
       return new Response(JSON.stringify({ error: '内容不存在' }), {
@@ -27,7 +32,7 @@ export async function onRequestPut({ request, env, params }) {
 
     const { results } = await env.DB.prepare(
       'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks WHERE id = ?'
-    ).bind(params.id).all();
+    ).bind(safeId).all();
 
     return new Response(JSON.stringify(results[0]), {
       headers: { 

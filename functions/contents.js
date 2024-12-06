@@ -24,7 +24,7 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   try {
-    const { type, title, content, fileType, fileSize } = await request.json();
+    const { type, title, content } = await request.json();
     
     if (!type || !title || !content) {
       return new Response(JSON.stringify({ error: '缺少必要字段' }), {
@@ -36,9 +36,13 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
+    const safeType = String(type);
+    const safeTitle = String(title);
+    const safeContent = String(content);
+
     const { success, lastRowId } = await env.DB.prepare(
-      'INSERT INTO content_blocks (type, title, content, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)'
-    ).bind(type, title, content).run();
+      'INSERT INTO content_blocks (type, title, content) VALUES (?, ?, ?)'
+    ).bind(safeType, safeTitle, safeContent).run();
 
     if (!success) {
       throw new Error('创建内容失败');
