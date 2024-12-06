@@ -1006,16 +1006,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 在 js/main.js 中
 
-    // 修改 createContent 函数
+    // 创建新内容
     async function createContent(data) {
-        // 确保所有字段都有值
+        // 确保所有字段都有值并且类型正确
         const formData = {
             type: String(data.type || ''),
             title: String(data.title || ''),
             content: String(data.content || '')
         };
 
-        // 验证数据
+        // 验证数据完整性
         if (!formData.type || !formData.title || !formData.content) {
             throw new Error('请填写所有必要字段');
         }
@@ -1026,7 +1026,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify({
+                type: formData.type,
+                title: formData.title,
+                content: formData.content
+            })
         });
 
         if (!response.ok) {
