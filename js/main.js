@@ -359,6 +359,15 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
 
 // 添加视频链接解析规则
 function parseVideoUrl(url) {
+    // 普通视频文件扩展名
+    const videoExtensions = /\.(mp4|mkv|webm|avi|mov|wmv|flv)$/i;
+    if (videoExtensions.test(url)) {
+        return {
+            type: 'video',
+            url: url
+        };
+    }
+
     // YouTube（支持普通视频和shorts）
     const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^?&\s]+)/);
     if (youtubeMatch) {
@@ -369,7 +378,7 @@ function parseVideoUrl(url) {
         };
     }
 
-    // 哔哩哔哩（保持不变）
+    // 哔哩哔哩
     const bilibiliMatch = url.match(/(?:bilibili\.com\/video\/)([^?&\s/]+)/);
     if (bilibiliMatch) {
         return {
@@ -394,6 +403,9 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
             token.video = video;
             return ''; // 不渲染开始标签
         }
+        // 为普通链接添加新标签页打开属性
+        token.attrPush(['target', '_blank']);
+        token.attrPush(['rel', 'noopener noreferrer']);
     }
 
     return self.renderToken(tokens, idx, options);
@@ -402,7 +414,7 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
 md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
     // 检查 idx-2 是否在有效范围内
     if (idx >= 2 && tokens[idx - 2]) {
-        const openToken = tokens[idx - 2]; // link_open token
+        const openToken = tokens[idx - 2];
         if (openToken && openToken.video) {
             const video = openToken.video;
             if (video.type === 'youtube') {
@@ -419,6 +431,13 @@ md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
                         frameborder="0"
                         allowfullscreen>
                     </iframe>
+                </div>`;
+            } else if (video.type === 'video') {
+                return `<div class="video-container">
+                    <video controls preload="metadata" class="native-video">
+                        <source src="${video.url}" type="video/mp4">
+                        您的浏览器不支持视频播放。
+                    </video>
                 </div>`;
             }
         }
