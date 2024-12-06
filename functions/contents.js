@@ -1,7 +1,7 @@
 export async function onRequestGet({ request, env }) {
   try {
     const { results } = await env.DB.prepare(
-      'SELECT id, type, title, content, createdAt, updatedAt FROM content_blocks ORDER BY id DESC'
+      'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks ORDER BY id DESC'
     ).all();
 
     return new Response(JSON.stringify(results), {
