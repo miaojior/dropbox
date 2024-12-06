@@ -1008,18 +1008,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 创建新内容
     async function createContent(data) {
-        // 确保所有字段都有值并且类型正确
-        const formData = {
-            type: String(data.type || ''),
-            title: String(data.title || ''),
-            content: String(data.content || '')
-        };
-
-        // 验证数据完整性
-        if (!formData.type || !formData.title || !formData.content) {
-            throw new Error('请填写所有必要字段');
-        }
-
         const response = await fetch(API_BASE_URL, {
             method: 'POST',
             headers: {
@@ -1027,9 +1015,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                type: formData.type,
-                title: formData.title,
-                content: formData.content
+                type: data.type,
+                title: data.title,
+                content: data.content
             })
         });
 
