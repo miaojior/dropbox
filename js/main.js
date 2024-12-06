@@ -335,7 +335,17 @@ const md = window.markdownit({
     });
 
 // 初始化灯箱效果
-const zoom = mediumZoom();
+const zoom = mediumZoom('[data-zoomable]', {
+    margin: 24,
+    background: 'rgba(0, 0, 0, 0.9)',
+    scrollOffset: 0,
+    container: {
+        top: 24,
+        bottom: 24,
+        right: 24,
+        left: 24,
+    }
+});
 
 // 自定义图片渲染规则
 md.renderer.rules.image = function (tokens, idx, options, env, slf) {
@@ -344,15 +354,7 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
     
-    // 创建图片元素并添加到灯箱中
-    const img = document.createElement('img');
-    img.src = src;
-    img.alt = alt;
-    img.title = title;
-    img.setAttribute('loading', 'lazy');
-    zoom.attach(img);
-    
-    return img.outerHTML;
+    return `<img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable class="zoomable-image">`;
 };
 
 // 添加视频链接解析规则
@@ -489,7 +491,7 @@ function renderContents(contents) {
         try {
             if (content.type === 'image' || content.type === 'file') {
                 if (content.type === 'image') {
-                    contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}" loading="lazy"></div>`;
+                    contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}" loading="lazy" data-zoomable class="zoomable-image"></div>`;
                 } else {
                     const fileIcon = getFileIcon(content.title);
                     const fileType = getFileTypeDescription(content.title);
@@ -521,78 +523,7 @@ function renderContents(contents) {
                         .replace(/'/g, '&#039;')}</p>`)
                     .join('');
             } else {
-                // 为每个卡片创建一个新的 markdown-it 实例
-                const cardMd = window.markdownit({
-                    html: true,
-                    breaks: true,
-                    linkify: true,
-                    typographer: true,
-                    quotes: ['""', '\'\'']
-                }).use(window.markdownitEmoji)
-                    .use(window.markdownitSub)
-                    .use(window.markdownitSup)
-                    .use(window.markdownitFootnote)
-                    .use(window.markdownitTaskLists, {
-                        enabled: true,
-                        label: true,
-                        labelAfter: true
-                    });
-
-                // 为这个实例添加视频支持
-                cardMd.renderer.rules.link_open = function (tokens, idx, options, env, self) {
-                    const token = tokens[idx];
-                    const href = token.attrGet('href');
-
-                    if (href) {
-                        const video = parseVideoUrl(href);
-                        if (video) {
-                            token.video = video;
-                            return '';
-                        }
-                    }
-
-                    return self.renderToken(tokens, idx, options);
-                };
-
-                cardMd.renderer.rules.link_close = function (tokens, idx, options, env, self) {
-                    if (idx >= 2 && tokens[idx - 2]) {
-                        const openToken = tokens[idx - 2];
-                        if (openToken && openToken.video) {
-                            const video = openToken.video;
-                            if (video.type === 'youtube') {
-                                return `<div class="video-container youtube">
-                                    <iframe src="${video.embed}" 
-                                        frameborder="0" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                        allowfullscreen>
-                                    </iframe>
-                                </div>`;
-                            } else if (video.type === 'bilibili') {
-                                return `<div class="video-container bilibili">
-                                    <iframe src="${video.embed}"
-                                        frameborder="0"
-                                        allowfullscreen>
-                                    </iframe>
-                                </div>`;
-                            }
-                        }
-                    }
-                    return self.renderToken(tokens, idx, options);
-                };
-
-                try {
-                    contentHtml = cardMd.render(content.content);
-                } catch (mdError) {
-                    console.error('Markdown rendering error for card:', content.id, mdError);
-                    contentHtml = `<div class="error-message">
-                        <div class="error-title">Markdown 格式错误</div>
-                        <div class="error-details">
-                            <p>原始内容：</p>
-                            <pre>${content.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
-                            <p>错误信息：${mdError.message}</p>
-                        </div>
-                    </div>`;
-                }
+                contentHtml = md.render(content.content);
             }
         } catch (error) {
             console.error('Card rendering error:', content.id, error);
@@ -630,6 +561,9 @@ function renderContents(contents) {
     // 初始化功能
     requestAnimationFrame(() => {
         Prism.highlightAll();
+        // 重新绑定灯箱效果
+        zoom.detach();
+        zoom.attach('[data-zoomable]');
     });
 }
 

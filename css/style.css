@@ -409,6 +409,7 @@ code {
     padding-top: 1.5rem;
     border-top: 1px solid #eee;
 }
+
 /* 模态框样式 */
 .modal {
     display: none;
@@ -2032,6 +2033,7 @@ select {
     white-space: pre-wrap;
     word-break: break-all;
 }
+
 /* 深色模式适配 */
 [data-theme="dark"] .medium-zoom-overlay {
     background: rgba(0, 0, 0, 0.95) !important;
@@ -2046,6 +2048,15 @@ img {
     margin: 1rem auto;
 }
 
+
+.zoomable-image {
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+}
+
+.zoomable-image:hover {
+    transform: scale(1.02);
+}
 .medium-zoom-overlay {
     background: var(--modal-overlay) !important;
     z-index: 1000;
