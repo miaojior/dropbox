@@ -338,7 +338,7 @@ const md = window.markdownit({
 function parseVideoUrl(url, text) {
     // 如果链接文本为空，使用 "视频" 作为默认文本
     const displayText = text.trim() || '视频';
-
+    
     // YouTube（支持普通视频和shorts）
     const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^?&\s]+)/);
     if (youtubeMatch) {
@@ -349,7 +349,7 @@ function parseVideoUrl(url, text) {
             text: displayText
         };
     }
-
+    
     // 哔哩哔哩
     const bilibiliMatch = url.match(/(?:bilibili\.com\/video\/)([^?&\s/]+)/);
     if (bilibiliMatch) {
@@ -360,46 +360,35 @@ function parseVideoUrl(url, text) {
             text: displayText
         };
     }
-
+    
     return null;
 }
 
 // 自定义链接渲染规则
-// 修改 link_open 规则
 md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     const token = tokens[idx];
     const href = token.attrGet('href');
 
     if (href) {
-        // 获取链接文本
-        let text = '';
-        if (idx + 1 < tokens.length && tokens[idx + 1].type === 'text') {
-            text = tokens[idx + 1].content;
-        }
-
-        const video = parseVideoUrl(href, text);
+        const video = parseVideoUrl(href);
         if (video) {
+            // 设置标记，告诉 link_close 这是一个视频链接
             token.video = video;
-            // 如果链接文本为空，跳过渲染链接文本
-            if (!text.trim()) {
-                tokens[idx + 1].content = '';
-            }
-            return '';
+            return ''; // 不渲染开始标签
         }
     }
 
     return self.renderToken(tokens, idx, options);
 };
 
-// 修改 link_close 规则
 md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
+    // 检查 idx-2 是否在有效范围内
     if (idx >= 2 && tokens[idx - 2]) {
-        const openToken = tokens[idx - 2];
+        const openToken = tokens[idx - 2]; // link_open token
         if (openToken && openToken.video) {
             const video = openToken.video;
             if (video.type === 'youtube') {
                 return `<div class="video-container youtube">
-                    <div class="video-title">${video.text}</div>
                     <iframe src="${video.embed}" 
                         frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -408,7 +397,6 @@ md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
                 </div>`;
             } else if (video.type === 'bilibili') {
                 return `<div class="video-container bilibili">
-                    <div class="video-title">${video.text}</div>
                     <iframe src="${video.embed}"
                         frameborder="0"
                         allowfullscreen>
@@ -417,6 +405,7 @@ md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
             }
         }
     }
+
     return self.renderToken(tokens, idx, options);
 };
 
