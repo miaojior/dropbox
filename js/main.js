@@ -610,21 +610,45 @@ window.editContent = function (id) {
     document.getElementById('editModal').style.display = 'block';
 }
 
+// 初始化返回顶部按钮
+function initBackToTop() {
+    const backToTop = document.querySelector('.back-to-top');
+    const scrollThreshold = 400; // 滚动多少像素后显示按钮
+    
+    // 监听滚动事件
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > scrollThreshold) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
+    });
+    
+    // 点击返回顶部
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
 // DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
     // 初始化前先获取同步间隔
     await getSyncInterval();
-
+    
     contentContainer = document.getElementById('content-container');
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     const addNewBtn = document.getElementById('addNewBtn');
     const editImage = document.getElementById('editImage');
-
+    
     // 初始化
     await loadContents(true);
     setupEventListeners();
     startUpdateCheck();
+    initBackToTop();
 
     // 设置事件监听器
     function setupEventListeners() {
