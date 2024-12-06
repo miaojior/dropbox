@@ -33,7 +33,7 @@ async function getSyncInterval() {
 
 // 工具函数
 function getFileIcon(filename) {
-    // 获取文拓展名
+    // 获取文件拓展名
     const ext = filename.toLowerCase().split('.').pop();
 
     // Markdown文件
@@ -121,7 +121,7 @@ function getFileTypeDescription(filename) {
     if (ext === 'rs') return 'Rust文件';
     if (ext === 'dart') return 'Dart文件';
     if (ext === 'sql') return 'SQL文件';
-    if (['sh', 'bash'].includes(ext)) return 'Shell脚本';
+    if (['sh', 'bash'].includes(ext)) return 'Shell文本';
     if (['yml', 'yaml'].includes(ext)) return 'YAML配置';
     if (ext === 'xml') return 'XML文件';
 
@@ -339,8 +339,52 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
     
-    return `<div class="image"><img src="${src}" alt="${alt}" title="${title}" loading="lazy"></div>`;
+    return `<div class="image"><img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable></div>`;
 };
+
+// 自定义代码块渲染规则
+md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
+    const token = tokens[idx];
+    const code = token.content;
+    const lang = token.info || '';
+    const highlighted = Prism.highlight(code, Prism.languages[lang] || Prism.languages.plain, lang);
+    
+    return `<div class="code-wrapper">
+        <pre><code class="language-${lang}">${highlighted}</code></pre>
+        <button class="copy-button" onclick="copyCode(this)">复制代码</button>
+    </div>`;
+};
+
+// 复制代码函数
+window.copyCode = function(button) {
+    const pre = button.parentElement.querySelector('pre');
+    const code = pre.textContent;
+    
+    navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = '已复制！';
+        button.style.background = '#4CAF50';
+        button.style.color = 'white';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '';
+            button.style.color = '';
+        }, 2000);
+    }).catch(err => {
+        console.error('复制失败:', err);
+        showToast('复制失败，请手动复制', 'error');
+    });
+};
+
+// 初始化图片灯箱
+function initImageZoom() {
+    mediumZoom('[data-zoomable]', {
+        margin: 24,
+        background: 'rgba(0, 0, 0, 0.8)',
+        scrollOffset: 0,
+    });
+}
 
 // 渲染内容函数
 function renderContents(contents) {
@@ -436,9 +480,10 @@ function renderContents(contents) {
     contentContainer.innerHTML = '';
     contentContainer.appendChild(fragment);
 
-    // 延迟高亮代码
+    // 初始化功能
     requestAnimationFrame(() => {
         Prism.highlightAll();
+        initImageZoom();
     });
 }
 
