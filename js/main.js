@@ -410,7 +410,7 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const src = token.attrGet('src');
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
-
+    
     return `<img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable>`;
 };
 
@@ -449,51 +449,13 @@ window.copyCode = function (button) {
     });
 };
 
-// 初始化图片灯箱
-function initImageZoom() {
-    try {
-        console.log('开始初始化灯箱...');
-        // 获取所有可缩放图片
-        const zoomableImages = document.querySelectorAll('[data-zoomable]');
-        console.log('找到可缩放图片数量:', zoomableImages.length);
-        
-        // 如果已经存在实例，先销毁
-        if (window.zoomInstance) {
-            console.log('销毁旧的灯箱实例');
-            window.zoomInstance.detach();
-        }
-
-        // 确保图片已加载
-        const loadedImages = Array.from(zoomableImages).filter(img => img.complete);
-        console.log('已加载的图片数量:', loadedImages.length);
-
-        if (loadedImages.length > 0) {
-            // 创建新实例
-            window.zoomInstance = mediumZoom('[data-zoomable]', {
-                background: 'var(--modal-overlay)',
-                margin: 20,
-                scrollOffset: 0,
-                container: {
-                    width: '100%',
-                    height: '100%'
-                }
-            });
-            console.log('灯箱初始化成功');
-        } else {
-            console.log('没有找到可用的图片，等待图片加载...');
-            // 为新图片添加加载事件监听
-            zoomableImages.forEach(img => {
-                if (!img.complete) {
-                    img.addEventListener('load', () => {
-                        console.log('图片加载完成，重新初始化灯箱');
-                        initImageZoom();
-                    });
-                }
-            });
-        }
-    } catch (error) {
-        console.error('灯箱初始化失败:', error);
-    }
+// 初始化灯箱效果
+function initZoom() {
+    mediumZoom('[data-zoomable]', {
+        margin: 24,
+        background: 'rgba(0, 0, 0, 0.9)',
+        scrollOffset: 0,
+    });
 }
 
 // 渲染内容函数
@@ -523,19 +485,21 @@ function renderContents(contents) {
         let downloadButton = '';
 
         try {
-            if (content.type === 'image') {
-                contentHtml = `<img src="${content.content}" alt="${content.title}" loading="lazy" data-zoomable onerror="this.onerror=null; this.src='placeholder.png';">`;
-            } else if (content.type === 'file') {
-                const fileIcon = getFileIcon(content.title);
-                const fileType = getFileTypeDescription(content.title);
-                contentHtml = `
-                    <div class="file">
-                        <i class="file-icon ${fileIcon}"></i>
-                        <div class="file-details">
-                            <div class="file-name">${content.title}</div>
-                            <div class="file-type">${fileType}</div>
-                        </div>
-                    </div>`;
+            if (content.type === 'image' || content.type === 'file') {
+                if (content.type === 'image') {
+                    contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}" loading="lazy"></div>`;
+                } else {
+                    const fileIcon = getFileIcon(content.title);
+                    const fileType = getFileTypeDescription(content.title);
+                    contentHtml = `
+                        <div class="file">
+                            <i class="file-icon ${fileIcon}"></i>
+                            <div class="file-details">
+                                <div class="file-name">${content.title}</div>
+                                <div class="file-type">${fileType}</div>
+                            </div>
+                        </div>`;
+                }
                 downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
             } else if (content.type === 'code') {
                 const escapedContent = content.content
@@ -629,7 +593,7 @@ function renderContents(contents) {
                 }
             }
         } catch (error) {
-            console.error('内容渲染错误:', error);
+            console.error('Card rendering error:', content.id, error);
             contentHtml = `<div class="error-message">内容渲染失败</div>`;
         }
 
@@ -661,17 +625,11 @@ function renderContents(contents) {
     contentContainer.innerHTML = '';
     contentContainer.appendChild(fragment);
 
-    // 延迟初始化功能，确保DOM完全更新
-    setTimeout(() => {
-        try {
-            if (typeof Prism !== 'undefined') {
-                Prism.highlightAll();
-            }
-            initImageZoom();
-        } catch (error) {
-            console.error('功能初始化失败:', error);
-        }
-    }, 100);
+    // 初始化功能
+    requestAnimationFrame(() => {
+        Prism.highlightAll();
+        initZoom();
+    });
 }
 
 // 删除内容函数
