@@ -458,7 +458,7 @@ function initImageZoom() {
 }
 
 // 渲染内容函数
-// 修改 renderContents 函数中的内容渲染部分
+// 渲染内容函数
 function renderContents(contents) {
     if (!contentContainer) {
         contentContainer = document.getElementById('content-container');
@@ -478,71 +478,140 @@ function renderContents(contents) {
     // 使用DocumentFragment提升性能
     const fragment = document.createDocumentFragment();
     contents.forEach(content => {
+        const section = document.createElement('section');
+        section.className = 'text-block';
+
+        let contentHtml = '';
+        let downloadButton = '';
+
         try {
-            const section = document.createElement('section');
-            section.className = 'text-block';
-
-            let contentHtml = '';
-            let downloadButton = '';
-
             if (content.type === 'image' || content.type === 'file') {
-                // 图片和文件的处理保持不变...
+                if (content.type === 'image') {
+                    contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}" loading="lazy"></div>`;
+                } else {
+                    const fileIcon = getFileIcon(content.title);
+                    const fileType = getFileTypeDescription(content.title);
+                    contentHtml = `
+                        <div class="file">
+                            <i class="file-icon ${fileIcon}"></i>
+                            <div class="file-details">
+                                <div class="file-name">${content.title}</div>
+                                <div class="file-type">${fileType}</div>
+                            </div>
+                        </div>`;
+                }
+                downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
             } else if (content.type === 'code') {
-                // 代码类型的处理保持不变...
+                const escapedContent = content.content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+                contentHtml = `<pre><code class="language-javascript">${escapedContent}</code></pre>`;
             } else if (content.type === 'poetry') {
-                // 诗歌类型的处理保持不变...
+                contentHtml = content.content
+                    .split('\n')
+                    .map(line => `<p>${line.replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;')}</p>`)
+                    .join('');
             } else {
+                // 为每个卡片创建一个新的 markdown-it 实例
+                const cardMd = window.markdownit({
+                    html: true,
+                    breaks: true,
+                    linkify: true,
+                    typographer: true,
+                    quotes: ['""', '\'\'']
+                }).use(window.markdownitEmoji)
+                    .use(window.markdownitSub)
+                    .use(window.markdownitSup)
+                    .use(window.markdownitFootnote)
+                    .use(window.markdownitTaskLists, {
+                        enabled: true,
+                        label: true,
+                        labelAfter: true
+                    });
+
+                // 为这个实例添加视频支持
+                cardMd.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+                    const token = tokens[idx];
+                    const href = token.attrGet('href');
+
+                    if (href) {
+                        const video = parseVideoUrl(href);
+                        if (video) {
+                            token.video = video;
+                            return '';
+                        }
+                    }
+
+                    return self.renderToken(tokens, idx, options);
+                };
+
+                cardMd.renderer.rules.link_close = function (tokens, idx, options, env, self) {
+                    if (idx >= 2 && tokens[idx - 2]) {
+                        const openToken = tokens[idx - 2];
+                        if (openToken && openToken.video) {
+                            const video = openToken.video;
+                            if (video.type === 'youtube') {
+                                return `<div class="video-container youtube">
+                                    <iframe src="${video.embed}" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen>
+                                    </iframe>
+                                </div>`;
+                            } else if (video.type === 'bilibili') {
+                                return `<div class="video-container bilibili">
+                                    <iframe src="${video.embed}"
+                                        frameborder="0"
+                                        allowfullscreen>
+                                    </iframe>
+                                </div>`;
+                            }
+                        }
+                    }
+                    return self.renderToken(tokens, idx, options);
+                };
+
                 try {
-                    // 普通文本类型使用 Markdown 渲染，添加错误处理
-                    contentHtml = md.render(content.content || '');
+                    contentHtml = cardMd.render(content.content);
                 } catch (mdError) {
-                    console.error('Markdown渲染错误:', mdError);
-                    contentHtml = `<div class="error-content">
-                        <p>内容格式错误，无法正确显示</p>
-                        <pre>${escapeHtml(content.content || '')}</pre>
-                    </div>`;
+                    console.error('Markdown rendering error for card:', content.id, mdError);
+                    contentHtml = `<div class="error-message">内容渲染失败</div>`;
                 }
             }
-
-            const encodedContent = encodeContent(content.content || '');
-            const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
-
-            section.innerHTML = `
-                <div class="text-block-header">
-                    <h2>${escapeHtml(content.title || '无标题')}</h2>
-                    <div class="text-block-meta">
-                        <span class="modified-date">修改于 ${modifiedDate}</span>
-                    </div>
-                </div>
-                <div class="${content.type || 'text'}">
-                    ${contentHtml}
-                </div>
-                <div class="text-block-actions">
-                    <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
-                    ${downloadButton}
-                    <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                    <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
-                </div>
-            `;
-
-            fragment.appendChild(section);
         } catch (error) {
-            // 如果单个卡片渲染失败，创建错误提示卡片
-            console.error('卡片渲染错误:', error);
-            const errorSection = document.createElement('section');
-            errorSection.className = 'text-block error';
-            errorSection.innerHTML = `
-                <div class="text-block-header">
-                    <h2>${escapeHtml(content.title || '格式错误的内容')}</h2>
-                </div>
-                <div class="error-message">
-                    <p>此内容无法正确显示，可能是格式错误</p>
-                    <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                    <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
-                </div>
-            `;
-            fragment.appendChild(errorSection);
+            console.error('Card rendering error:', content.id, error);
+            contentHtml = `<div class="error-message">内容渲染失败</div>`;
         }
+
+        const encodedContent = encodeContent(content.content);
+        const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
+
+        section.innerHTML = `
+            <div class="text-block-header">
+                <h2>${content.title}</h2>
+                <div class="text-block-meta">
+                    <span class="modified-date">修改于 ${modifiedDate}</span>
+                </div>
+            </div>
+            <div class="${content.type}">
+                ${contentHtml}
+            </div>
+            <div class="text-block-actions">
+                <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
+                ${downloadButton}
+                <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
+                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
+            </div>
+        `;
+
+        fragment.appendChild(section);
     });
 
     // 一次性更新DOM
@@ -551,23 +620,9 @@ function renderContents(contents) {
 
     // 初始化功能
     requestAnimationFrame(() => {
-        try {
-            Prism.highlightAll();
-            initImageZoom();
-        } catch (error) {
-            console.error('代码高亮或图片缩放初始化失败:', error);
-        }
+        Prism.highlightAll();
+        initImageZoom();
     });
-}
-
-// 添加 HTML 转义函数
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }
 
 // 删除内容函数
