@@ -333,24 +333,6 @@ const md = window.markdownit({
         labelAfter: true
     });
 
-// 配置允许的标签和属性
-const originalRender = md.renderer.rules.html_block || function(tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-};
-
-md.renderer.rules.html_block = function(tokens, idx, options, env, self) {
-    const content = tokens[idx].content;
-    
-    // 检查是否包含 YouTube 或 Bilibili iframe
-    if (content.includes('<iframe') && 
-        (content.includes('youtube.com/embed') || content.includes('player.bilibili.com'))) {
-        // 添加响应式容器
-        return `<div class="video-container">${content}</div>`;
-    }
-    
-    return originalRender(tokens, idx, options, env, self);
-};
-
 // 自定义图片渲染规则
 md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const token = tokens[idx];
