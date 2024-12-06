@@ -1004,7 +1004,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentEditId = null;
     }
 
-    // 处理表单提交
+    // 在 js/main.js 中
+
+    // 修改 createContent 函数
+    async function createContent(data) {
+        // 确保所有字段都有值
+        const formData = {
+            type: String(data.type || ''),
+            title: String(data.title || ''),
+            content: String(data.content || '')
+        };
+
+        // 验证数据
+        if (!formData.type || !formData.title || !formData.content) {
+            throw new Error('请填写所有必要字段');
+        }
+
+        const response = await fetch(API_BASE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || '创建内容失败');
+        }
+
+        return await response.json();
+    }
+
+    // 修改 handleFormSubmit 函数中的相关部分
     async function handleFormSubmit(event) {
         event.preventDefault();
 
@@ -1026,7 +1059,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!imageFile && !existingContent) {
                     throw new Error('请选择图片文件或提供图片URL');
                 }
-                content = existingContent || '';
 
                 if (imageFile) {
                     const formData = new FormData();
@@ -1042,6 +1074,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     const { url } = await uploadResponse.json();
                     content = url;
+                } else {
+                    content = existingContent;
                 }
             } else if (type === 'file') {
                 const file = document.getElementById('editFile').files[0];
@@ -1050,7 +1084,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!file && !existingContent) {
                     throw new Error('请选择文件或提供文件URL');
                 }
-                content = existingContent || '';
 
                 if (file) {
                     const formData = new FormData();
@@ -1066,9 +1099,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     const { url } = await uploadResponse.json();
                     content = url;
+                } else {
+                    content = existingContent;
                 }
             } else {
-                content = document.getElementById('editContent').value || '';
+                content = document.getElementById('editContent').value;
+                if (!content) {
+                    throw new Error('请输入内容');
+                }
             }
 
             // 验证所有必要字段
@@ -1078,15 +1116,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const formData = { type, title, content };
 
-            if (currentEditId) {
-                await updateContent(currentEditId, formData);
-            } else {
-                await createContent(formData);
-            }
+            try {
+                if (currentEditId) {
+                    await updateContent(currentEditId, formData);
+                } else {
+                    await createContent(formData);
+                }
 
-            closeModal();
-            await loadContents(false);
-            showToast('保存成功！');
+                closeModal();
+                await loadContents(false);
+                showToast('保存成功！');
+            } catch (error) {
+                throw new Error(error.message || '保存失败');
+            }
         } catch (error) {
             console.error('保存失败:', error);
             showToast(error.message, 'error');
@@ -1094,25 +1136,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitButton.disabled = false;
             submitButton.textContent = originalText;
         }
-    }
-
-    // 创建新内容
-    async function createContent(data) {
-        const response = await fetch(API_BASE_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || '创建内容失败');
-        }
-
-        return await response.json();
     }
 
     // 更新内容
