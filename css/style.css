@@ -2053,3 +2053,31 @@ select {
     padding-bottom: 75%;
     /* B站播放器比例 */
 }
+/*显示错误信息，避免完全失败*/
+
+.text-block.error {
+    border-left: 4px solid #dc3545;
+}
+
+.error-message {
+    padding: 15px;
+    color: #721c24;
+    background-color: #f8d7da;
+    border-radius: 4px;
+}
+
+.error-content {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.error-content pre {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
