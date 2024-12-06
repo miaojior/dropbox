@@ -353,7 +353,7 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const src = token.attrGet('src');
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
-    
+
     return `<img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable class="zoomable-image">`;
 };
 
@@ -394,6 +394,10 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
             token.video = video;
             return ''; // 不渲染开始标签
         }
+
+        // 为普通链接添加新标签页打开属性
+        token.attrPush(['target', '_blank']);
+        token.attrPush(['rel', 'noopener noreferrer']);
     }
 
     return self.renderToken(tokens, idx, options);
