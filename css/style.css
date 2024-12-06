@@ -220,15 +220,24 @@ body {
     padding: 2rem 1rem;
 }
 
+/* 头部样式 */
 header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
 }
 
-h1 {
-    font-size: 2.5rem;
-    color: var(--heading-color);
+header h1 {
     margin-bottom: 1rem;
+}
+
+/* 头部按钮组样式 */
+.header-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
 }
 
 .text-block {
@@ -760,35 +769,99 @@ code {
 }
 
 /* 确认对话框样式 */
-.confirm-dialog {
+.confirm-dialog-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
     display: flex;
-    justify-content: center;
     align-items: center;
-    z-index: 2000;
+    justify-content: center;
+}
+
+.confirm-dialog {
+    position: relative;
+    background: var(--background-color);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    max-width: 90%;
+    width: 420px;
+    border: 1px solid var(--border-color);
+    animation: dialogShow 0.3s ease;
+}
+
+@keyframes dialogShow {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.confirm-dialog h3 {
+    margin: 0 0 16px 0;
+    color: var(--text-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.confirm-dialog p {
+    margin: 8px 0;
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+.confirm-dialog ul {
+    margin: 12px 0;
+    padding-left: 20px;
+    color: var(--text-color);
+}
+
+.confirm-dialog ul li {
+    margin: 6px 0;
+    line-height: 1.4;
+}
+
+.confirm-dialog .warning-text {
+    color: #dc3545;
+    font-weight: 500;
+    padding: 12px 16px;
+    background: rgba(220, 53, 69, 0.1);
+    border-radius: 6px;
+    margin: 16px 0;
+}
+
+.confirm-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.confirm-dialog-buttons .btn {
+    min-width: 80px;
+    padding: 8px 16px;
+}
+
+[data-theme="dark"] .confirm-dialog {
+    background: #2d2d2d;
+    border-color: #404040;
+}
+
+[data-theme="dark"] .confirm-dialog .warning-text {
+    background: rgba(220, 53, 69, 0.15);
 }
 
 /* 深色模式下的确认对话框样式 */
-[data-theme="dark"] .confirm-dialog {
-    background-color: rgba(0, 0, 0, 0.95);
-    /* 增加不透明度到0.95 */
-}
-
-.confirm-dialog-content {
-    background: var(--modal-bg);
-    padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-width: 400px;
-    width: 90%;
-}
-
-/* 深色模式下的对话框内容样式 */
 [data-theme="dark"] .confirm-dialog-content {
     background-color: #1a1a1a;
     /* 设置深色背景 */

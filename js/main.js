@@ -323,14 +323,14 @@ const md = window.markdownit({
     typographer: true, // 启用一些语言中性的替换和引号美化
     quotes: ['""', '\'\'']    // 引号样式
 }).use(window.markdownitEmoji)                 // 启用表情
-  .use(window.markdownitSub)                   // 启用下标
-  .use(window.markdownitSup)                   // 启用上标
-  .use(window.markdownitFootnote)              // 启用脚注
-  .use(window.markdownitTaskLists, {           // 启用任务列表
-    enabled: true,
-    label: true,
-    labelAfter: true
-  });
+    .use(window.markdownitSub)                   // 启用下标
+    .use(window.markdownitSup)                   // 启用上标
+    .use(window.markdownitFootnote)              // 启用脚注
+    .use(window.markdownitTaskLists, {           // 启用任务列表
+        enabled: true,
+        label: true,
+        labelAfter: true
+    });
 
 // 自定义图片渲染规则
 md.renderer.rules.image = function (tokens, idx, options, env, slf) {
@@ -338,7 +338,7 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const src = token.attrGet('src');
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
-    
+
     return `<div class="image"><img src="${src}" alt="${alt}" title="${title}" loading="lazy" data-zoomable></div>`;
 };
 
@@ -348,7 +348,7 @@ md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
     const code = token.content;
     const lang = token.info || '';
     const highlighted = Prism.highlight(code, Prism.languages[lang] || Prism.languages.plain, lang);
-    
+
     return `<div class="code-wrapper">
         <pre><code class="language-${lang}">${highlighted}</code></pre>
         <button class="copy-button" onclick="copyCode(this)">复制代码</button>
@@ -356,16 +356,16 @@ md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
 };
 
 // 复制代码函数
-window.copyCode = function(button) {
+window.copyCode = function (button) {
     const pre = button.parentElement.querySelector('pre');
     const code = pre.textContent;
-    
+
     navigator.clipboard.writeText(code).then(() => {
         const originalText = button.textContent;
         button.textContent = '已复制！';
         button.style.background = '#4CAF50';
         button.style.color = 'white';
-        
+
         setTimeout(() => {
             button.textContent = originalText;
             button.style.background = '';
@@ -614,7 +614,7 @@ window.editContent = function (id) {
 function initBackToTop() {
     const backToTop = document.querySelector('.back-to-top');
     const scrollThreshold = 400; // 滚动多少像素后显示按钮
-    
+
     // 监听滚动事件
     window.addEventListener('scroll', () => {
         if (window.scrollY > scrollThreshold) {
@@ -623,7 +623,7 @@ function initBackToTop() {
             backToTop.classList.remove('visible');
         }
     });
-    
+
     // 点击返回顶部
     backToTop.addEventListener('click', () => {
         window.scrollTo({
@@ -634,7 +634,7 @@ function initBackToTop() {
 }
 
 // 清空全部内容
-window.clearAllContent = async function() {
+window.clearAllContent = async function () {
     const confirmDialog = document.createElement('div');
     confirmDialog.innerHTML = `
         <div class="confirm-dialog-overlay"></div>
@@ -661,7 +661,7 @@ async function executeContentClear(button) {
     try {
         button.disabled = true;
         button.innerHTML = '清空中... <span class="loading-spinner"></span>';
-        
+
         // 清空数据库内容
         const response = await fetch('/clear-all', {
             method: 'POST',
@@ -676,13 +676,13 @@ async function executeContentClear(button) {
 
         // 清空本地缓存
         contentCache = [];
-        
+
         // 重新渲染内容（显示空状态）
         renderContents([]);
-        
+
         // 关闭确认对话框
         button.closest('.confirm-dialog').parentElement.remove();
-        
+
         showToast('已清空所有内容');
     } catch (error) {
         console.error('清空失败:', error);
@@ -696,13 +696,13 @@ async function executeContentClear(button) {
 document.addEventListener('DOMContentLoaded', async () => {
     // 初始化前先获取同步间隔
     await getSyncInterval();
-    
+
     contentContainer = document.getElementById('content-container');
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     const addNewBtn = document.getElementById('addNewBtn');
     const editImage = document.getElementById('editImage');
-    
+
     // 初始化
     await loadContents(true);
     setupEventListeners();
