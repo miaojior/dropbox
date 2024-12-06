@@ -410,15 +410,13 @@ md.renderer.rules.image = function (tokens, idx, options, env, slf) {
     const alt = token.content || '';
     const title = token.attrGet('title') || '';
 
-    // 添加 max-width:100% 样式确保图片不会超出容器宽度
-    // 添加 height:auto 保持图片比例
-    return `<div class="image">
+    return `<div class="image" style="display: flex; justify-content: center; width: 100%;">
         <img src="${src}" 
              alt="${alt}" 
              title="${title}" 
              loading="lazy" 
              data-zoomable 
-             style="max-width:50%; height:auto;">
+             style="max-width: 100%; width: auto; object-fit: contain;">
     </div>`;
 };
 
