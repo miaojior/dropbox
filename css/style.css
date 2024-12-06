@@ -209,7 +209,7 @@ body {
         linear-gradient(var(--grid-color) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
     background-size: 30px 30px;
-    background-position: -15px -15px;  /* 改为负值，让网格向左上偏移半个格子 */
+    background-position: -7px -15px;  /* 水平方向考虑滚动条宽度(约17px)的一半偏移 */
     background-attachment: fixed;
     transition: background-color 0.3s, color 0.3s;
 }
