@@ -307,15 +307,14 @@ async function downloadFile(url, filename) {
 // 格式化日期
 function formatDate(timestamp) {
     const date = new Date(timestamp);
-    // 转换为北京时间
-    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
-    const year = beijingTime.getFullYear();
-    const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
-    const day = String(beijingTime.getDate()).padStart(2, '0');
-    const hours = String(beijingTime.getHours()).padStart(2, '0');
-    const minutes = String(beijingTime.getMinutes()).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
+
 // 初始化 markdown-it
 const md = window.markdownit({
     html: true,        // 启用 HTML 标签
@@ -332,24 +331,6 @@ const md = window.markdownit({
         label: true,
         labelAfter: true
     });
-
-// 配置允许的标签和属性
-const originalRender = md.renderer.rules.html_block || function (tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-};
-
-md.renderer.rules.html_block = function (tokens, idx, options, env, self) {
-    const content = tokens[idx].content;
-
-    // 检查是否包含 YouTube 或 Bilibili iframe
-    if (content.includes('<iframe') &&
-        (content.includes('youtube.com/embed') || content.includes('player.bilibili.com'))) {
-        // 添加响应式容器
-        return `<div class="video-container">${content}</div>`;
-    }
-
-    return originalRender(tokens, idx, options, env, self);
-};
 
 // 自定义图片渲染规则
 md.renderer.rules.image = function (tokens, idx, options, env, slf) {
@@ -1004,32 +985,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentEditId = null;
     }
 
-    // 在 js/main.js 中
-
-    // 创建新内容
-    async function createContent(data) {
-        const response = await fetch(API_BASE_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                type: data.type,
-                title: data.title,
-                content: data.content
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || '创建内容失败');
-        }
-
-        return await response.json();
-    }
-
-    // 修改 handleFormSubmit 函数中的相关部分
+    // 处理表单提交
     async function handleFormSubmit(event) {
         event.preventDefault();
 
@@ -1043,84 +999,105 @@ document.addEventListener('DOMContentLoaded', async () => {
             const title = document.getElementById('editTitle').value;
             let content = '';
 
-            // 根据类型获取内容
             if (type === 'image') {
                 const imageFile = document.getElementById('editImage').files[0];
                 const existingContent = document.getElementById('editContent').value;
 
-                if (!imageFile && !existingContent) {
-                    throw new Error('请选择图片文件或提供图片URL');
-                }
+                if (!imageFile && existingContent) {
+                    content = existingContent;
+                } else if (imageFile) {
+                    // 确保设置标题
+                    if (!title) {
+                        document.getElementById('editTitle').value = imageFile.name;
+                    }
 
-                if (imageFile) {
                     const formData = new FormData();
                     formData.append('image', imageFile);
+
                     const uploadResponse = await fetch(IMAGES_API_URL, {
                         method: 'POST',
                         body: formData
                     });
 
                     if (!uploadResponse.ok) {
-                        throw new Error('图片上传失败');
+                        const errorData = await uploadResponse.json();
+                        throw new Error(errorData.error || '图片上传失败');
                     }
 
                     const { url } = await uploadResponse.json();
                     content = url;
                 } else {
-                    content = existingContent;
+                    throw new Error('请选择图片文件');
                 }
             } else if (type === 'file') {
                 const file = document.getElementById('editFile').files[0];
                 const existingContent = document.getElementById('editContent').value;
 
-                if (!file && !existingContent) {
-                    throw new Error('请选择文件或提供文件URL');
-                }
+                if (!file && existingContent) {
+                    content = existingContent;
+                } else if (file) {
+                    // 确保设置标题
+                    if (!title) {
+                        document.getElementById('editTitle').value = file.name;
+                    }
 
-                if (file) {
                     const formData = new FormData();
                     formData.append('file', file);
+
+                    console.log('开始上传文件:', file.name);
                     const uploadResponse = await fetch(FILES_UPLOAD_URL, {
                         method: 'POST',
                         body: formData
                     });
 
-                    if (!uploadResponse.ok) {
-                        throw new Error('文件上传失败');
+                    console.log('上传响应状态:', uploadResponse.status);
+                    const responseText = await uploadResponse.text();
+                    console.log('上传响应内容:', responseText);
+
+                    let responseData;
+                    try {
+                        responseData = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('解析响应失败:', e);
+                        throw new Error('服务器响应格式错误');
                     }
 
-                    const { url } = await uploadResponse.json();
-                    content = url;
+                    if (!uploadResponse.ok) {
+                        throw new Error(responseData.error || '文件上传失败');
+                    }
+
+                    if (!responseData.url) {
+                        console.error('响应数据:', responseData);
+                        throw new Error('上传成功但未返回文件URL');
+                    }
+
+                    content = responseData.url;
+                    console.log('文件上传成功:', content);
                 } else {
-                    content = existingContent;
+                    throw new Error('请选择文件');
                 }
             } else {
                 content = document.getElementById('editContent').value;
-                if (!content) {
-                    throw new Error('请输入内容');
-                }
             }
 
-            // 验证所有必要字段
-            if (!type || !title || !content) {
+            // 重新获取标题，因为可能在上传过程中被设置
+            const finalTitle = document.getElementById('editTitle').value;
+
+            if (!type || !finalTitle || !content) {
                 throw new Error('请填写所有必要字段');
             }
 
-            const formData = { type, title, content };
+            const formData = { type, title: finalTitle, content };
 
-            try {
-                if (currentEditId) {
-                    await updateContent(currentEditId, formData);
-                } else {
-                    await createContent(formData);
-                }
-
-                closeModal();
-                await loadContents(false);
-                showToast('保存成功！');
-            } catch (error) {
-                throw new Error(error.message || '保存失败');
+            if (currentEditId) {
+                await updateContent(currentEditId, formData);
+            } else {
+                await createContent(formData);
             }
+
+            closeModal();
+            await loadContents(false);
+            showToast('保存成功！');
         } catch (error) {
             console.error('保存失败:', error);
             showToast(error.message, 'error');
@@ -1128,6 +1105,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitButton.disabled = false;
             submitButton.textContent = originalText;
         }
+    }
+
+    // 创建新内容
+    async function createContent(data) {
+        const response = await fetch(API_BASE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || '创建内容失败');
+        }
+
+        return await response.json();
     }
 
     // 更新内容

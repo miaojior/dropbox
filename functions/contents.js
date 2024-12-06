@@ -1,11 +1,11 @@
 export async function onRequestGet({ request, env }) {
   try {
     const { results } = await env.DB.prepare(
-      'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks ORDER BY id DESC'
+      'SELECT id, type, title, content FROM content_blocks ORDER BY id DESC'
     ).all();
-    
+
     return new Response(JSON.stringify(results), {
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
@@ -14,7 +14,7 @@ export async function onRequestGet({ request, env }) {
     console.error('Database error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
@@ -24,46 +24,32 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   try {
-    const { type, title, content } = await request.json();
-    
+    const { type, title, content, fileType, fileSize } = await request.json();
+
     if (!type || !title || !content) {
       return new Response(JSON.stringify({ error: '缺少必要字段' }), {
         status: 400,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         }
       });
     }
 
-    const safeType = String(type || '');
-    const safeTitle = String(title || '');
-    const safeContent = String(content || '');
-
-    if (!safeType || !safeTitle || !safeContent) {
-      return new Response(JSON.stringify({ error: '字段值无效' }), {
-        status: 400,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
-
-    const { success, lastRowId } = await env.DB.prepare(
+    const { success } = await env.DB.prepare(
       'INSERT INTO content_blocks (type, title, content) VALUES (?, ?, ?)'
-    ).bind(safeType, safeTitle, safeContent).run();
+    ).bind(type, title, content).run();
 
     if (!success) {
       throw new Error('创建内容失败');
     }
 
-    const { results } = await env.DB.prepare(
-      'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks WHERE id = ?'
-    ).bind(lastRowId).all();
-
-    return new Response(JSON.stringify(results[0]), {
-      headers: { 
+    return new Response(JSON.stringify({
+      type,
+      title,
+      content
+    }), {
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
@@ -72,7 +58,7 @@ export async function onRequestPost({ request, env }) {
     console.error('Database error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }

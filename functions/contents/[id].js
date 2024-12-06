@@ -4,22 +4,7 @@ export async function onRequestPut({ request, env, params }) {
     if (!type || !title || !content) {
       return new Response(JSON.stringify({ error: '缺少必要字段' }), {
         status: 400,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
-
-    const safeType = String(type || '');
-    const safeTitle = String(title || '');
-    const safeContent = String(content || '');
-    const safeId = String(params.id || '');
-
-    if (!safeType || !safeTitle || !safeContent || !safeId) {
-      return new Response(JSON.stringify({ error: '字段值无效' }), {
-        status: 400,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         }
@@ -27,25 +12,21 @@ export async function onRequestPut({ request, env, params }) {
     }
 
     const { success } = await env.DB.prepare(
-      'UPDATE content_blocks SET type = ?, title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).bind(safeType, safeTitle, safeContent, safeId).run();
+      'UPDATE content_blocks SET type = ?, title = ?, content = ? WHERE id = ?'
+    ).bind(type, title, content, params.id).run();
 
     if (!success) {
       return new Response(JSON.stringify({ error: '内容不存在' }), {
         status: 404,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         }
       });
     }
 
-    const { results } = await env.DB.prepare(
-      'SELECT id, type, title, content, created_at as createdAt, updated_at as updatedAt FROM content_blocks WHERE id = ?'
-    ).bind(safeId).all();
-
-    return new Response(JSON.stringify(results[0]), {
-      headers: { 
+    return new Response(JSON.stringify({ id: params.id, type, title, content }), {
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
@@ -54,7 +35,7 @@ export async function onRequestPut({ request, env, params }) {
     console.error('Database error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
@@ -72,7 +53,7 @@ export async function onRequestDelete({ env, params }) {
     if (!content) {
       return new Response(JSON.stringify({ error: '内容不存在' }), {
         status: 404,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         }
@@ -84,7 +65,7 @@ export async function onRequestDelete({ env, params }) {
       try {
         const url = new URL(content.content);
         const filename = url.pathname.split('/').pop();
-        
+
         // 根据类型选择正确的KV存储
         const storage = content.type === 'file' ? env.FILES : env.IMAGES;
         if (storage) {
@@ -102,7 +83,7 @@ export async function onRequestDelete({ env, params }) {
     ).bind(params.id).run();
 
     return new Response(JSON.stringify({ message: '删除成功' }), {
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
@@ -111,7 +92,7 @@ export async function onRequestDelete({ env, params }) {
     console.error('Database error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
