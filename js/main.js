@@ -339,16 +339,12 @@ const zoom = mediumZoom('[data-zoomable]', {
     margin: 48,
     background: 'rgba(0, 0, 0, 0.9)',
     scrollOffset: 0,
-    container: '#content-container',
-});
-
-// 添加打开和关闭的动画效果
-zoom.on('open', () => {
-    document.body.style.overflow = 'hidden';
-});
-
-zoom.on('closed', () => {
-    document.body.style.overflow = '';
+    container: document.body,
+    template: null,
+    transition: {
+        duration: 400,
+        timing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+    }
 });
 
 // 自定义图片渲染规则
@@ -462,7 +458,7 @@ window.copyCode = function (button) {
         }, 2000);
     }).catch(err => {
         console.error('复制失败:', err);
-        showToast('复制失败，请手��复制', 'error');
+        showToast('复制失败，请手动复制', 'error');
     });
 };
 
@@ -551,7 +547,7 @@ function renderContents(contents) {
                 <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
                 ${downloadButton}
                 <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                <button class="btn btn-delete" onclick="deleteContent(${content.id})">��除</button>
+                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
             </div>
         `;
 
@@ -904,7 +900,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const codePatterns = [
             /^(const|let|var|function|class|import|export|if|for|while)\s/m,  // 常见的代码关键字
             /{[\s\S]*}/m,  // 包含花括号的代码块
-            /\(\s*\)\s*=>/m,  // 箭头函数
+            /\(\s*\)\s*=>/m,  // 头函数
             /\b(function|class)\s+\w+\s*\(/m,  // 函数或类声明
             /\b(if|for|while)\s*\([^)]*\)/m,  // 控制结构
             /\b(return|break|continue)\s/m,  // 控制流关键字
