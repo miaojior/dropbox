@@ -307,14 +307,15 @@ async function downloadFile(url, filename) {
 // 格式化日期
 function formatDate(timestamp) {
     const date = new Date(timestamp);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+    // 转换为北京时间
+    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
+    const year = beijingTime.getFullYear();
+    const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
+    const day = String(beijingTime.getDate()).padStart(2, '0');
+    const hours = String(beijingTime.getHours()).padStart(2, '0');
+    const minutes = String(beijingTime.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
-
 // 初始化 markdown-it
 const md = window.markdownit({
     html: true,        // 启用 HTML 标签
@@ -331,6 +332,24 @@ const md = window.markdownit({
         label: true,
         labelAfter: true
     });
+
+// 配置允许的标签和属性
+const originalRender = md.renderer.rules.html_block || function (tokens, idx, options, env, self) {
+    return self.renderToken(tokens, idx, options);
+};
+
+md.renderer.rules.html_block = function (tokens, idx, options, env, self) {
+    const content = tokens[idx].content;
+
+    // 检查是否包含 YouTube 或 Bilibili iframe
+    if (content.includes('<iframe') &&
+        (content.includes('youtube.com/embed') || content.includes('player.bilibili.com'))) {
+        // 添加响应式容器
+        return `<div class="video-container">${content}</div>`;
+    }
+
+    return originalRender(tokens, idx, options, env, self);
+};
 
 // 自定义图片渲染规则
 md.renderer.rules.image = function (tokens, idx, options, env, slf) {

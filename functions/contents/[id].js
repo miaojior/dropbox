@@ -11,10 +11,20 @@ export async function onRequestPut({ request, env, params }) {
       });
     }
 
-    const safeType = String(type);
-    const safeTitle = String(title);
-    const safeContent = String(content);
-    const safeId = String(params.id);
+    const safeType = String(type || '');
+    const safeTitle = String(title || '');
+    const safeContent = String(content || '');
+    const safeId = String(params.id || '');
+
+    if (!safeType || !safeTitle || !safeContent || !safeId) {
+      return new Response(JSON.stringify({ error: '字段值无效' }), {
+        status: 400,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
 
     const { success } = await env.DB.prepare(
       'UPDATE content_blocks SET type = ?, title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'

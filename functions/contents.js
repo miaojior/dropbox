@@ -36,9 +36,19 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    const safeType = String(type);
-    const safeTitle = String(title);
-    const safeContent = String(content);
+    const safeType = String(type || '');
+    const safeTitle = String(title || '');
+    const safeContent = String(content || '');
+
+    if (!safeType || !safeTitle || !safeContent) {
+      return new Response(JSON.stringify({ error: '字段值无效' }), {
+        status: 400,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
 
     const { success, lastRowId } = await env.DB.prepare(
       'INSERT INTO content_blocks (type, title, content) VALUES (?, ?, ?)'
