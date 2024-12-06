@@ -33,7 +33,7 @@ async function getSyncInterval() {
 
 // 工具函数
 function getFileIcon(filename) {
-    // 获取文件拓展名
+    // 获取文拓展名
     const ext = filename.toLowerCase().split('.').pop();
 
     // Markdown文件
@@ -315,17 +315,32 @@ function formatDate(timestamp) {
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-// 配置 marked.js
-marked.use({
-    breaks: true, // 支持回车换行
-    gfm: true,    // 启用 GitHub 风格的 Markdown
-    renderer: {
-        // 自定义图片渲染
-        image(href, title, text) {
-            return `<div class="image"><img src="${href}" alt="${text || ''}" title="${title || ''}" loading="lazy"></div>`;
-        }
-    }
-});
+// 初始化 markdown-it
+const md = window.markdownit({
+    html: true,        // 启用 HTML 标签
+    breaks: true,      // 转换换行符为 <br>
+    linkify: true,     // 自动转换 URL 为链接
+    typographer: true, // 启用一些语言中性的替换和引号美化
+    quotes: ['""', '\'\'']    // 引号样式
+}).use(window.markdownitEmoji)                 // 启用表情
+  .use(window.markdownitSub)                   // 启用下标
+  .use(window.markdownitSup)                   // 启用上标
+  .use(window.markdownitFootnote)              // 启用脚注
+  .use(window.markdownitTaskLists, {           // 启用任务列表
+    enabled: true,
+    label: true,
+    labelAfter: true
+  });
+
+// 自定义图片渲染规则
+md.renderer.rules.image = function (tokens, idx, options, env, slf) {
+    const token = tokens[idx];
+    const src = token.attrGet('src');
+    const alt = token.content || '';
+    const title = token.attrGet('title') || '';
+    
+    return `<div class="image"><img src="${src}" alt="${alt}" title="${title}" loading="lazy"></div>`;
+};
 
 // 渲染内容函数
 function renderContents(contents) {
@@ -390,7 +405,7 @@ function renderContents(contents) {
                 .join('');
         } else {
             // 只对普通文本类型使用 Markdown 渲染
-            contentHtml = marked.parse(content.content);
+            contentHtml = md.render(content.content);
         }
 
         const encodedContent = encodeContent(content.content);
@@ -673,7 +688,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 检文本是否为代码
     function detectCodeContent(text) {
-        // 代码特征检测规则
+        // 代码征检测规则
         const codePatterns = [
             /^(const|let|var|function|class|import|export|if|for|while)\s/m,  // 常见的代码关键字
             /{[\s\S]*}/m,  // 包含花括号的代码块
