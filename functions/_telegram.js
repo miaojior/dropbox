@@ -38,7 +38,7 @@ function formatContentForTelegram(type, title, content, url = null) {
   message += `<b>标题:</b> ${escapeHtml(title)}\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
-    message += `<b>内���:</b>\n${escapeHtml(content)}`;
+    message += `<b>内容:</b>\n${escapeHtml(content)}`;
   } else if (type === 'file' || type === 'image') {
     message += `<b>链接:</b> ${url}`;
   }

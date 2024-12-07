@@ -14,9 +14,14 @@ const VERIFY_EXPIRY_DAYS = 15;
 async function checkPasswordProtection() {
     try {
         const response = await fetch('/_vars/ACCESS_PASSWORD');
-        if (response.status === 404) {
-            // 未设置密码，不需要验证
+        // 如果返回 204，说明未设置密码，不需要验证
+        if (response.status === 204) {
             return true;
+        }
+        
+        if (!response.ok) {
+            console.error('获取密码配置失败:', response.status);
+            return true; // 出错时默认允许访问
         }
 
         const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
@@ -28,7 +33,7 @@ async function checkPasswordProtection() {
 
         document.getElementById('passwordOverlay').style.display = 'flex';
         document.getElementById('mainContent').classList.add('content-blur');
-        document.body.classList.add('password-active'); // 添加禁止滚动的类
+        document.body.classList.add('password-active');
         return false;
     } catch (error) {
         console.error('检查密码保护失败:', error);
@@ -749,7 +754,7 @@ window.editContent = function (id) {
             <input type="text" id="edit-title" value="${content.title}" required>
         </div>
         <div class="form-group">
-            <label for="edit-type">类型</label>
+            <label for="edit-type">文本类型</label>
             <select id="edit-type">
                 <option value="text" ${content.type === 'text' ? 'selected' : ''}>普通文本</option>
                 <option value="code" ${content.type === 'code' ? 'selected' : ''}>代码</option>

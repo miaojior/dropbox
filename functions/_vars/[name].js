@@ -16,6 +16,17 @@ export async function onRequestGet({ params, env }) {
     // 获取环境变量值
     const value = env[varName];
     
+    // 如果是访问 ACCESS_PASSWORD 且未设置，返回特殊状态码 204
+    if (varName === 'ACCESS_PASSWORD' && value === undefined) {
+        return new Response(null, { 
+            status: 204,  // 204 表示成功但无内容
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Cache-Control': 'no-cache'
+            }
+        });
+    }
+    
     if (value === undefined) {
         return new Response('Not Found', { 
             status: 404,
