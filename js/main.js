@@ -10,6 +10,10 @@ const PASSWORD_VERIFIED_KEY = 'password_verified';
 const PASSWORD_VERIFIED_EXPIRY_KEY = 'password_verified_expiry';
 const VERIFY_EXPIRY_DAYS = 15;
 
+// 在文件开头添加缓存相关常量
+const CACHE_KEY = 'content_cache';
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5分钟缓存
+
 // 检查密码验证状态
 async function checkPasswordProtection() {
     try {
@@ -884,6 +888,112 @@ async function executeContentClear(button) {
         button.textContent = '确认清空';
     }
 }
+
+// 修改 loadContents 函数
+async function loadContents(showLoading = true) {
+    if (!contentContainer) {
+        contentContainer = document.getElementById('content-container');
+    }
+
+    try {
+        // 先尝试从缓存加载
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+            const { data, timestamp } = JSON.parse(cachedData);
+            if (Date.now() - timestamp < CACHE_EXPIRY) {
+                contentCache = data;
+                await renderContents(contentCache);
+                // 后台刷新数据
+                fetchLatestContent();
+                return;
+            }
+        }
+
+        // 如果没有缓存或缓存过期，则从服务器加载
+        const response = await fetch(API_BASE_URL, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.details || data.error || '加载失败');
+        }
+
+        const data = await response.json();
+
+        // 更新缓存
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            data,
+            timestamp: Date.now()
+        }));
+
+        if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
+            contentCache = data || [];
+            await renderContents(contentCache);
+        }
+
+        lastUpdateTime = Date.now();
+    } catch (error) {
+        console.error('加载内容失败:', error);
+        if (showLoading) {
+            showError(`加载内容失败: ${error.message}`);
+        }
+    }
+}
+
+// 添加后台刷新函数
+async function fetchLatestContent() {
+    try {
+        const response = await fetch(API_BASE_URL, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
+            contentCache = data;
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                data,
+                timestamp: Date.now()
+            }));
+            await renderContents(contentCache);
+        }
+    } catch (error) {
+        console.error('后台刷新失败:', error);
+    }
+}
+
+// 修改骨架屏渲染逻辑
+function renderSkeletons() {
+    const skeletonHTML = `
+        <section class="text-block skeleton">
+            <div class="text-block-header">
+                <div class="skeleton-title"></div>
+                <div class="skeleton-meta"></div>
+            </div>
+            <div class="skeleton-content">
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+            </div>
+        </section>
+    `.repeat(3); // 显示3个骨架块
+
+    if (contentContainer) {
+        contentContainer.innerHTML = skeletonHTML;
+    }
+}
+
+// 在 DOMContentLoaded 事件中立即显示骨架屏
+document.addEventListener('DOMContentLoaded', async () => {
+    renderSkeletons();
+    // 其他初始化代码...
+});
 
 // DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
