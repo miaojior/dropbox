@@ -88,10 +88,18 @@ export async function onRequestDelete({ env, params }) {
       'DELETE FROM content_blocks WHERE id = ?'
     ).bind(params.id).run();
 
-    // 推送删除通知到 Telegram
-    const message = `<b>内容已删除</b>\n\n` +
-                   `<b>类型:</b> ${content.type === 'file' ? '文件' : content.type === 'image' ? '图片' : '内容'}\n` +
-                   `<b>标题:</b> ${content.title}`;
+    // 格式化标题，移除自动生成的时间戳
+    let displayTitle = content.title;
+    if (content.type === 'image' || content.type === 'file') {
+      displayTitle = displayTitle.replace(/_\d+\.\w+$/, ''); // 移除时间戳
+      displayTitle = displayTitle.replace(/^粘贴的(图片|文件)_?/, ''); // 移除"粘贴的"前缀
+    }
+
+    // 发送删除通知到 Telegram
+    const message = `<b>🗑 内容已删除</b>\n\n` +
+                   `<b>类型:</b> ${getContentTypeName(content.type)}\n` +
+                   `<b>标题:</b> ${displayTitle}\n\n` +
+                   `<i>此内容已被永久删除</i>`;
     await sendToTelegram(env, message);
 
     return new Response(JSON.stringify({ message: '删除成功' }), {
@@ -110,6 +118,18 @@ export async function onRequestDelete({ env, params }) {
       }
     });
   }
+}
+
+// 获取内容类型的友好名称
+function getContentTypeName(type) {
+  const typeNames = {
+    'text': '文本',
+    'code': '代码',
+    'poetry': '诗歌',
+    'image': '图片',
+    'file': '文件'
+  };
+  return typeNames[type] || type;
 }
 
 export async function onRequestOptions() {
