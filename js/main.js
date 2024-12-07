@@ -1015,23 +1015,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         return codePatterns.some(pattern => pattern.test(text));
     }
 
-    // 处理图片预览
-    function handleImagePreview(input) {
-        const preview = document.getElementById('imagePreview');
-        preview.innerHTML = '';
+    // 处理图片预览和标题
+    function handleImagePreview(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
 
-        if (input.files && input.files[0]) {
             const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.alt = '图片预览';
-                img.style.maxWidth = '100%';
-                preview.appendChild(img);
+            reader.onload = function (e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
             };
-
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(file);
         }
     }
 
@@ -1142,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 清除图片预览
         imagePreview.innerHTML = '';
 
-        // 重置文件信息默认状态
+        // 重置文件信息为默认状态
         if (fileInfo) {
             fileInfo.innerHTML = `
                 <div class="file-preview">
@@ -1341,13 +1338,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return await response.json();
     }
-
-    // 图片预览事件
-    document.getElementById('editImage').addEventListener('change', function(event) {
-        // 只设置标题为文件名
-        if (this.files && this.files[0]) {
-            const titleInput = document.getElementById('editTitle');
-            titleInput.value = this.files[0].name;
-        }
-    });
 }); 
