@@ -559,261 +559,783 @@ window.copyCode = function (button) {
     });
 };
 
-// 加载内容
-async function loadContents(showLoading = true) {
+// 渲染内容函数
+function renderContents(contents) {
     if (!contentContainer) {
         contentContainer = document.getElementById('content-container');
     }
 
-    try {
-        const response = await fetch(API_BASE_URL, {
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.details || data.error || '加载失败');
-        }
-
-        const data = await response.json();
-
-        // 只有当数据发生变化时才重新渲染
-        if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
-            contentCache = data || [];
-            await renderContents(contentCache);  // 等待渲染完成
-        }
-
-        lastUpdateTime = Date.now();
-    } catch (error) {
-        console.error('加载内容失败:', error);
-        if (showLoading) {
-            showError(`加载内容失败: ${error.message}`);
-        }
-    }
-}
-
-// 检查更新
-async function checkForUpdates() {
-    await loadContents(false);
-}
-
-// 显示错误信息
-function showError(message) {
-    contentContainer.innerHTML = `
-        <div class="error">
-            ${message}
-            <button class="btn" onclick="location.reload()">重试</button>
-        </div>
-    `;
-}
-
-// 渲染内容
-async function renderContents(contents) {
-    if (!contentContainer) return;
-
     if (!contents || contents.length === 0) {
-        contentContainer.innerHTML = '<div class="empty-state">还没有任何内容，快来添加吧！😊</div>';
+        contentContainer.innerHTML = `
+            <div class="empty">
+                <div class="empty-icon">📝</div>
+                <div class="empty-text">还没有任何内容</div>
+                <div class="empty-hint">点击"添加新内容"开始创建</div>
+            </div>
+        `;
         return;
     }
 
-    let html = '';
-    for (const content of contents) {
-        html += await createContentBlock(content);
-    }
-    contentContainer.innerHTML = html;
+    // 使用DocumentFragment提升性能
+    const fragment = document.createDocumentFragment();
+    contents.forEach(content => {
+        const section = document.createElement('section');
+        section.className = 'text-block';
 
-    // 初始化代码高亮
-    Prism.highlightAll();
+        let contentHtml = '';
+        let downloadButton = '';
 
-    // 初始化图片缩放
-    if (zoomInstance) {
-        zoomInstance.detach();
-    }
-    zoomInstance = mediumZoom('.content-image', {
-        margin: 20,
-        background: 'rgba(0, 0, 0, 0.9)',
-    });
-}
-
-// 创建内容块
-async function createContentBlock(content) {
-    const { id, type, title, content: contentData, createdAt, updatedAt } = content;
-    const isUpdated = createdAt !== updatedAt;
-    const timeText = formatTime(createdAt) + (isUpdated ? ` (已编辑于 ${formatTime(updatedAt)})` : '');
-
-    let contentHtml = '';
-    if (type === 'text') {
-        contentHtml = `<div class="text-content">${await renderMarkdown(contentData)}</div>`;
-    } else if (type === 'code') {
-        contentHtml = `
-            <div class="code-wrapper">
-                <pre><code class="language-javascript">${escapeHtml(contentData)}</code></pre>
-                <button class="copy-button" onclick="copyCode(this)">复制</button>
-            </div>
-        `;
-    } else if (type === 'poetry') {
-        contentHtml = `<div class="poetry-content">${formatPoetry(contentData)}</div>`;
-    } else if (type === 'image') {
-        contentHtml = `
-            <div class="image-content">
-                <img src="${contentData}" alt="${title}" class="content-image">
-                <a href="${contentData}" download class="download-link">
-                    <button class="btn">
-                        <svg viewBox="0 0 24 24" class="btn-icon">
-                            <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                        </svg>
-                        下载图片
-                    </button>
-                </a>
-            </div>
-        `;
-    } else if (type === 'file') {
-        const fileName = contentData.split('/').pop();
-        const fileIcon = getFileIcon(fileName);
-        contentHtml = `
-            <div class="file-content">
-                <div class="file-info">
-                    <i class="file-icon ${fileIcon}"></i>
-                    <div class="file-details">
-                        <div class="file-name">${fileName}</div>
-                        <div class="file-type">${getFileTypeDescription(fileName)}</div>
-                    </div>
-                </div>
-                <a href="${contentData}" download class="download-link">
-                    <button class="btn">
-                        <svg viewBox="0 0 24 24" class="btn-icon">
-                            <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                        </svg>
-                        下载文件
-                    </button>
-                </a>
-            </div>
-        `;
-    }
-
-    return `
-        <section class="text-block" data-id="${id}">
-            <div class="text-block-header">
-                <h2>${escapeHtml(title)}</h2>
-                <div class="text-block-meta">
-                    <span class="time">${timeText}</span>
-                    <div class="actions">
-                        <button onclick="editContent(${id})" class="action-btn edit-btn" title="编辑">
-                            <svg viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                            </svg>
-                        </button>
-                        <button onclick="deleteContent(${id})" class="action-btn delete-btn" title="删除">
-                            <svg viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            ${contentHtml}
-        </section>
-    `;
-}
-
-// 格式化时间
-function formatTime(timestamp) {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor(diff / (1000 * 60));
-
-    if (days > 7) {
-        return date.toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } else if (days > 0) {
-        return `${days}天前`;
-    } else if (hours > 0) {
-        return `${hours}小时前`;
-    } else if (minutes > 0) {
-        return `${minutes}分钟前`;
-    } else {
-        return '刚刚';
-    }
-}
-
-// 处理图片预览
-window.handleImagePreview = function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        // 立即设置标题
-        const titleInput = document.getElementById('editTitle');
-        if (!titleInput.value || titleInput.value.trim() === '') {
-            titleInput.value = file.name;
+        try {
+            if (content.type === 'image' || content.type === 'file') {
+                if (content.type === 'image') {
+                    contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}" loading="lazy" data-zoomable class="zoomable-image"></div>`;
+                } else {
+                    const fileIcon = getFileIcon(content.title);
+                    const fileType = getFileTypeDescription(content.title);
+                    contentHtml = `
+                        <div class="file">
+                            <i class="file-icon ${fileIcon}"></i>
+                            <div class="file-details">
+                                <div class="file-name">${content.title}</div>
+                                <div class="file-type">${fileType}</div>
+                            </div>
+                        </div>`;
+                }
+                downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
+            } else if (content.type === 'code') {
+                const escapedContent = content.content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+                contentHtml = `<pre><code class="language-javascript">${escapedContent}</code></pre>`;
+            } else if (content.type === 'poetry') {
+                contentHtml = content.content
+                    .split('\n')
+                    .map(line => `<p>${line.replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;')}</p>`)
+                    .join('');
+            } else {
+                contentHtml = md.render(content.content);
+            }
+        } catch (error) {
+            console.error('Card rendering error:', content.id, error);
+            contentHtml = `<div class="error-message">内容渲染失败</div>`;
         }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
-        };
-        reader.readAsDataURL(file);
+        const encodedContent = encodeContent(content.content);
+        const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
+
+        section.innerHTML = `
+            <div class="text-block-header">
+                <h2>${content.title}</h2>
+                <div class="text-block-meta">
+                    <span class="modified-date">修改于 ${modifiedDate}</span>
+                </div>
+            </div>
+            <div class="${content.type}">
+                ${contentHtml}
+            </div>
+            <div class="text-block-actions">
+                <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
+                ${downloadButton}
+                <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
+                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
+            </div>
+        `;
+
+        fragment.appendChild(section);
+    });
+
+    // 一次性更新DOM
+    contentContainer.innerHTML = '';
+    contentContainer.appendChild(fragment);
+
+    // 初始化功能
+    requestAnimationFrame(() => {
+        Prism.highlightAll();
+        // 重新绑定灯箱效果
+        zoom.detach();
+        zoom.attach('[data-zoomable]');
+    });
+}
+
+// 删除内容函数
+window.deleteContent = async function (id) {
+    const confirmed = await showConfirmDialog(
+        '确认删除',
+        '确定要删除这条内容吗？此操作无法撤销。'
+    );
+
+    if (confirmed) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || '删除失败');
+            }
+
+            contentCache = contentCache.filter(item => item.id !== id);
+            renderContents(contentCache);
+            showToast('删除成功！');
+        } catch (error) {
+            console.error('删除失败:', error);
+            showToast(error.message, 'error');
+        }
     }
 }
 
-// 初始化页面
-document.addEventListener('DOMContentLoaded', async function() {
-    // 初始化内容容器
-    contentContainer = document.getElementById('content-container');
+// 类型切换函数
+window.handleTypeChange = function (type) {
+    const contentGroup = document.getElementById('contentGroup');
+    const imageGroup = document.getElementById('imageGroup');
+    const fileGroup = document.getElementById('fileGroup');
+    const editContent = document.getElementById('editContent');
+    const editImage = document.getElementById('editImage');
+    const editFile = document.getElementById('editFile');
+    const titleInput = document.getElementById('editTitle');
+    const titleGroup = document.getElementById('titleGroup');
+    const fileInfo = document.querySelector('.file-info');
 
-    // 获取同步间隔配置
-    await getSyncInterval();
+    contentGroup.style.display = 'none';
+    imageGroup.style.display = 'none';
+    fileGroup.style.display = 'none';
+    titleGroup.style.display = 'block';
+    editContent.required = false;
+    editImage.required = false;
+    editFile.required = false;
+    titleInput.required = false;
 
-    // 检查密码保护
-    const canAccess = await checkPasswordProtection();
-    if (!canAccess) return;
+    if (type === 'image') {
+        imageGroup.style.display = 'block';
+        editImage.required = true;
+        titleGroup.style.display = 'none';
+    } else if (type === 'file') {
+        fileGroup.style.display = 'block';
+        editFile.required = true;
 
-    // 加载内容
-    await loadContents();
+        // 如果没有选择文件，显示默认的文件信息
+        if (!editFile.files || !editFile.files[0]) {
+            fileInfo.innerHTML = `
+                <div class="file-preview">
+                    <i class="file-icon generic"></i>
+                    <div class="file-details">
+                        <div class="file-type">支持所有类型的文件</div>
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        contentGroup.style.display = 'block';
+        editContent.required = true;
+    }
+}
 
-    // 设置定时更新
-    updateCheckInterval = setInterval(checkForUpdates, syncInterval);
+// 编辑内容函数
+window.editContent = function (id) {
+    const content = contentCache.find(item => item.id === id);
+    if (!content) return;
 
-    // 添加新内容按钮事件
-    document.getElementById('addNewBtn').addEventListener('click', () => {
-        currentEditId = null;
-        document.getElementById('editForm').reset();
-        document.getElementById('editModal').style.display = 'block';
-        document.getElementById('editTitle').focus();
-    });
+    const form = document.createElement('form');
+    form.className = 'edit-form';
+    form.innerHTML = `
+        <div class="form-group">
+            <label for="edit-title">标题</label>
+            <input type="text" id="edit-title" value="${content.title}" required>
+        </div>
+        <div class="form-group">
+            <label for="edit-type">文本类型</label>
+            <select id="edit-type">
+                <option value="text" ${content.type === 'text' ? 'selected' : ''}>普通文本</option>
+                <option value="code" ${content.type === 'code' ? 'selected' : ''}>代码</option>
+                <option value="poetry" ${content.type === 'poetry' ? 'selected' : ''}>诗歌</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="edit-content">内容</label>
+            <textarea id="edit-content" required>${content.content}</textarea>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-cancel" onclick="cancelEdit()">取消</button>
+            <button type="submit" class="btn btn-save">保存</button>
+        </div>
+    `;
 
-    // 编辑表单提交事件
-    document.getElementById('editForm').addEventListener('submit', handleFormSubmit);
+    currentEditId = content.id;
+    document.getElementById('editType').value = content.type;
+    document.getElementById('editTitle').value = content.title;
+    document.getElementById('editContent').value = content.content;
 
-    // 图片预览事件 - 使用已定义的 handleImagePreview 函数
-    document.getElementById('editImage').addEventListener('change', handleImagePreview);
+    // 如果是图片类型，显示预览
+    if (content.type === 'image') {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = `<img src="${content.content}" alt="预览">`;
+    }
 
-    // 返回顶部按钮
-    const backToTopButton = document.querySelector('.back-to-top');
-    
+    handleTypeChange(content.type);
+    document.getElementById('editModal').style.display = 'block';
+}
+
+// 初始化返回顶部按钮
+function initBackToTop() {
+    const backToTop = document.querySelector('.back-to-top');
+    const scrollThreshold = 400; // 滚动多少像素后显示按钮
+
     // 监听滚动事件
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
-            backToTopButton.classList.add('visible');
+        if (window.scrollY > scrollThreshold) {
+            backToTop.classList.add('visible');
         } else {
-            backToTopButton.classList.remove('visible');
+            backToTop.classList.remove('visible');
         }
     });
-    
+
     // 点击返回顶部
-    backToTopButton.addEventListener('click', () => {
+    backToTop.addEventListener('click', () => {
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
     });
+}
+
+// 清空全部内容
+window.clearAllContent = async function () {
+    const confirmDialog = document.createElement('div');
+    confirmDialog.innerHTML = `
+        <div class="confirm-dialog-overlay"></div>
+        <div class="confirm-dialog">
+            <h3>确认清空</h3>
+            <p>此操作将清空所有内容，包括：</p>
+            <ul>
+                <li>所有文本、代码和诗歌</li>
+                <li>所有上传的图片</li>
+                <li>所有上传的文件</li>
+            </ul>
+            <p style="color: #dc3545;">此操作不可恢复，请确认！</p>
+            <div class="confirm-dialog-buttons">
+                <button class="btn" onclick="this.closest('.confirm-dialog').parentElement.remove()">取消</button>
+                <button class="btn btn-danger" onclick="executeContentClear(this)">确认清空</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(confirmDialog);
+};
+
+// 执行清空操作
+async function executeContentClear(button) {
+    try {
+        button.disabled = true;
+        button.innerHTML = '清空中... <span class="loading-spinner"></span>';
+
+        // 清空数据库内容
+        const response = await fetch('/clear-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('清空失败');
+        }
+
+        // 清空本地缓存
+        contentCache = [];
+
+        // 重新渲染内容（显示空状态）
+        renderContents([]);
+
+        // 关闭确认对话框
+        button.closest('.confirm-dialog').parentElement.remove();
+
+        showToast('已清空所有内容');
+    } catch (error) {
+        console.error('清空失败:', error);
+        showToast('清空失败: ' + error.message, 'error');
+        button.disabled = false;
+        button.textContent = '确认清空';
+    }
+}
+
+// DOM元素
+document.addEventListener('DOMContentLoaded', async () => {
+    // 检查密码保护
+    await checkPasswordProtection();
+
+    // 初始化前先获取同步间隔
+    await getSyncInterval();
+
+    contentContainer = document.getElementById('content-container');
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('editForm');
+    const addNewBtn = document.getElementById('addNewBtn');
+    const editImage = document.getElementById('editImage');
+
+    // 初始化
+    await loadContents(true);
+    setupEventListeners();
+    startUpdateCheck();
+    initBackToTop();
+
+    // 设置事件监听器
+    function setupEventListeners() {
+        if (addNewBtn) {
+            addNewBtn.addEventListener('click', () => openModal());
+        }
+        editForm.addEventListener('submit', handleFormSubmit);
+        editImage.addEventListener('change', handleImagePreview);
+
+        // 添加全局粘贴事件监听
+        document.addEventListener('paste', handlePaste);
+    }
+
+    // 处理粘贴事件
+    async function handlePaste(event) {
+        // 检查粘贴事件的目标元素
+        const target = event.target;
+        if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.isContentEditable) {
+            return; // 如果是在输入框中粘贴，不触发全局粘贴处理
+        }
+
+        const items = event.clipboardData?.items;
+        if (!items) return;
+
+        for (const item of items) {
+            console.log('粘贴类型:', item.type);
+
+            // 处理图片
+            if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                if (file) {
+                    // 创建一个新的 FileList 对象
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+
+                    // 重置表单
+                    currentEditId = null;
+                    const editType = document.getElementById('editType');
+                    const editTitle = document.getElementById('editTitle');
+                    const editImage = document.getElementById('editImage');
+                    const imagePreview = document.getElementById('imagePreview');
+
+                    editType.value = 'image';
+                    editTitle.value = `粘贴的图片_${new Date().getTime()}.png`;
+                    editImage.files = dataTransfer.files;
+
+                    // 预览图片
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+                    };
+                    reader.readAsDataURL(file);
+
+                    handleTypeChange('image');
+                    document.getElementById('editModal').style.display = 'block';
+                    return;
+                }
+            }
+
+            // 处理文件
+            else if (item.kind === 'file' && !item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) {
+                    // 创建一个新的 FileList 对象
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+
+                    // 重置表单
+                    currentEditId = null;
+                    const editType = document.getElementById('editType');
+                    const editTitle = document.getElementById('editTitle');
+                    const editFile = document.getElementById('editFile');
+
+                    editType.value = 'file';
+                    editTitle.value = file.name;
+                    editFile.files = dataTransfer.files;
+
+                    handleTypeChange('file');
+
+                    // 使用统一的文件信息显示函数
+                    updateFileInfo(file);
+
+                    document.getElementById('editModal').style.display = 'block';
+                    return;
+                }
+            }
+
+            // 处理文本
+            else if (item.type === 'text/plain') {
+                item.getAsString(async (text) => {
+                    // 检测是否为代码
+                    const isCode = detectCodeContent(text);
+
+                    currentEditId = null;
+                    document.getElementById('editType').value = isCode ? 'code' : 'text';
+                    document.getElementById('editTitle').value = '';
+                    document.getElementById('editContent').value = text;
+
+                    handleTypeChange(isCode ? 'code' : 'text');
+                    document.getElementById('editModal').style.display = 'block';
+                });
+                return;
+            }
+        }
+    }
+
+    // 检文本是否为代码
+    function detectCodeContent(text) {
+        // 代码征检测规则
+        const codePatterns = [
+            /^(const|let|var|function|class|import|export|if|for|while)\s/m,  // 常见的代码关键字
+            /{[\s\S]*}/m,  // 包含花括号的代码块
+            /\(\s*\)\s*=>/m,  // 头函数
+            /\b(function|class)\s+\w+\s*\(/m,  // 函数或类声明
+            /\b(if|for|while)\s*\([^)]*\)/m,  // 控制结构
+            /\b(return|break|continue)\s/m,  // 控制流关键字
+            /[{};]\s*$/m,  // 行尾的分号或花括号
+            /^\s*(public|private|protected)\s/m,  // 访问修饰符
+            /\b(try|catch|finally)\s*{/m,  // 异常处理
+            /\b(async|await|Promise)\b/m,  // 异步编程关键字
+            /\b(import|export)\s+.*\bfrom\s+['"][^'"]+['"]/m,  // ES6 模块语法
+            /\b(const|let|var)\s+\w+\s*=\s*require\s*\(/m,  // CommonJS 模块语法
+        ];
+
+        // 如果文本匹配任何一个代码模式，就认为是代码
+        return codePatterns.some(pattern => pattern.test(text));
+    }
+
+    // 处理图片预览和标题
+    function handleImagePreview(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 处理文件选择和标题
+    window.handleFileSelect = function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
+
+            // 使用统一的文件信息显示函数
+            updateFileInfo(file);
+        }
+    }
+
+    // 统一的文件信息更新函数
+    function updateFileInfo(file) {
+        const fileInfo = document.querySelector('.file-info');
+        const fileIcon = getFileIcon(file.name);
+        fileInfo.innerHTML = `
+            <div class="file-preview">
+                <i class="file-icon ${fileIcon}"></i>
+                <div class="file-details">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-type">${getFileTypeDescription(file.name)}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 开始更新检查
+    function startUpdateCheck() {
+        updateCheckInterval = setInterval(() => loadContents(false), syncInterval);
+    }
+
+    // 加载有内容
+    async function loadContents(showLoading = true) {
+        if (!contentContainer) {
+            contentContainer = document.getElementById('content-container');
+        }
+
+        try {
+            const response = await fetch(API_BASE_URL, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.details || data.error || '加载失败');
+            }
+
+            const data = await response.json();
+
+            // 只有当数据发生变化时才重新渲染
+            if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
+                contentCache = data || [];
+                await renderContents(contentCache);  // 等待渲染完成
+            }
+
+            lastUpdateTime = Date.now();
+        } catch (error) {
+            console.error('加载内容失败:', error);
+            if (showLoading) {
+                showError(`加载内容失败: ${error.message}`);
+            }
+        }
+    }
+
+    // 显示错误信息
+    function showError(message) {
+        contentContainer.innerHTML = `
+            <div class="error">
+                ${message}
+                <button class="btn" onclick="location.reload()">重试</button>
+            </div>
+        `;
+    }
+
+    // 打开模态框
+    window.openModal = function () {
+        currentEditId = null;
+        const editForm = document.getElementById('editForm');
+        const editType = document.getElementById('editType');
+        const editTitle = document.getElementById('editTitle');
+        const editContent = document.getElementById('editContent');
+        const imagePreview = document.getElementById('imagePreview');
+        const editImage = document.getElementById('editImage');
+        const editFile = document.getElementById('editFile');
+        const fileInfo = document.querySelector('.file-info');
+
+        // 重置所有表单元素
+        editForm.reset();
+        editType.value = 'text';
+        editTitle.value = ' ';  // 预填充空格
+        editTitle.required = true;  // 保持必填属性
+        // 添加失去焦点事件，如果用户清空了内容，重新填充空格
+        editTitle.onblur = function() {
+            if (!this.value.trim()) {
+                this.value = ' ';
+            }
+        };
+        editContent.value = '';
+
+        // 清除图片预览
+        imagePreview.innerHTML = '';
+
+        // 重置文件信息为默认状态
+        if (fileInfo) {
+            fileInfo.innerHTML = `
+                <div class="file-preview">
+                    <i class="file-icon generic"></i>
+                    <div class="file-details">
+                        <div class="file-type">支持所有类型的文件</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 清除文件输入框的值
+        if (editImage) {
+            editImage.value = '';
+        }
+        if (editFile) {
+            editFile.value = '';
+        }
+
+        handleTypeChange('text');
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    // 关闭模态框
+    window.closeModal = function () {
+        document.getElementById('editModal').style.display = 'none';
+        document.getElementById('editForm').reset();
+        document.getElementById('imagePreview').innerHTML = '';
+        currentEditId = null;
+    }
+
+    // 处理表单提交
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+
+        const submitButton = event.submitter;
+        submitButton.disabled = true;
+        const originalText = submitButton.textContent;
+        submitButton.innerHTML = '保存中... <span class="loading-spinner"></span>';
+
+        try {
+            const type = document.getElementById('editType').value;
+            const titleInput = document.getElementById('editTitle');
+            let title = titleInput.value.trim();  // 去除首尾空格
+
+            // 如果标题为空，则使用一个空格作为默认标题
+            if (!title) {
+                title = ' ';
+                titleInput.value = ' ';
+            }
+
+            let content = '';
+
+            if (type === 'image') {
+                const imageFile = document.getElementById('editImage').files[0];
+                const existingContent = document.getElementById('editContent').value;
+
+                if (!imageFile && existingContent) {
+                    content = existingContent;
+                } else if (imageFile) {
+                    // 确保设置标题
+                    if (!title) {
+                        document.getElementById('editTitle').value = imageFile.name;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('image', imageFile);
+
+                    const uploadResponse = await fetch(IMAGES_API_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!uploadResponse.ok) {
+                        const errorData = await uploadResponse.json();
+                        throw new Error(errorData.error || '图片上传失败');
+                    }
+
+                    const { url } = await uploadResponse.json();
+                    content = url;
+                } else {
+                    throw new Error('请选择图片文件');
+                }
+            } else if (type === 'file') {
+                const file = document.getElementById('editFile').files[0];
+                const existingContent = document.getElementById('editContent').value;
+
+                if (!file && existingContent) {
+                    content = existingContent;
+                } else if (file) {
+                    // 确保设置标题
+                    if (!title) {
+                        document.getElementById('editTitle').value = file.name;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    console.log('开始上传文件:', file.name);
+                    const uploadResponse = await fetch(FILES_UPLOAD_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    console.log('上传响应状态:', uploadResponse.status);
+                    const responseText = await uploadResponse.text();
+                    console.log('上传响应内容:', responseText);
+
+                    let responseData;
+                    try {
+                        responseData = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('解析响应失败:', e);
+                        throw new Error('服务器响应格式错误');
+                    }
+
+                    if (!uploadResponse.ok) {
+                        throw new Error(responseData.error || '文件上传失败');
+                    }
+
+                    if (!responseData.url) {
+                        console.error('响应数据:', responseData);
+                        throw new Error('上传成功但未返回文件URL');
+                    }
+
+                    content = responseData.url;
+                    console.log('文件上传成功:', content);
+                } else {
+                    throw new Error('请选择文件');
+                }
+            } else {
+                content = document.getElementById('editContent').value;
+            }
+
+            // 重新获取标题，因为可能在上传过程中被设置
+            const finalTitle = document.getElementById('editTitle').value;
+
+            if (!type || !finalTitle || !content) {
+                throw new Error('请填写所有必要字段');
+            }
+
+            const formData = { type, title: finalTitle, content };
+
+            if (currentEditId) {
+                await updateContent(currentEditId, formData);
+            } else {
+                await createContent(formData);
+            }
+
+            closeModal();
+            await loadContents(false);
+            showToast('保存成功！');
+        } catch (error) {
+            console.error('保存失败:', error);
+            showToast(error.message, 'error');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+        }
+    }
+
+    // 创建新内容
+    async function createContent(data) {
+        const response = await fetch(API_BASE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || '创建内容失败');
+        }
+
+        return await response.json();
+    }
+
+    // 更新内容
+    async function updateContent(id, data) {
+        const response = await fetch(`${API_BASE_URL}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || '更新内容败');
+        }
+
+        return await response.json();
+    }
 }); 
