@@ -5,71 +5,75 @@ const FILES_API_URL = '/files';
 const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
 
-// 密码验证配置
-const PASSWORD_KEY = 'access_token';
-const PASSWORD_EXPIRY_KEY = 'access_token_expiry';
-const PASSWORD_EXPIRY_DAYS = 15;
+// 密码验证相关
+const PASSWORD_VERIFIED_KEY = 'password_verified';
+const PASSWORD_VERIFIED_EXPIRY_KEY = 'password_verified_expiry';
+const VERIFY_EXPIRY_DAYS = 15;
 
 // 检查密码验证状态
-async function checkPasswordAuth() {
-    const token = localStorage.getItem(PASSWORD_KEY);
-    const expiry = localStorage.getItem(PASSWORD_EXPIRY_KEY);
+async function checkPasswordProtection() {
+    try {
+        const response = await fetch('/_vars/ACCESS_PASSWORD');
+        if (response.status === 404) {
+            // 未设置密码，不需要验证
+            return true;
+        }
 
-    if (!token || !expiry || Date.now() > parseInt(expiry)) {
-        // 清除过期的token
-        localStorage.removeItem(PASSWORD_KEY);
-        localStorage.removeItem(PASSWORD_EXPIRY_KEY);
-        document.getElementById('passwordModal').style.display = 'block';
+        const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
+        const expiry = localStorage.getItem(PASSWORD_VERIFIED_EXPIRY_KEY);
+        
+        if (verified && expiry && new Date().getTime() < parseInt(expiry)) {
+            return true;
+        }
+
+        document.getElementById('passwordOverlay').style.display = 'flex';
+        document.getElementById('mainContent').classList.add('content-blur');
         return false;
+    } catch (error) {
+        console.error('检查密码保护失败:', error);
+        return true; // 出错时默认允许访问
     }
-    return true;
 }
 
 // 验证密码
-async function verifyPassword(event) {
-    event.preventDefault();
-    const password = document.getElementById('accessPassword').value;
+async function verifyPassword() {
+    const passwordInput = document.getElementById('accessPassword');
+    const password = passwordInput.value;
 
     try {
         const response = await fetch('/_vars/ACCESS_PASSWORD');
-        if (!response.ok) throw new Error('无法获取验证信息');
+        if (!response.ok) {
+            throw new Error('获取密码失败');
+        }
 
         const correctPassword = await response.text();
-
+        
         if (password === correctPassword) {
-            // 设置token和过期时间
-            const expiry = Date.now() + (PASSWORD_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
-            localStorage.setItem(PASSWORD_KEY, 'verified');
-            localStorage.setItem(PASSWORD_EXPIRY_KEY, expiry.toString());
-
-            // 关闭模态框
-            document.getElementById('passwordModal').style.display = 'none';
-            document.getElementById('passwordForm').reset();
-
-            // 初始化页面
-            initializePage();
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + VERIFY_EXPIRY_DAYS);
+            
+            localStorage.setItem(PASSWORD_VERIFIED_KEY, 'true');
+            localStorage.setItem(PASSWORD_VERIFIED_EXPIRY_KEY, expiryDate.getTime().toString());
+            
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContent').classList.remove('content-blur');
             showToast('验证成功！');
         } else {
             showToast('密码错误！', 'error');
+            passwordInput.value = '';
         }
     } catch (error) {
-        console.error('验证失败:', error);
+        console.error('密码验证失败:', error);
         showToast('验证失败: ' + error.message, 'error');
     }
-    return false;
 }
 
-// 初始化页面
-async function initializePage() {
-    // 获取同步间隔
-    await getSyncInterval();
-
-    // 加载内容
-    await loadContents(true);
-    setupEventListeners();
-    startUpdateCheck();
-    initBackToTop();
-}
+// 监听回车键
+document.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && document.getElementById('passwordOverlay').style.display !== 'none') {
+        verifyPassword();
+    }
+});
 
 // 全局变量
 let currentEditId = null;
@@ -859,12 +863,12 @@ async function executeContentClear(button) {
 
 // DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
-    contentContainer = document.getElementById('content-container');
+    // 检查密码保护
+    await checkPasswordProtection();
 
-    // 检查密码验证
-    if (await checkPasswordAuth()) {
-        await initializePage();
-    }
+    // 初始化前先获取同步间隔
+    await getSyncInterval();
+
     contentContainer = document.getElementById('content-container');
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
@@ -1118,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         editTitle.value = ' ';  // 预填充空格
         editTitle.required = true;  // 保持必填属性
         // 添加失去焦点事件，如果用户清空了内容，重新填充空格
-        editTitle.onblur = function () {
+        editTitle.onblur = function() {
             if (!this.value.trim()) {
                 this.value = ' ';
             }

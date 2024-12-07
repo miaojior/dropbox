@@ -149,122 +149,194 @@
         [data-theme="dark"] a:hover {
             color: #c084fc;
         }
+
+        /* 密码验证样式 */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        [data-theme="dark"] .password-overlay {
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .password-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        [data-theme="dark"] .password-container {
+            background: #1a1a1a;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .password-container h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .password-container input {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            background: white;
+            color: black;
+        }
+
+        [data-theme="dark"] .password-container input {
+            background: #333;
+            border-color: #444;
+            color: white;
+        }
+
+        .password-container button {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .password-container button:hover {
+            background: var(--primary-color-dark);
+        }
+
+        .content-blur {
+            filter: blur(10px);
+            pointer-events: none;
+            user-select: none;
+        }
     </style>
 </head>
 
 <body>
-    <!-- 密码验证模态框 -->
-    <div id="passwordModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>🔐 访问验证</h2>
-            <p>请输入访问密码</p>
-            <form id="passwordForm" onsubmit="return verifyPassword(event)">
-                <div class="form-group">
-                    <input type="password" id="accessPassword" required placeholder="请输入密码">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn">验证</button>
-                </div>
-            </form>
+    <div id="passwordOverlay" class="password-overlay" style="display: none;">
+        <div class="password-container">
+            <h2>🔒 请输入访问密码</h2>
+            <input type="password" id="accessPassword" placeholder="请输入密码">
+            <button onclick="verifyPassword()">确认</button>
         </div>
     </div>
 
-    <div class="container">
-        <header>
-            <h1>📰 BAOER の 中转信箱 📬</h1>
-            <div class="header-buttons">
-                <button id="addNewBtn" class="btn">
-                    <svg viewBox="0 0 24 24" class="btn-icon" style="width: 16px; height: 16px; margin-right: 4px;">
-                        <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                    </svg>
-                    添加新内容😁
-                </button>
-                <button id="clearAllBtn" class="btn btn-danger" onclick="clearAllContent()">
-                    <svg viewBox="0 0 24 24" class="btn-icon" style="width: 16px; height: 16px; margin-right: 4px;">
-                        <path fill="currentColor"
-                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                    </svg>
-                    清空全部💀
-                </button>
-            </div>
-        </header>
+    <div id="mainContent">
+        <div class="container">
+            <header>
+                <h1>📰 BAOER の 中转信箱 📬</h1>
+                <div class="header-buttons">
+                    <button id="addNewBtn" class="btn">
+                        <svg viewBox="0 0 24 24" class="btn-icon" style="width: 16px; height: 16px; margin-right: 4px;">
+                            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                        添加新内容😁
+                    </button>
+                    <button id="clearAllBtn" class="btn btn-danger" onclick="clearAllContent()">
+                        <svg viewBox="0 0 24 24" class="btn-icon" style="width: 16px; height: 16px; margin-right: 4px;">
+                            <path fill="currentColor"
+                                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                        </svg>
+                        清空全部💀
+                    </button>
+                </div>
+            </header>
 
-        <main id="content-container">
-            <!-- 初始骨架屏 -->
-            <section class="text-block skeleton">
-                <div class="text-block-header">
-                    <div class="skeleton-title"></div>
-                    <div class="skeleton-meta"></div>
-                </div>
-                <div class="skeleton-content">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                </div>
-            </section>
-            <section class="text-block skeleton">
-                <div class="text-block-header">
-                    <div class="skeleton-title"></div>
-                    <div class="skeleton-meta"></div>
-                </div>
-                <div class="skeleton-content">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                </div>
-            </section>
-            <section class="text-block skeleton">
-                <div class="text-block-header">
-                    <div class="skeleton-title"></div>
-                    <div class="skeleton-meta"></div>
-                </div>
-                <div class="skeleton-content">
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
-                </div>
-            </section>
-        </main>
+            <main id="content-container">
+                <!-- 初始骨架屏 -->
+                <section class="text-block skeleton">
+                    <div class="text-block-header">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-meta"></div>
+                    </div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </section>
+                <section class="text-block skeleton">
+                    <div class="text-block-header">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-meta"></div>
+                    </div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </section>
+                <section class="text-block skeleton">
+                    <div class="text-block-header">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-meta"></div>
+                    </div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </section>
+            </main>
 
-        <!-- 编辑模态框 -->
-        <div id="editModal" class="modal">
-            <div class="modal-content">
-                <h2>编辑内容</h2>
-                <form id="editForm">
-                    <input type="hidden" id="editId">
-                    <div class="form-group">
-                        <label for="editType">类型：</label>
-                        <select id="editType" onchange="handleTypeChange(this.value)">
-                            <option value="text">普通文本</option>
-                            <option value="code">代码</option>
-                            <option value="poetry">诗歌</option>
-                            <option value="image">图片</option>
-                            <option value="file">文件</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="titleGroup">
-                        <label for="editTitle">标题：</label>
-                        <input type="text" id="editTitle" required>
-                    </div>
-                    <div class="form-group" id="contentGroup">
-                        <label for="editContent">内容：</label>
-                        <textarea id="editContent" required></textarea>
-                    </div>
-                    <div class="form-group" id="imageGroup" style="display: none;">
-                        <label for="editImage">图片：</label>
-                        <input type="file" id="editImage" accept="image/*" onchange="handleImagePreview(event)">
-                        <div id="imagePreview" class="image-preview"></div>
-                    </div>
-                    <div class="form-group" id="fileGroup" style="display: none;">
-                        <label for="editFile">文件：</label>
-                        <input type="file" id="editFile" onchange="handleFileSelect(event)">
-                        <div class="file-info">支持所有类型的文件</div>
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit" class="btn">保存</button>
-                        <button type="button" class="btn btn-cancel" onclick="closeModal()">取消</button>
-                    </div>
-                </form>
+            <!-- 编辑模态框 -->
+            <div id="editModal" class="modal">
+                <div class="modal-content">
+                    <h2>编辑内容</h2>
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        <div class="form-group">
+                            <label for="editType">类型：</label>
+                            <select id="editType" onchange="handleTypeChange(this.value)">
+                                <option value="text">普通文本</option>
+                                <option value="code">代码</option>
+                                <option value="poetry">诗歌</option>
+                                <option value="image">图片</option>
+                                <option value="file">文件</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="titleGroup">
+                            <label for="editTitle">标题：</label>
+                            <input type="text" id="editTitle" required>
+                        </div>
+                        <div class="form-group" id="contentGroup">
+                            <label for="editContent">内容：</label>
+                            <textarea id="editContent" required></textarea>
+                        </div>
+                        <div class="form-group" id="imageGroup" style="display: none;">
+                            <label for="editImage">图片：</label>
+                            <input type="file" id="editImage" accept="image/*" onchange="handleImagePreview(event)">
+                            <div id="imagePreview" class="image-preview"></div>
+                        </div>
+                        <div class="form-group" id="fileGroup" style="display: none;">
+                            <label for="editFile">文件：</label>
+                            <input type="file" id="editFile" onchange="handleFileSelect(event)">
+                            <div class="file-info">支持所有类型的文件</div>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn">保存</button>
+                            <button type="button" class="btn btn-cancel" onclick="closeModal()">取消</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
