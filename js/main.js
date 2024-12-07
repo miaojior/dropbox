@@ -209,26 +209,27 @@ function copyText(encodedText, type) {
 // 显示确认对话框
 function showConfirmDialog(title, message) {
     return new Promise((resolve) => {
-        const dialog = document.createElement('div');
-        dialog.className = 'confirm-dialog';
-
-        dialog.innerHTML = `
-            <div class="confirm-dialog-content">
-                <div class="confirm-dialog-title">${title}</div>
-                <div class="confirm-dialog-message">${message}</div>
-                <div class="confirm-dialog-buttons">
-                    <button class="btn btn-cancel">取消</button>
-                    <button class="btn btn-primary">确定</button>
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <div class="confirm-dialog-overlay"></div>
+            <div class="confirm-dialog">
+                <div class="confirm-dialog-content">
+                    <div class="confirm-dialog-title">${title}</div>
+                    <div class="confirm-dialog-message">${message}</div>
+                    <div class="confirm-dialog-buttons">
+                        <button class="btn btn-cancel">取消</button>
+                        <button class="btn btn-primary">确定</button>
+                    </div>
                 </div>
             </div>
         `;
 
-        document.body.appendChild(dialog);
+        document.body.appendChild(wrapper);
 
-        const buttons = dialog.querySelectorAll('.btn');
+        const buttons = wrapper.querySelectorAll('.btn');
         buttons.forEach(button => {
             button.addEventListener('click', () => {
-                dialog.remove();
+                wrapper.remove();
                 resolve(button.classList.contains('btn-primary'));
             });
         });
