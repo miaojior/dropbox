@@ -1046,7 +1046,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 重置所有表单元素
         editForm.reset();
         editType.value = 'text';
-        editTitle.value = ' ';  // 在这里预填充一个空格
+        editTitle.value = ' ';  // 预填充空格
+        editTitle.required = true;  // 保持必填属性
+        // 添加失去焦点事件，如果用户清空了内容，重新填充空格
+        editTitle.onblur = function() {
+            if (!this.value.trim()) {
+                this.value = ' ';
+            }
+        };
         editContent.value = '';
 
         // 清除图片预览
