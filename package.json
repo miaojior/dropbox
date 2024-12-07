@@ -4,9 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "wrangler pages dev --compatibility-date=2023-01-01",
-    "deploy": "wrangler pages deploy --compatibility-date=2023-01-01 ."
+    "build": "npm run minify-js && npm run minify-css",
+    "minify-js": "terser js/main.js -c -m -o dist/js/main.min.js && terser js/theme.js -c -m -o dist/js/theme.min.js",
+    "minify-css": "postcss css/*.css --dir dist/css",
+    "deploy": "npm run build && wrangler pages deploy --compatibility-date=2023-01-01 dist"
   },
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.0.0",
+    "terser": "^5.26.0",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0",
+    "cssnano": "^6.0.2",
+    "autoprefixer": "^10.4.16"
   }
 } 
