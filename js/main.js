@@ -1341,4 +1341,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return await response.json();
     }
+
+    // 图片预览事件
+    document.getElementById('editImage').addEventListener('change', function(event) {
+        // 只设置标题为文件名
+        if (this.files && this.files[0]) {
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = this.files[0].name;
+        }
+    });
 }); 
