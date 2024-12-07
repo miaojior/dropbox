@@ -30,76 +30,8 @@ async function initializeDatabase(env) {
   }
 }
 
-// 检查密码验证
-async function checkPasswordVerification(request, env) {
-  // 检查是否设置了密码
-  try {
-    const response = await env.ACCESS_PASSWORD;
-    if (!response) {
-      return true; // 未设置密码，允许访问
-    }
-
-    // 检查请求头中的验证信息
-    const authHeader = request.headers.get('X-Password-Verified');
-    if (!authHeader) {
-      return false;
-    }
-
-    // 验证格式：timestamp|hash
-    const [timestamp, hash] = authHeader.split('|');
-    if (!timestamp || !hash) {
-      return false;
-    }
-
-    // 检查时间戳是否在15天内
-    const now = Date.now();
-    const verifyTime = parseInt(timestamp);
-    if (now - verifyTime > 15 * 24 * 60 * 60 * 1000) {
-      return false;
-    }
-
-    // 验证哈希
-    const correctHash = await crypto.subtle.digest(
-      'SHA-256',
-      new TextEncoder().encode(response + timestamp)
-    ).then(hash => Array.from(new Uint8Array(hash))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join(''));
-
-    return hash === correctHash;
-  } catch (error) {
-    console.error('Password verification error:', error);
-    return false;
-  }
-}
-
 export async function onRequest(context) {
   try {
-    const url = new URL(context.request.url);
-    
-    // 检查是否是源码请求，但排除基础样式文件
-    const isSourceRequest = /\.(js|json|md|sql)$/.test(url.pathname) || 
-                          (/\.css$/.test(url.pathname) && !url.pathname.endsWith('/style.css'));
-                          
-    const isAPIRequest = url.pathname.startsWith('/_vars') || 
-                        url.pathname.startsWith('/contents') || 
-                        url.pathname.startsWith('/images') || 
-                        url.pathname.startsWith('/files');
-
-    // 如果是源码请求（除了基础样式），检查密码验证
-    if (isSourceRequest && !isAPIRequest) {
-      const isVerified = await checkPasswordVerification(context.request, context.env);
-      if (!isVerified) {
-        return new Response('Unauthorized', { 
-          status: 403,
-          headers: {
-            'Content-Type': 'text/plain',
-            'Access-Control-Allow-Origin': '*'
-          }
-        });
-      }
-    }
-
     // 检查环境变量
     if (!context.env.DB) {
       throw new Error('Database binding not found - 请在 Cloudflare Pages 设置中绑定 D1 数据库');
@@ -111,16 +43,11 @@ export async function onRequest(context) {
     // 处理请求
     const response = await context.next();
     
-    // 添加安全头
+    // 添加 CORS 头
     const headers = new Headers(response.headers);
     headers.set('Access-Control-Allow-Origin', '*');
     headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Password-Verified');
-    headers.set('X-Content-Type-Options', 'nosniff');
-    headers.set('X-Frame-Options', 'DENY');
-    headers.set('X-XSS-Protection', '1; mode=block');
-    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';");
+    headers.set('Access-Control-Allow-Headers', 'Content-Type');
     
     return new Response(response.body, {
       status: response.status,
@@ -129,17 +56,19 @@ export async function onRequest(context) {
   } catch (error) {
     console.error('Middleware error:', error);
     
+    // 如果是 OPTIONS 请求，返回 CORS 头
     if (context.request.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, X-Password-Verified',
+          'Access-Control-Allow-Headers': 'Content-Type',
           'Access-Control-Max-Age': '86400',
         },
       });
     }
     
+    // 返回详细的错误信息
     return new Response(
       JSON.stringify({
         error: 'Internal Server Error',
@@ -152,7 +81,7 @@ export async function onRequest(context) {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, X-Password-Verified',
+          'Access-Control-Allow-Headers': 'Content-Type',
         },
       }
     );

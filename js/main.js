@@ -50,35 +50,16 @@ async function verifyPassword() {
         const correctPassword = await response.text();
         
         if (password === correctPassword) {
-            const timestamp = Date.now();
-            // 生成验证哈希
-            const msgBuffer = new TextEncoder().encode(correctPassword + timestamp);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + VERIFY_EXPIRY_DAYS);
             
-            // 存储验证信息
-            const verificationInfo = `${timestamp}|${hashHex}`;
             localStorage.setItem(PASSWORD_VERIFIED_KEY, 'true');
-            localStorage.setItem(PASSWORD_VERIFIED_EXPIRY_KEY, (timestamp + VERIFY_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toString());
-            localStorage.setItem('password_verification_info', verificationInfo);
-            
-            // 添加验证头到所有请求
-            const originalFetch = window.fetch;
-            window.fetch = function(url, options = {}) {
-                options = options || {};
-                options.headers = options.headers || {};
-                options.headers['X-Password-Verified'] = verificationInfo;
-                return originalFetch(url, options);
-            };
+            localStorage.setItem(PASSWORD_VERIFIED_EXPIRY_KEY, expiryDate.getTime().toString());
             
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').classList.remove('content-blur');
-            document.body.classList.remove('password-active');
+            document.body.classList.remove('password-active'); // 移除禁止滚动的类
             showToast('验证成功！');
-            
-            // 刷新页面以应用新的fetch拦截器
-            setTimeout(() => window.location.reload(), 1000);
         } else {
             showToast('密码错误！', 'error');
             passwordInput.value = '';
@@ -86,20 +67,6 @@ async function verifyPassword() {
     } catch (error) {
         console.error('密码验证失败:', error);
         showToast('验证失败: ' + error.message, 'error');
-    }
-}
-
-// 初始化fetch拦截器
-function initFetchInterceptor() {
-    const verificationInfo = localStorage.getItem('password_verification_info');
-    if (verificationInfo) {
-        const originalFetch = window.fetch;
-        window.fetch = function(url, options = {}) {
-            options = options || {};
-            options.headers = options.headers || {};
-            options.headers['X-Password-Verified'] = verificationInfo;
-            return originalFetch(url, options);
-        };
     }
 }
 
@@ -898,9 +865,6 @@ async function executeContentClear(button) {
 
 // DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
-    // 初始化fetch拦截器
-    initFetchInterceptor();
-    
     // 检查密码保护
     await checkPasswordProtection();
 
