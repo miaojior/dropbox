@@ -2,6 +2,10 @@
 
 Drop中转站是一个基于 Cloudflare Pages 的多功能内容分享平台，支持文本、代码、诗歌、图片和文件的在线分享和存储。
 
+部署教程：看博客[https://git-blog-share.1143520.xyz/posts/cf-drop-paste.pdf](https://git-blog-share.1143520.xyz/posts/cf-drop-paste.pdf)
+
+密码验证和Telegram通知功能：看下面设置变量
+
 ## 功能特点
 
 - 多种内容类型支持：
