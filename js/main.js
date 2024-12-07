@@ -637,13 +637,12 @@ window.handleTypeChange = function (type) {
     editContent.required = false;
     editImage.required = false;
     editFile.required = false;
-    titleInput.required = true;
+    titleInput.required = false;
 
     if (type === 'image') {
         imageGroup.style.display = 'block';
         editImage.required = true;
         titleGroup.style.display = 'none';
-        titleInput.required = false;
     } else if (type === 'file') {
         fileGroup.style.display = 'block';
         editFile.required = true;
@@ -1098,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const type = document.getElementById('editType').value;
             const titleInput = document.getElementById('editTitle');
             let title = titleInput.value.trim();  // 去除首尾空格
-            
+
             // 如果标题为空，则使用一个空格作为默认标题
             if (!title) {
                 title = ' ';
