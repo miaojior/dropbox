@@ -88,17 +88,10 @@ export async function onRequestDelete({ env, params }) {
       'DELETE FROM content_blocks WHERE id = ?'
     ).bind(params.id).run();
 
-    // 格式化标题，移除自动生成的时间戳
-    let displayTitle = content.title;
-    if (content.type === 'image' || content.type === 'file') {
-      displayTitle = displayTitle.replace(/_\d+\.\w+$/, ''); // 移除时间戳
-      displayTitle = displayTitle.replace(/^粘贴的(图片|文件)_?/, ''); // 移除"粘贴的"前缀
-    }
-
     // 发送删除通知到 Telegram
     const message = `<b>🗑 内容已删除</b>\n\n` +
                    `<b>类型:</b> ${getContentTypeName(content.type)}\n` +
-                   `<b>标题:</b> ${displayTitle}\n\n` +
+                   `<b>标题:</b> ${content.title}\n\n` +
                    `<i>此内容已被永久删除</i>`;
     await sendToTelegram(env, message);
 
