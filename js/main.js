@@ -1096,7 +1096,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const type = document.getElementById('editType').value;
-            const title = document.getElementById('editTitle').value;
+            const titleInput = document.getElementById('editTitle');
+            let title = titleInput.value.trim();  // 去除首尾空格
+            
+            // 如果标题为空，则使用一个空格作为默认标题
+            if (!title) {
+                title = ' ';
+                titleInput.value = ' ';
+            }
+
             let content = '';
 
             if (type === 'image') {
