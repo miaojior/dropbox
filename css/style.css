@@ -817,31 +817,36 @@ code {
 
 /* 深色模式下的确认对话框样式 */
 [data-theme="dark"] .confirm-dialog-content {
-    background-color: #1a1a1a;
-    /* 设置深色背景 */
-    border: 1px solid #333;
-    /* 添加明显的边框 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    background-color: transparent;
+    /* 移除背景色 */
+    border: none;
+    /* 移除边框 */
+    box-shadow: none;
+    /* 移除阴影 */
 }
 
-.confirm-dialog-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333333;
-    margin-bottom: 16px;
+[data-theme="dark"] .confirm-dialog {
+    background: #1e1e1e;
+    border-color: #333333;
 }
 
-.confirm-dialog-message {
-    font-size: 14px;
-    color: #666666;
-    margin-bottom: 24px;
-    line-height: 1.5;
+[data-theme="dark"] .confirm-dialog .warning-text {
+    background: rgba(220, 53, 69, 0.15);
 }
 
-.confirm-dialog-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+/* 确认对话框深色模式样式 */
+[data-theme="dark"] .confirm-dialog-content {
+    background: transparent;
+    color: var(--dialog-text);
+    border: none;
+}
+
+[data-theme="dark"] .confirm-dialog-title {
+    color: var(--heading-color);
+}
+
+[data-theme="dark"] .confirm-dialog-message {
+    color: var(--text-color);
 }
 
 /* 文件相关样式 */
@@ -1064,9 +1069,9 @@ code {
 
 /* 确认对话框深色模式样式 */
 [data-theme="dark"] .confirm-dialog-content {
-    background: var(--dialog-bg);
+    background: transparent;
     color: var(--dialog-text);
-    border: 1px solid var(--dialog-border);
+    border: none;
 }
 
 [data-theme="dark"] .confirm-dialog-title {
