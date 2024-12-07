@@ -10,33 +10,7 @@ const PASSWORD_VERIFIED_KEY = 'password_verified';
 const PASSWORD_VERIFIED_EXPIRY_KEY = 'password_verified_expiry';
 const VERIFY_EXPIRY_DAYS = 15;
 
-// 全局变量
-let currentEditId = null;
-let lastUpdateTime = Date.now();
-let updateCheckInterval;
-let contentCache = [];
-let contentContainer;
-let syncInterval = 30000; // 默认30秒
-let zoomInstance = null; // 追踪灯箱实例
-
-// 处理图片预览
-window.handleImagePreview = function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        // 立即设置标题
-        const titleInput = document.getElementById('editTitle');
-        titleInput.value = file.name;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-// 检查密码保护
+// 检查密码验证状态
 async function checkPasswordProtection() {
     try {
         const response = await fetch('/_vars/ACCESS_PASSWORD');
@@ -107,6 +81,15 @@ document.addEventListener('keypress', function (e) {
         verifyPassword();
     }
 });
+
+// 全局变量
+let currentEditId = null;
+let lastUpdateTime = Date.now();
+let updateCheckInterval;
+let contentCache = [];
+let contentContainer;
+let syncInterval = 30000; // 默认30秒
+let zoomInstance = null; // 追踪灯箱实例
 
 // 获取同步间隔配置
 async function getSyncInterval() {
@@ -1047,6 +1030,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 如果文本匹配任何一个代码模式，就认为是代码
         return codePatterns.some(pattern => pattern.test(text));
+    }
+
+    // 处理图片预览和标题
+    function handleImagePreview(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+            };
+            reader.readAsDataURL(file);
+        }
     }
 
     // 处理文件选择和标题
