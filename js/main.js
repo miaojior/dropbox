@@ -18,7 +18,7 @@ async function checkPasswordProtection() {
         if (response.status === 204) {
             return true;
         }
-        
+
         if (!response.ok) {
             console.error('获取密码配置失败:', response.status);
             return true; // 出错时默认允许访问
@@ -26,7 +26,7 @@ async function checkPasswordProtection() {
 
         const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
         const expiry = localStorage.getItem(PASSWORD_VERIFIED_EXPIRY_KEY);
-        
+
         if (verified && expiry && new Date().getTime() < parseInt(expiry)) {
             return true;
         }
@@ -53,14 +53,14 @@ async function verifyPassword() {
         }
 
         const correctPassword = await response.text();
-        
+
         if (password === correctPassword) {
             const expiryDate = new Date();
             expiryDate.setDate(expiryDate.getDate() + VERIFY_EXPIRY_DAYS);
-            
+
             localStorage.setItem(PASSWORD_VERIFIED_KEY, 'true');
             localStorage.setItem(PASSWORD_VERIFIED_EXPIRY_KEY, expiryDate.getTime().toString());
-            
+
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').classList.remove('content-blur');
             document.body.classList.remove('password-active'); // 移除禁止滚动的类
@@ -76,7 +76,7 @@ async function verifyPassword() {
 }
 
 // 监听回车键
-document.addEventListener('keypress', function(e) {
+document.addEventListener('keypress', function (e) {
     if (e.key === 'Enter' && document.getElementById('passwordOverlay').style.display !== 'none') {
         verifyPassword();
     }
@@ -1129,7 +1129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         editTitle.value = ' ';  // 预填充空格
         editTitle.required = true;  // 保持必填属性
         // 添加失去焦点事件，如果用户清空了内容，重新填充空格
-        editTitle.onblur = function() {
+        editTitle.onblur = function () {
             if (!this.value.trim()) {
                 this.value = ' ';
             }
