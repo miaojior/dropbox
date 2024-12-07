@@ -18,7 +18,7 @@ async function checkPasswordProtection() {
         if (response.status === 204) {
             return true;
         }
-        
+
         if (!response.ok) {
             console.error('获取密码配置失败:', response.status);
             return true; // 出错时默认允许访问
@@ -26,7 +26,7 @@ async function checkPasswordProtection() {
 
         const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
         const expiry = localStorage.getItem(PASSWORD_VERIFIED_EXPIRY_KEY);
-        
+
         if (verified && expiry && new Date().getTime() < parseInt(expiry)) {
             return true;
         }
@@ -53,14 +53,14 @@ async function verifyPassword() {
         }
 
         const correctPassword = await response.text();
-        
+
         if (password === correctPassword) {
             const expiryDate = new Date();
             expiryDate.setDate(expiryDate.getDate() + VERIFY_EXPIRY_DAYS);
-            
+
             localStorage.setItem(PASSWORD_VERIFIED_KEY, 'true');
             localStorage.setItem(PASSWORD_VERIFIED_EXPIRY_KEY, expiryDate.getTime().toString());
-            
+
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').classList.remove('content-blur');
             document.body.classList.remove('password-active'); // 移除禁止滚动的类
@@ -76,7 +76,7 @@ async function verifyPassword() {
 }
 
 // 监听回车键
-document.addEventListener('keypress', function(e) {
+document.addEventListener('keypress', function (e) {
     if (e.key === 'Enter' && document.getElementById('passwordOverlay').style.display !== 'none') {
         verifyPassword();
     }
@@ -868,6 +868,71 @@ async function executeContentClear(button) {
     }
 }
 
+// 通用的图片预览函数
+async function previewImage(file) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = ''; // 清空预览区域
+
+    if (file) {
+        try {
+            // 创建预览图片
+            const img = document.createElement('img');
+            img.file = file;
+
+            // 添加到预览区域
+            preview.appendChild(img);
+
+            // 读取文件并设置预览
+            const reader = new FileReader();
+            reader.onload = (function (aImg) {
+                return function (e) {
+                    aImg.src = e.target.result;
+                };
+            })(img);
+            reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('图片预览失败:', error);
+            preview.innerHTML = '<div class="error">图片预览失败</div>';
+        }
+    }
+}
+
+// 处理图片选择
+function handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        previewImage(file);
+    }
+}
+
+// 处理图片粘贴
+document.addEventListener('paste', async function (e) {
+    if (!document.getElementById('editModal').classList.contains('show')) {
+        return; // 如果编辑模态框没有显示，不处理粘贴事件
+    }
+
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            e.preventDefault();
+            const file = items[i].getAsFile();
+
+            // 设置类型为图片
+            document.getElementById('editType').value = 'image';
+            handleTypeChange('image');
+
+            // 自动设置文件名为标题
+            const timestamp = Date.now();
+            const title = `粘贴的图片_${timestamp}.png`;
+            document.getElementById('editTitle').value = title;
+
+            // 预览图片
+            await previewImage(file);
+            break;
+        }
+    }
+});
+
 // DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
     // 检查密码保护
@@ -1129,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         editTitle.value = ' ';  // 预填充空格
         editTitle.required = true;  // 保持必填属性
         // 添加失去焦点事件，如果用户清空了内容，重新填充空格
-        editTitle.onblur = function() {
+        editTitle.onblur = function () {
             if (!this.value.trim()) {
                 this.value = ' ';
             }
