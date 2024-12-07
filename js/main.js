@@ -1015,50 +1015,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         return codePatterns.some(pattern => pattern.test(text));
     }
 
-    // 处理图片预览
+    // 处理图片预览和标题
     function handleImagePreview(event) {
         const file = event.target.files[0];
-        if (!file) return;
-
-        const preview = document.getElementById('imagePreview');
-        preview.innerHTML = ''; // 清空之前的预览
-
-        if (file.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.file = file;
-
-            preview.appendChild(img);
+        if (file) {
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
 
             const reader = new FileReader();
-            reader.onload = (function(aImg) {
-                return function(e) {
-                    aImg.src = e.target.result;
-                };
-            })(img);
-
+            reader.onload = function (e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+            };
             reader.readAsDataURL(file);
-        } else {
-            preview.innerHTML = '<p class="error">请选择图片文件</p>';
-            event.target.value = ''; // 清空选择
         }
     }
 
-    // 处理文件选择
-    function handleFileSelect(event) {
+    // 处理文件选择和标题
+    window.handleFileSelect = function (event) {
         const file = event.target.files[0];
-        if (!file) return;
+        if (file) {
+            // 立即设置标题
+            const titleInput = document.getElementById('editTitle');
+            titleInput.value = file.name;
 
-        const fileInfo = document.querySelector('.file-info');
-        fileInfo.innerHTML = `
-            <div class="file-preview">
-                <i class="file-icon ${getFileIcon(file.name)}"></i>
-                <div class="file-details">
-                    <div class="file-name">${file.name}</div>
-                    <div class="file-type">${getFileTypeDescription(file.name)}</div>
-                    <div class="file-size">${formatFileSize(file.size)}</div>
-                </div>
-            </div>
-        `;
+            // 使用统一的文件信息显示函数
+            updateFileInfo(file);
+        }
     }
 
     // 统一的文件信息更新函数
