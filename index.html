@@ -163,6 +163,15 @@
             align-items: center;
             z-index: 1000;
             backdrop-filter: blur(8px);
+            overflow: hidden;
+        }
+
+        /* 当密码验证框显示时禁止滚动 */
+        body.password-active {
+            overflow: hidden;
+            height: 100vh;
+            position: fixed;
+            width: 100%;
         }
 
         [data-theme="dark"] .password-overlay {
@@ -178,6 +187,8 @@
             max-width: 90%;
             width: 400px;
             backdrop-filter: blur(12px);
+            position: relative;
+            z-index: 1001;
         }
 
         [data-theme="dark"] .password-container {

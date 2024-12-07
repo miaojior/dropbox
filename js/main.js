@@ -28,6 +28,7 @@ async function checkPasswordProtection() {
 
         document.getElementById('passwordOverlay').style.display = 'flex';
         document.getElementById('mainContent').classList.add('content-blur');
+        document.body.classList.add('password-active'); // 添加禁止滚动的类
         return false;
     } catch (error) {
         console.error('检查密码保护失败:', error);
@@ -57,6 +58,7 @@ async function verifyPassword() {
             
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').classList.remove('content-blur');
+            document.body.classList.remove('password-active'); // 移除禁止滚动的类
             showToast('验证成功！');
         } else {
             showToast('密码错误！', 'error');
