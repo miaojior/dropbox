@@ -18,7 +18,7 @@ async function checkPasswordProtection() {
         if (response.status === 204) {
             return true;
         }
-
+        
         if (!response.ok) {
             console.error('获取密码配置失败:', response.status);
             return true; // 出错时默认允许访问
@@ -26,7 +26,7 @@ async function checkPasswordProtection() {
 
         const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
         const expiry = localStorage.getItem(PASSWORD_VERIFIED_EXPIRY_KEY);
-
+        
         if (verified && expiry && new Date().getTime() < parseInt(expiry)) {
             return true;
         }
@@ -53,14 +53,14 @@ async function verifyPassword() {
         }
 
         const correctPassword = await response.text();
-
+        
         if (password === correctPassword) {
             const expiryDate = new Date();
             expiryDate.setDate(expiryDate.getDate() + VERIFY_EXPIRY_DAYS);
-
+            
             localStorage.setItem(PASSWORD_VERIFIED_KEY, 'true');
             localStorage.setItem(PASSWORD_VERIFIED_EXPIRY_KEY, expiryDate.getTime().toString());
-
+            
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').classList.remove('content-blur');
             document.body.classList.remove('password-active'); // 移除禁止滚动的类
@@ -76,7 +76,7 @@ async function verifyPassword() {
 }
 
 // 监听回车键
-document.addEventListener('keypress', function (e) {
+document.addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && document.getElementById('passwordOverlay').style.display !== 'none') {
         verifyPassword();
     }
@@ -1015,20 +1015,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         return codePatterns.some(pattern => pattern.test(text));
     }
 
-    // 处理图片预览和标题
-    function handleImagePreview(event) {
-        const file = event.target.files[0];
-        if (file) {
-            // 立即设置标题
-            const titleInput = document.getElementById('editTitle');
-            titleInput.value = file.name;
+    // 处理图片预览
+    function handleImagePreview(input) {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
 
+        if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = function (e) {
-                const preview = document.getElementById('imagePreview');
-                preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+            
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = '图片预览';
+                img.style.maxWidth = '100%';
+                preview.appendChild(img);
             };
-            reader.readAsDataURL(file);
+
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
@@ -1129,7 +1132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         editTitle.value = ' ';  // 预填充空格
         editTitle.required = true;  // 保持必填属性
         // 添加失去焦点事件，如果用户清空了内容，重新填充空格
-        editTitle.onblur = function () {
+        editTitle.onblur = function() {
             if (!this.value.trim()) {
                 this.value = ' ';
             }
@@ -1139,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 清除图片预览
         imagePreview.innerHTML = '';
 
-        // 重置文件信息为默认状态
+        // 重置文件信息默认状态
         if (fileInfo) {
             fileInfo.innerHTML = `
                 <div class="file-preview">
