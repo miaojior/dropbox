@@ -2,18 +2,22 @@
 <html lang="zh-CN">
 
 <head>
-    <link rel="preload" href="css/style.css" as="style" crossorigin="anonymous">
-    <link rel="preload" href="js/main.js" as="script" crossorigin="anonymous">
-    <link rel="preload" href="js/theme.js" as="script" crossorigin="anonymous">
-    
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📰 BAOER の 中转信箱 📬</title>
+    
+    <!-- DNS预连接 -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    
+    <!-- 关键CSS优先加载 -->
+    <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/jpeg" href="logo.jpg">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    
+    <!-- 延迟加载非关键脚本 -->
+    <script defer src="js/theme.js"></script>
+    <script defer src="js/main.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js"></script>
@@ -31,8 +35,6 @@
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/markdown-it-emoji/dist/markdown-it-emoji.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/markdown-it-sub/dist/markdown-it-sub.min.js"></script>
@@ -375,7 +377,7 @@
     <script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script>
     <script src="js/main.js"></script>
 
-    <!-- 返回顶部按钮 -->
+    <!-- ���回顶部按钮 -->
     <button class="back-to-top" aria-label="返回顶部" title="返回顶部">
         <svg viewBox="0 0 24 24">
             <path d="M12 4l-8 8h6v8h4v-8h6z" />
