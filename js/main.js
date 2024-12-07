@@ -6,9 +6,26 @@ const FILES_UPLOAD_URL = '/files/upload';
 const DOWNLOAD_API_URL = '/download';
 
 // 密码验证相关
-const PASSWORD_VERIFIED_KEY = 'password_verified';
-const PASSWORD_VERIFIED_EXPIRY_KEY = 'password_verified_expiry';
+const PASSWORD_VERIFIED_KEY = '_secure_verified';
+const PASSWORD_VERIFIED_EXPIRY_KEY = '_secure_verified_expiry';
 const VERIFY_EXPIRY_DAYS = 15;
+const VERIFY_TOKEN_KEY = '_secure_token';
+
+// 生成随机token
+function generateToken(length = 32) {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// 计算密码哈希
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 // 检查密码验证状态
 async function checkPasswordProtection() {
@@ -21,17 +38,27 @@ async function checkPasswordProtection() {
 
         const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
         const expiry = localStorage.getItem(PASSWORD_VERIFIED_EXPIRY_KEY);
-        
-        if (verified && expiry && new Date().getTime() < parseInt(expiry)) {
-            return true;
+        const token = localStorage.getItem(VERIFY_TOKEN_KEY);
+
+        if (verified && expiry && token && new Date().getTime() < parseInt(expiry)) {
+            // 验证token的有效性
+            const tokenHash = await hashPassword(token);
+            if (tokenHash === verified) {
+                return true;
+            }
         }
+
+        // 清除可能无效的验证信息
+        localStorage.removeItem(PASSWORD_VERIFIED_KEY);
+        localStorage.removeItem(PASSWORD_VERIFIED_EXPIRY_KEY);
+        localStorage.removeItem(VERIFY_TOKEN_KEY);
 
         document.getElementById('passwordOverlay').style.display = 'flex';
         document.getElementById('mainContent').classList.add('content-blur');
         return false;
     } catch (error) {
         console.error('检查密码保护失败:', error);
-        return true; // 出错时默认允许访问
+        return false; // 出错时默认需要验证
     }
 }
 
@@ -46,18 +73,27 @@ async function verifyPassword() {
             throw new Error('获取密码失败');
         }
 
-        const correctPassword = await response.text();
-        
-        if (password === correctPassword) {
+        const correctHash = await response.text();
+        const inputHash = await hashPassword(password);
+
+        if (inputHash === correctHash) {
             const expiryDate = new Date();
             expiryDate.setDate(expiryDate.getDate() + VERIFY_EXPIRY_DAYS);
-            
-            localStorage.setItem(PASSWORD_VERIFIED_KEY, 'true');
+
+            // 生成并存储验证token
+            const token = generateToken();
+            const tokenHash = await hashPassword(token);
+
+            localStorage.setItem(PASSWORD_VERIFIED_KEY, tokenHash);
             localStorage.setItem(PASSWORD_VERIFIED_EXPIRY_KEY, expiryDate.getTime().toString());
-            
+            localStorage.setItem(VERIFY_TOKEN_KEY, token);
+
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').classList.remove('content-blur');
             showToast('验证成功！');
+
+            // 重新加载内容
+            await loadContents(true);
         } else {
             showToast('密码错误！', 'error');
             passwordInput.value = '';
@@ -69,7 +105,7 @@ async function verifyPassword() {
 }
 
 // 监听回车键
-document.addEventListener('keypress', function(e) {
+document.addEventListener('keypress', function (e) {
     if (e.key === 'Enter' && document.getElementById('passwordOverlay').style.display !== 'none') {
         verifyPassword();
     }
@@ -1122,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         editTitle.value = ' ';  // 预填充空格
         editTitle.required = true;  // 保持必填属性
         // 添加失去焦点事件，如果用户清空了内容，重新填充空格
-        editTitle.onblur = function() {
+        editTitle.onblur = function () {
             if (!this.value.trim()) {
                 this.value = ' ';
             }

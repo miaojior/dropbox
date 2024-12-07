@@ -24,6 +24,21 @@ export async function onRequestGet({ params, env }) {
             }
         });
     }
+
+    // 如果是访问密码，返回哈希值而不是原始密码
+    if (varName === 'ACCESS_PASSWORD') {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(value);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return new Response(hashHex, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Cache-Control': 'no-cache'
+            }
+        });
+    }
     
     return new Response(value, {
         headers: {
