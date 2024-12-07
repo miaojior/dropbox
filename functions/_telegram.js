@@ -59,6 +59,14 @@ function formatContentForTelegram(type, title, content, url = null, isEdit = fal
   return message;
 }
 
+// 格式化删除通知
+function formatDeleteNotification(type, title) {
+  return `<b>🗑 内容已删除</b>\n\n` +
+         `<b>类型:</b> ${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}\n` +
+         `<b>标题:</b> ${escapeHtml(title)}\n\n` +
+         `<i>此内容已被永久删除</i>`;
+}
+
 // 截断消息以符合 Telegram 限制
 function truncateMessage(message) {
   const MAX_LENGTH = 4000; // 留一些余地给可能的格式化字符
@@ -96,4 +104,4 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
-export { sendToTelegram, formatContentForTelegram }; 
+export { sendToTelegram, formatContentForTelegram, formatDeleteNotification };

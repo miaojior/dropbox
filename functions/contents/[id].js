@@ -53,7 +53,7 @@ export async function onRequestDelete({ env, params }) {
   try {
     // 首先获取内容信息
     const content = await env.DB.prepare(
-      'SELECT type, content FROM content_blocks WHERE id = ?'
+      'SELECT type, title, content FROM content_blocks WHERE id = ?'
     ).bind(params.id).first();
 
     if (!content) {
@@ -87,6 +87,12 @@ export async function onRequestDelete({ env, params }) {
     const { success } = await env.DB.prepare(
       'DELETE FROM content_blocks WHERE id = ?'
     ).bind(params.id).run();
+
+    // 推送删除通知到 Telegram
+    const message = `<b>内容已删除</b>\n\n` +
+                   `<b>类型:</b> ${content.type === 'file' ? '文件' : content.type === 'image' ? '图片' : '内容'}\n` +
+                   `<b>标题:</b> ${content.title}`;
+    await sendToTelegram(env, message);
 
     return new Response(JSON.stringify({ message: '删除成功' }), {
       headers: {
