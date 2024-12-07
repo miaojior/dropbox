@@ -14,30 +14,46 @@ const VERIFY_EXPIRY_DAYS = 15;
 async function checkPasswordProtection() {
     try {
         const response = await fetch('/_vars/ACCESS_PASSWORD');
-        // 如果返回 204，说明未设置密码，不需要验证
+        
+        // 如果返回 204，说明未设置密码，直接返回 true 并隐藏密码框
         if (response.status === 204) {
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContent').classList.remove('content-blur');
+            document.body.classList.remove('password-active');
             return true;
         }
         
         if (!response.ok) {
             console.error('获取密码配置失败:', response.status);
-            return true; // 出错时默认允许访问
+            // 出错时也隐藏密码框并允许访问
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContent').classList.remove('content-blur');
+            document.body.classList.remove('password-active');
+            return true;
         }
 
         const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
         const expiry = localStorage.getItem(PASSWORD_VERIFIED_EXPIRY_KEY);
         
         if (verified && expiry && new Date().getTime() < parseInt(expiry)) {
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContent').classList.remove('content-blur');
+            document.body.classList.remove('password-active');
             return true;
         }
 
+        // 只有在需要密码验证时才显示密码框
         document.getElementById('passwordOverlay').style.display = 'flex';
         document.getElementById('mainContent').classList.add('content-blur');
         document.body.classList.add('password-active');
         return false;
     } catch (error) {
         console.error('检查密码保护失败:', error);
-        return true; // 出错时默认允许访问
+        // 出错时也隐藏密码框并允许访问
+        document.getElementById('passwordOverlay').style.display = 'none';
+        document.getElementById('mainContent').classList.remove('content-blur');
+        document.body.classList.remove('password-active');
+        return true;
     }
 }
 
@@ -524,7 +540,7 @@ md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
     return self.renderToken(tokens, idx, options);
 };
 
-// 自定义代码块渲染规则
+// 自定义代码���渲染规则
 md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
     const token = tokens[idx];
     const code = token.content;
@@ -895,15 +911,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 获取同步间隔配置
     await getSyncInterval();
 
-    // 检查密码保护
+    // 检查密码保护并等待结果
     const canAccess = await checkPasswordProtection();
-    if (!canAccess) return;
-
-    // 加载内容
-    await loadContents();
-
-    // 设置定时更新
-    updateCheckInterval = setInterval(checkForUpdates, syncInterval);
+    
+    // 如果可以访问，立即加载内容
+    if (canAccess) {
+        await loadContents();
+        // 设置定时更新
+        updateCheckInterval = setInterval(checkForUpdates, syncInterval);
+    }
 
     // 添加新内容按钮事件
     document.getElementById('addNewBtn').addEventListener('click', () => {
