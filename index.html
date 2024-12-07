@@ -153,6 +153,22 @@
 </head>
 
 <body>
+    <!-- 密码验证模态框 -->
+    <div id="passwordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🔐 访问验证</h2>
+            <p>请输入访问密码</p>
+            <form id="passwordForm" onsubmit="return verifyPassword(event)">
+                <div class="form-group">
+                    <input type="password" id="accessPassword" required placeholder="请输入密码">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn">验证</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>📰 BAOER の 中转信箱 📬</h1>

@@ -2123,3 +2123,44 @@ img {
 [data-theme="dark"] .video-container {
     background: #1a1a1a;
 }
+
+/* 密码验证模态框样式 */
+#passwordModal .modal-content {
+    max-width: 400px;
+    text-align: center;
+    padding: 2rem;
+}
+
+#passwordModal h2 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+#passwordModal p {
+    margin-bottom: 1.5rem;
+    color: var(--text-color-secondary);
+}
+
+#passwordModal .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#passwordModal input[type="password"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--background-color);
+    color: var(--text-color);
+    transition: border-color 0.3s;
+}
+
+#passwordModal input[type="password"]:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+#passwordModal .btn {
+    min-width: 120px;
+}

@@ -2,7 +2,7 @@ export async function onRequestGet({ params, env }) {
     const varName = params.name;
     
     // 只允许访问特定的环境变量
-    const allowedVars = ['SYNC_INTERVAL'];
+    const allowedVars = ['SYNC_INTERVAL', 'ACCESS_PASSWORD'];
     
     if (!allowedVars.includes(varName)) {
         return new Response('Forbidden', { 
