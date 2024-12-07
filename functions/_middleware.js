@@ -76,13 +76,17 @@ async function checkPasswordVerification(request, env) {
 export async function onRequest(context) {
   try {
     const url = new URL(context.request.url);
-    const isSourceRequest = /\.(js|css|json|md|sql)$/.test(url.pathname);
+    
+    // 检查是否是源码请求，但排除基础样式文件
+    const isSourceRequest = /\.(js|json|md|sql)$/.test(url.pathname) || 
+                          (/\.css$/.test(url.pathname) && !url.pathname.endsWith('/style.css'));
+                          
     const isAPIRequest = url.pathname.startsWith('/_vars') || 
                         url.pathname.startsWith('/contents') || 
                         url.pathname.startsWith('/images') || 
                         url.pathname.startsWith('/files');
 
-    // 如果是源码请求，检查密码验证
+    // 如果是源码请求（除了基础样式），检查密码验证
     if (isSourceRequest && !isAPIRequest) {
       const isVerified = await checkPasswordVerification(context.request, context.env);
       if (!isVerified) {
