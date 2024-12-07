@@ -1,3 +1,5 @@
+import { sendToTelegram, formatContentForTelegram } from './_telegram.js';
+
 export async function onRequestGet({ request, env }) {
   try {
     const { results } = await env.DB.prepare(
@@ -43,6 +45,10 @@ export async function onRequestPost({ request, env }) {
     if (!success) {
       throw new Error('创建内容失败');
     }
+
+    // 发送到 Telegram
+    const message = formatContentForTelegram(type, title, content, content);
+    await sendToTelegram(env, message);
 
     return new Response(JSON.stringify({
       type,
