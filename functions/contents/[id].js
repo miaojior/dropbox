@@ -1,3 +1,5 @@
+import { sendToTelegram, formatContentForTelegram } from '../_telegram.js';
+
 export async function onRequestPut({ request, env, params }) {
   try {
     const { type, title, content } = await request.json();
@@ -24,6 +26,10 @@ export async function onRequestPut({ request, env, params }) {
         }
       });
     }
+
+    // 发送到 Telegram，添加编辑标记
+    const message = formatContentForTelegram(type, title, content, content, true);
+    await sendToTelegram(env, message);
 
     return new Response(JSON.stringify({ id: params.id, type, title, content }), {
       headers: {

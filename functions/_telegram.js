@@ -36,8 +36,8 @@ async function sendToTelegram(env, message, parseMode = 'HTML') {
 }
 
 // 格式化内容为 Telegram 消息
-function formatContentForTelegram(type, title, content, url = null) {
-  let message = `<b>新${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}上传</b>\n\n`;
+function formatContentForTelegram(type, title, content, url = null, isEdit = false) {
+  let message = `<b>${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}</b>\n\n`;
   message += `<b>标题:</b> ${escapeHtml(title)}\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
@@ -50,6 +50,10 @@ function formatContentForTelegram(type, title, content, url = null) {
     }
   } else if (type === 'file' || type === 'image') {
     message += `<b>链接:</b> ${url}`;
+  }
+
+  if (isEdit) {
+    message += '\n\n<i>此内容已被编辑</i>';
   }
 
   return message;
