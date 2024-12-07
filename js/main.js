@@ -637,7 +637,7 @@ window.handleTypeChange = function (type) {
     editContent.required = false;
     editImage.required = false;
     editFile.required = false;
-    titleInput.required = true;
+    titleInput.required = false;
 
     if (type === 'image') {
         imageGroup.style.display = 'block';
@@ -1049,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         editTitle.value = ' ';  // 预填充空格
         editTitle.required = true;  // 保持必填属性
         // 添加失去焦点事件，如果用户清空了内容，重新填充空格
-        editTitle.onblur = function () {
+        editTitle.onblur = function() {
             if (!this.value.trim()) {
                 this.value = ' ';
             }
