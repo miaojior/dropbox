@@ -1047,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 重置所有表单元素
         editForm.reset();
         editType.value = 'text';
-        editTitle.value = '';
+        editTitle.value = ' ';  // 在这里预填充一个空格
         editContent.value = '';
 
         // 清除图片预览
