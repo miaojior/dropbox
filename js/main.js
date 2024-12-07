@@ -14,46 +14,30 @@ const VERIFY_EXPIRY_DAYS = 15;
 async function checkPasswordProtection() {
     try {
         const response = await fetch('/_vars/ACCESS_PASSWORD');
-        
-        // 如果返回 204，说明未设置密码，直接返回 true 并隐藏密码框
+        // 如果返回 204，说明未设置密码，不需要验证
         if (response.status === 204) {
-            document.getElementById('passwordOverlay').style.display = 'none';
-            document.getElementById('mainContent').classList.remove('content-blur');
-            document.body.classList.remove('password-active');
             return true;
         }
         
         if (!response.ok) {
             console.error('获取密码配置失败:', response.status);
-            // 出错时也隐藏密码框并允许访问
-            document.getElementById('passwordOverlay').style.display = 'none';
-            document.getElementById('mainContent').classList.remove('content-blur');
-            document.body.classList.remove('password-active');
-            return true;
+            return true; // 出错时默认允许访问
         }
 
         const verified = localStorage.getItem(PASSWORD_VERIFIED_KEY);
         const expiry = localStorage.getItem(PASSWORD_VERIFIED_EXPIRY_KEY);
         
         if (verified && expiry && new Date().getTime() < parseInt(expiry)) {
-            document.getElementById('passwordOverlay').style.display = 'none';
-            document.getElementById('mainContent').classList.remove('content-blur');
-            document.body.classList.remove('password-active');
             return true;
         }
 
-        // 只有在需要密码验证时才显示密码框
         document.getElementById('passwordOverlay').style.display = 'flex';
         document.getElementById('mainContent').classList.add('content-blur');
         document.body.classList.add('password-active');
         return false;
     } catch (error) {
         console.error('检查密码保护失败:', error);
-        // 出错时也隐藏密码框并允许访问
-        document.getElementById('passwordOverlay').style.display = 'none';
-        document.getElementById('mainContent').classList.remove('content-blur');
-        document.body.classList.remove('password-active');
-        return true;
+        return true; // 出错时默认允许访问
     }
 }
 
@@ -540,7 +524,7 @@ md.renderer.rules.link_close = function (tokens, idx, options, env, self) {
     return self.renderToken(tokens, idx, options);
 };
 
-// 自定义代码���渲染规则
+// 自定义代码块渲染规则
 md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
     const token = tokens[idx];
     const code = token.content;
@@ -575,312 +559,190 @@ window.copyCode = function (button) {
     });
 };
 
-// 渲染内容函数
-function renderContents(contents) {
+// 加载内容
+async function loadContents(showLoading = true) {
     if (!contentContainer) {
         contentContainer = document.getElementById('content-container');
     }
 
-    if (!contents || contents.length === 0) {
-        contentContainer.innerHTML = `
-            <div class="empty">
-                <div class="empty-icon">📝</div>
-                <div class="empty-text">还没有任何内容</div>
-                <div class="empty-hint">点击"添加新内容"开始创建</div>
-            </div>
-        `;
-        return;
-    }
-
-    // 使用DocumentFragment提升性能
-    const fragment = document.createDocumentFragment();
-    contents.forEach(content => {
-        const section = document.createElement('section');
-        section.className = 'text-block';
-
-        let contentHtml = '';
-        let downloadButton = '';
-
-        try {
-            if (content.type === 'image' || content.type === 'file') {
-                if (content.type === 'image') {
-                    contentHtml = `<div class="image"><img src="${content.content}" alt="${content.title}" loading="lazy" data-zoomable class="zoomable-image"></div>`;
-                } else {
-                    const fileIcon = getFileIcon(content.title);
-                    const fileType = getFileTypeDescription(content.title);
-                    contentHtml = `
-                        <div class="file">
-                            <i class="file-icon ${fileIcon}"></i>
-                            <div class="file-details">
-                                <div class="file-name">${content.title}</div>
-                                <div class="file-type">${fileType}</div>
-                            </div>
-                        </div>`;
-                }
-                downloadButton = `<button class="btn btn-download" onclick="downloadFile('${content.content}', '${content.title}')">下载</button>`;
-            } else if (content.type === 'code') {
-                const escapedContent = content.content
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
-                contentHtml = `<pre><code class="language-javascript">${escapedContent}</code></pre>`;
-            } else if (content.type === 'poetry') {
-                contentHtml = content.content
-                    .split('\n')
-                    .map(line => `<p>${line.replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#039;')}</p>`)
-                    .join('');
-            } else {
-                contentHtml = md.render(content.content);
-            }
-        } catch (error) {
-            console.error('Card rendering error:', content.id, error);
-            contentHtml = `<div class="error-message">内容渲染失败</div>`;
-        }
-
-        const encodedContent = encodeContent(content.content);
-        const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
-
-        section.innerHTML = `
-            <div class="text-block-header">
-                <h2>${content.title}</h2>
-                <div class="text-block-meta">
-                    <span class="modified-date">修改于 ${modifiedDate}</span>
-                </div>
-            </div>
-            <div class="${content.type}">
-                ${contentHtml}
-            </div>
-            <div class="text-block-actions">
-                <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
-                ${downloadButton}
-                <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
-                <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
-            </div>
-        `;
-
-        fragment.appendChild(section);
-    });
-
-    // 一次性更新DOM
-    contentContainer.innerHTML = '';
-    contentContainer.appendChild(fragment);
-
-    // 初始化功能
-    requestAnimationFrame(() => {
-        Prism.highlightAll();
-        // 重新绑定灯箱效果
-        zoom.detach();
-        zoom.attach('[data-zoomable]');
-    });
-}
-
-// 删除内容函数
-window.deleteContent = async function (id) {
-    const confirmed = await showConfirmDialog(
-        '确认删除',
-        '确定要删除这条内容吗？此操作无法撤销。'
-    );
-
-    if (confirmed) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || '删除失败');
-            }
-
-            contentCache = contentCache.filter(item => item.id !== id);
-            renderContents(contentCache);
-            showToast('删除成功！');
-        } catch (error) {
-            console.error('删除失败:', error);
-            showToast(error.message, 'error');
-        }
-    }
-}
-
-// 类型切换函数
-window.handleTypeChange = function (type) {
-    const contentGroup = document.getElementById('contentGroup');
-    const imageGroup = document.getElementById('imageGroup');
-    const fileGroup = document.getElementById('fileGroup');
-    const editContent = document.getElementById('editContent');
-    const editImage = document.getElementById('editImage');
-    const editFile = document.getElementById('editFile');
-    const titleInput = document.getElementById('editTitle');
-    const titleGroup = document.getElementById('titleGroup');
-    const fileInfo = document.querySelector('.file-info');
-
-    contentGroup.style.display = 'none';
-    imageGroup.style.display = 'none';
-    fileGroup.style.display = 'none';
-    titleGroup.style.display = 'block';
-    editContent.required = false;
-    editImage.required = false;
-    editFile.required = false;
-    titleInput.required = false;
-
-    if (type === 'image') {
-        imageGroup.style.display = 'block';
-        editImage.required = true;
-        titleGroup.style.display = 'none';
-    } else if (type === 'file') {
-        fileGroup.style.display = 'block';
-        editFile.required = true;
-
-        // 如果没有选择文件，显示默认的文件信息
-        if (!editFile.files || !editFile.files[0]) {
-            fileInfo.innerHTML = `
-                <div class="file-preview">
-                    <i class="file-icon generic"></i>
-                    <div class="file-details">
-                        <div class="file-type">支持所有类型的文件</div>
-                    </div>
-                </div>
-            `;
-        }
-    } else {
-        contentGroup.style.display = 'block';
-        editContent.required = true;
-    }
-}
-
-// 编辑内容函数
-window.editContent = function (id) {
-    const content = contentCache.find(item => item.id === id);
-    if (!content) return;
-
-    const form = document.createElement('form');
-    form.className = 'edit-form';
-    form.innerHTML = `
-        <div class="form-group">
-            <label for="edit-title">标题</label>
-            <input type="text" id="edit-title" value="${content.title}" required>
-        </div>
-        <div class="form-group">
-            <label for="edit-type">文本类型</label>
-            <select id="edit-type">
-                <option value="text" ${content.type === 'text' ? 'selected' : ''}>普通文本</option>
-                <option value="code" ${content.type === 'code' ? 'selected' : ''}>代码</option>
-                <option value="poetry" ${content.type === 'poetry' ? 'selected' : ''}>诗歌</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="edit-content">内容</label>
-            <textarea id="edit-content" required>${content.content}</textarea>
-        </div>
-        <div class="form-actions">
-            <button type="button" class="btn btn-cancel" onclick="cancelEdit()">取消</button>
-            <button type="submit" class="btn btn-save">保存</button>
-        </div>
-    `;
-
-    currentEditId = content.id;
-    document.getElementById('editType').value = content.type;
-    document.getElementById('editTitle').value = content.title;
-    document.getElementById('editContent').value = content.content;
-
-    // 如果是图片类型，显示预览
-    if (content.type === 'image') {
-        const preview = document.getElementById('imagePreview');
-        preview.innerHTML = `<img src="${content.content}" alt="预览">`;
-    }
-
-    handleTypeChange(content.type);
-    document.getElementById('editModal').style.display = 'block';
-}
-
-// 初始化返回顶部按钮
-function initBackToTop() {
-    const backToTop = document.querySelector('.back-to-top');
-    const scrollThreshold = 400; // 滚动多少像素后显示按钮
-
-    // 监听滚动事件
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > scrollThreshold) {
-            backToTop.classList.add('visible');
-        } else {
-            backToTop.classList.remove('visible');
-        }
-    });
-
-    // 点击返回顶部
-    backToTop.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    });
-}
-
-// 清空全部内容
-window.clearAllContent = async function () {
-    const confirmDialog = document.createElement('div');
-    confirmDialog.innerHTML = `
-        <div class="confirm-dialog-overlay"></div>
-        <div class="confirm-dialog">
-            <h3>确认清空</h3>
-            <p>此操作将清空所有内容，包括：</p>
-            <ul>
-                <li>所有文本、代码和诗歌</li>
-                <li>所有上传的图片</li>
-                <li>所有上传的文件</li>
-            </ul>
-            <p style="color: #dc3545;">此操作不可恢复，请确认！</p>
-            <div class="confirm-dialog-buttons">
-                <button class="btn" onclick="this.closest('.confirm-dialog').parentElement.remove()">取消</button>
-                <button class="btn btn-danger" onclick="executeContentClear(this)">确认清空</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(confirmDialog);
-};
-
-// 执行清空操作
-async function executeContentClear(button) {
     try {
-        button.disabled = true;
-        button.innerHTML = '清空中... <span class="loading-spinner"></span>';
-
-        // 清空数据库内容
-        const response = await fetch('/clear-all', {
-            method: 'POST',
+        const response = await fetch(API_BASE_URL, {
             headers: {
-                'Content-Type': 'application/json'
+                'Accept': 'application/json'
             }
         });
 
         if (!response.ok) {
-            throw new Error('清空失败');
+            const data = await response.json();
+            throw new Error(data.details || data.error || '加载失败');
         }
 
-        // 清空本地缓存
-        contentCache = [];
+        const data = await response.json();
 
-        // 重新渲染内容（显示空状态）
-        renderContents([]);
+        // 只有当数据发生变化时才重新渲染
+        if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
+            contentCache = data || [];
+            await renderContents(contentCache);  // 等待渲染完成
+        }
 
-        // 关闭确认对话框
-        button.closest('.confirm-dialog').parentElement.remove();
-
-        showToast('已清空所有内容');
+        lastUpdateTime = Date.now();
     } catch (error) {
-        console.error('清空失败:', error);
-        showToast('清空失败: ' + error.message, 'error');
-        button.disabled = false;
-        button.textContent = '确认清空';
+        console.error('加载内容失败:', error);
+        if (showLoading) {
+            showError(`加载内容失败: ${error.message}`);
+        }
+    }
+}
+
+// 检查更新
+async function checkForUpdates() {
+    await loadContents(false);
+}
+
+// 显示错误信息
+function showError(message) {
+    contentContainer.innerHTML = `
+        <div class="error">
+            ${message}
+            <button class="btn" onclick="location.reload()">重试</button>
+        </div>
+    `;
+}
+
+// 渲染内容
+async function renderContents(contents) {
+    if (!contentContainer) return;
+
+    if (!contents || contents.length === 0) {
+        contentContainer.innerHTML = '<div class="empty-state">还没有任何内容，快来添加吧！😊</div>';
+        return;
+    }
+
+    let html = '';
+    for (const content of contents) {
+        html += await createContentBlock(content);
+    }
+    contentContainer.innerHTML = html;
+
+    // 初始化代码高亮
+    Prism.highlightAll();
+
+    // 初始化图片缩放
+    if (zoomInstance) {
+        zoomInstance.detach();
+    }
+    zoomInstance = mediumZoom('.content-image', {
+        margin: 20,
+        background: 'rgba(0, 0, 0, 0.9)',
+    });
+}
+
+// 创建内容块
+async function createContentBlock(content) {
+    const { id, type, title, content: contentData, createdAt, updatedAt } = content;
+    const isUpdated = createdAt !== updatedAt;
+    const timeText = formatTime(createdAt) + (isUpdated ? ` (已编辑于 ${formatTime(updatedAt)})` : '');
+
+    let contentHtml = '';
+    if (type === 'text') {
+        contentHtml = `<div class="text-content">${await renderMarkdown(contentData)}</div>`;
+    } else if (type === 'code') {
+        contentHtml = `
+            <div class="code-wrapper">
+                <pre><code class="language-javascript">${escapeHtml(contentData)}</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">复制</button>
+            </div>
+        `;
+    } else if (type === 'poetry') {
+        contentHtml = `<div class="poetry-content">${formatPoetry(contentData)}</div>`;
+    } else if (type === 'image') {
+        contentHtml = `
+            <div class="image-content">
+                <img src="${contentData}" alt="${title}" class="content-image">
+                <a href="${contentData}" download class="download-link">
+                    <button class="btn">
+                        <svg viewBox="0 0 24 24" class="btn-icon">
+                            <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                        下载图片
+                    </button>
+                </a>
+            </div>
+        `;
+    } else if (type === 'file') {
+        const fileName = contentData.split('/').pop();
+        const fileIcon = getFileIcon(fileName);
+        contentHtml = `
+            <div class="file-content">
+                <div class="file-info">
+                    <i class="file-icon ${fileIcon}"></i>
+                    <div class="file-details">
+                        <div class="file-name">${fileName}</div>
+                        <div class="file-type">${getFileTypeDescription(fileName)}</div>
+                    </div>
+                </div>
+                <a href="${contentData}" download class="download-link">
+                    <button class="btn">
+                        <svg viewBox="0 0 24 24" class="btn-icon">
+                            <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                        下载文件
+                    </button>
+                </a>
+            </div>
+        `;
+    }
+
+    return `
+        <section class="text-block" data-id="${id}">
+            <div class="text-block-header">
+                <h2>${escapeHtml(title)}</h2>
+                <div class="text-block-meta">
+                    <span class="time">${timeText}</span>
+                    <div class="actions">
+                        <button onclick="editContent(${id})" class="action-btn edit-btn" title="编辑">
+                            <svg viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                            </svg>
+                        </button>
+                        <button onclick="deleteContent(${id})" class="action-btn delete-btn" title="删除">
+                            <svg viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            ${contentHtml}
+        </section>
+    `;
+}
+
+// 格式化时间
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor(diff / (1000 * 60));
+
+    if (days > 7) {
+        return date.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } else if (days > 0) {
+        return `${days}天前`;
+    } else if (hours > 0) {
+        return `${hours}小时前`;
+    } else if (minutes > 0) {
+        return `${minutes}分钟前`;
+    } else {
+        return '刚刚';
     }
 }
 
@@ -911,15 +773,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 获取同步间隔配置
     await getSyncInterval();
 
-    // 检查密码保护并等待结果
+    // 检查密码保护
     const canAccess = await checkPasswordProtection();
-    
-    // 如果可以访问，立即加载内容
-    if (canAccess) {
-        await loadContents();
-        // 设置定时更新
-        updateCheckInterval = setInterval(checkForUpdates, syncInterval);
-    }
+    if (!canAccess) return;
+
+    // 加载内容
+    await loadContents();
+
+    // 设置定时更新
+    updateCheckInterval = setInterval(checkForUpdates, syncInterval);
 
     // 添加新内容按钮事件
     document.getElementById('addNewBtn').addEventListener('click', () => {
