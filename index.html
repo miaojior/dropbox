@@ -157,31 +157,32 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.3);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
         }
 
         [data-theme="dark"] .password-overlay {
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.3);
         }
 
         .password-container {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             padding: 2rem;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
             text-align: center;
             max-width: 90%;
             width: 400px;
+            backdrop-filter: blur(12px);
         }
 
         [data-theme="dark"] .password-container {
-            background: #1a1a1a;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: rgba(26, 26, 26, 0.9);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         }
 
         .password-container h2 {
@@ -193,16 +194,17 @@
             width: 100%;
             padding: 0.8rem;
             margin-bottom: 1rem;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(221, 221, 221, 0.5);
             border-radius: 4px;
             font-size: 1rem;
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             color: black;
+            backdrop-filter: blur(4px);
         }
 
         [data-theme="dark"] .password-container input {
-            background: #333;
-            border-color: #444;
+            background: rgba(51, 51, 51, 0.9);
+            border-color: rgba(68, 68, 68, 0.5);
             color: white;
         }
 
@@ -215,15 +217,18 @@
             border-radius: 4px;
             font-size: 1rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
         }
 
         .password-container button:hover {
             background: var(--primary-color-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
+        /* 移除content-blur类，因为现在使用overlay来实现模糊效果 */
         .content-blur {
-            filter: blur(10px);
+            filter: none;
             pointer-events: none;
             user-select: none;
         }
@@ -234,7 +239,7 @@
     <div id="passwordOverlay" class="password-overlay" style="display: none;">
         <div class="password-container">
             <h2>🔒 请输入访问密码</h2>
-            <input type="password" id="accessPassword" placeholder="请输入密码">
+            <input type="password" id="accessPassword" placeholder="请输入密码" autofocus>
             <button onclick="verifyPassword()">确认</button>
         </div>
     </div>
