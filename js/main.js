@@ -447,20 +447,43 @@ function formatDate(timestamp) {
 
 // 初始化 markdown-it
 const md = window.markdownit({
-    html: true,        // 启用 HTML 标签
-    breaks: true,      // 转换换行符为 <br>
-    linkify: true,     // 自动转换 URL 为链接
-    typographer: true, // 启用一些语言中性的替换和引号美化
-    quotes: ['""', '\'\'']    // 引号样式
-}).use(window.markdownitEmoji)                 // 启用表情
-    .use(window.markdownitSub)                   // 启用下标
-    .use(window.markdownitSup)                   // 启用上标
-    .use(window.markdownitFootnote)              // 启用脚注
-    .use(window.markdownitTaskLists, {           // 启用任务列表
-        enabled: true,
-        label: true,
-        labelAfter: true
-    });
+    html: true,
+    breaks: true,
+    linkify: true,
+    typographer: true
+}).use(window.markdownitEmoji)
+  .use(window.markdownitSub)
+  .use(window.markdownitSup)
+  .use(window.markdownitFootnote)
+  .use(window.markdownitTaskLists);
+
+// 自定义 YouTube iframe 渲染
+const defaultRender = md.renderer.rules.html_block || function(tokens, idx, options, env, self) {
+    return self.renderToken(tokens, idx, options);
+};
+
+md.renderer.rules.html_block = function(tokens, idx, options, env, self) {
+    const content = tokens[idx].content;
+    
+    // 检测是否是 YouTube iframe
+    if (content.includes('youtube.com/embed/')) {
+        // 修改 iframe 参数
+        return content.replace(/src="([^"]+)"/, (match, url) => {
+            const newUrl = new URL(url);
+            // 添加参数以优化加载
+            newUrl.searchParams.set('enablejsapi', '0');  // 禁用 JS API
+            newUrl.searchParams.set('rel', '0');          // 禁用相关视频
+            newUrl.searchParams.set('modestbranding', '1'); // 简化品牌展示
+            newUrl.searchParams.set('iv_load_policy', '3'); // 禁用视频注释
+            newUrl.searchParams.set('disablekb', '1');    // 禁用键盘控制
+            newUrl.searchParams.set('playsinline', '1');  // 在当前页面播放
+            newUrl.searchParams.set('fs', '0');           // 禁用全屏按钮
+            return `src="${newUrl.toString()}" loading="lazy"`;
+        });
+    }
+    
+    return defaultRender(tokens, idx, options, env, self);
+};
 
 // 初始化灯箱效果
 const zoom = mediumZoom('[data-zoomable]', {
@@ -616,11 +639,15 @@ function renderContents(contents) {
     }
 
     // 保存当前所有 YouTube iframe 的状态
-    const youtubeIframes = Array.from(document.querySelectorAll('iframe[src*="youtube.com"]')).map(iframe => ({
-        element: iframe,
-        src: iframe.src,
-        parent: iframe.parentElement
-    }));
+    const youtubeIframes = Array.from(document.querySelectorAll('iframe[src*="youtube.com"]')).map(iframe => {
+        const currentTime = iframe.contentWindow?.document.querySelector('video')?.currentTime || 0;
+        return {
+            element: iframe,
+            src: iframe.src,
+            parent: iframe.parentElement,
+            currentTime
+        };
+    });
 
     if (!contents || contents.length === 0) {
         contentContainer.innerHTML = `
@@ -713,14 +740,26 @@ function renderContents(contents) {
     contentContainer.appendChild(fragment);
 
     // 恢复 YouTube iframe 的状态
-    youtubeIframes.forEach(({ element, src, parent }) => {
+    youtubeIframes.forEach(({ element, src, parent, currentTime }) => {
         const contentId = parent.closest('.text-block')?.dataset.contentId;
         if (contentId) {
             const newSection = contentContainer.querySelector(`.text-block[data-content-id="${contentId}"]`);
             if (newSection) {
                 const newIframe = newSection.querySelector('iframe[src*="youtube.com"]');
                 if (newIframe) {
-                    newIframe.src = src;
+                    // 保持原有参数，但确保添加了优化参数
+                    const url = new URL(src);
+                    url.searchParams.set('enablejsapi', '0');
+                    url.searchParams.set('rel', '0');
+                    url.searchParams.set('modestbranding', '1');
+                    url.searchParams.set('iv_load_policy', '3');
+                    url.searchParams.set('disablekb', '1');
+                    url.searchParams.set('playsinline', '1');
+                    url.searchParams.set('fs', '0');
+                    if (currentTime > 0) {
+                        url.searchParams.set('start', Math.floor(currentTime));
+                    }
+                    newIframe.src = url.toString();
                 }
             }
         }
