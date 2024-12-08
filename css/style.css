@@ -212,7 +212,7 @@ body {
     background-position: -7px -15px;
     /* 水平方向考虑滚动条宽度(约17px)的一半偏移 */
     background-attachment: fixed;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s, color 0.1s;
 }
 
 .container {
@@ -1042,7 +1042,7 @@ code {
 /* 确保所有元素都有平滑的主题切换效果 */
 * {
     transition: background-color 0.3s ease,
-        color 0.3s ease,
+        color 0.1s ease,
         border-color 0.3s ease,
         box-shadow 0.3s ease;
 }
