@@ -93,15 +93,13 @@ document.addEventListener('keypress', function (e) {
 // 全局变量
 let currentEditId = null;
 let lastUpdateTime = Date.now();
-let updateCheckInterval;
+let updateCheckInterval = null; // 修改为 null 初始值
 let contentCache = [];
 let contentContainer;
-let syncInterval = 300000; // 修改为5分钟
-let isUpdating = false; // 添加更新状态标志
-let zoomInstance = null;
-const SYNC_INTERVAL_KEY = 'sync_interval';
-const SYNC_INTERVAL_EXPIRY_KEY = 'sync_interval_expiry';
-const MAX_RETRY_COUNT = 3; // 添加最大重试次数
+let syncInterval = 30000; // 默认30秒
+let zoomInstance = null; // 追踪灯箱实例
+const SYNC_INTERVAL_KEY = 'sync_interval'; // 本地存储的key
+const SYNC_INTERVAL_EXPIRY_KEY = 'sync_interval_expiry'; // 过期时间的key
 
 // 获取同步间隔配置
 async function getSyncInterval() {
@@ -722,11 +720,14 @@ async function loadContents(showLoading = true) {
     }
 
     try {
+        // 首先尝试从本地缓存加载
         const cachedContent = localStorage.getItem(CONTENT_CACHE_KEY);
         const cacheExpiry = localStorage.getItem(CONTENT_CACHE_EXPIRY_KEY);
 
         if (cachedContent && cacheExpiry && new Date().getTime() < parseInt(cacheExpiry)) {
+            // 如果缓存有效，使用缓存的内容
             const newContent = JSON.parse(cachedContent);
+            // 只在第一次加载或内容为空时渲染
             if (!contentCache || contentCache.length === 0) {
                 contentCache = newContent;
                 await renderContents(contentCache);
@@ -734,12 +735,11 @@ async function loadContents(showLoading = true) {
             }
 
             // 在后台更新内容
-            if (!isUpdating) {
-                fetchAndUpdateContent(false);
-            }
+            fetchAndUpdateContent(false);
             return;
         }
 
+        // 如果没有有效缓存，从服务器获取
         await fetchAndUpdateContent(showLoading);
 
     } catch (error) {
@@ -747,99 +747,44 @@ async function loadContents(showLoading = true) {
         if (showLoading) {
             showError(`加载内容失败: ${error.message}`);
         }
-        // 如果加载失败但有缓存，继续使用缓存
-        if (contentCache && contentCache.length > 0) {
-            await renderContents(contentCache);
-        }
     }
 }
 
 // 从服务器获取并更新内容的函数
-async function fetchAndUpdateContent(showLoading = true, retryCount = 0) {
-    if (isUpdating) return; // 防止并发更新
-    isUpdating = true;
-
-    try {
-        const response = await fetch(API_BASE_URL, {
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.details || data.error || '加载失败');
+async function fetchAndUpdateContent(showLoading = true) {
+    const response = await fetch(API_BASE_URL, {
+        headers: {
+            'Accept': 'application/json'
         }
+    });
 
+    if (!response.ok) {
         const data = await response.json();
-        const hasContentChanged = JSON.stringify(contentCache) !== JSON.stringify(data);
-        
-        if (hasContentChanged) {
-            console.log('检测到内容变化，更新界面');
-            contentCache = data || [];
-            await renderContents(contentCache);
-
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
-            localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
-            localStorage.setItem(CONTENT_CACHE_EXPIRY_KEY, expiryDate.getTime().toString());
-            console.log('内容已更新并缓存');
-        } else {
-            console.log('内容未发生变化，保持当前显示');
-        }
-
-        lastUpdateTime = Date.now();
-
-    } catch (error) {
-        console.error('更新内容失败:', error);
-        // 重试逻辑
-        if (retryCount < MAX_RETRY_COUNT) {
-            console.log(`尝试第 ${retryCount + 1} 次重试`);
-            setTimeout(() => {
-                fetchAndUpdateContent(showLoading, retryCount + 1);
-            }, 1000 * (retryCount + 1)); // 递增重试延迟
-            return;
-        }
-        if (showLoading) {
-            showError(`更新失败: ${error.message}`);
-        }
-    } finally {
-        isUpdating = false;
+        throw new Error(data.details || data.error || '加载失败');
     }
-}
 
-// 开始更新检查
-function startUpdateCheck() {
-    stopUpdateCheck(); // 先清除可能存在的旧定时器
-    updateCheckInterval = setInterval(() => {
-        if (!document.hidden) { // 只在页面可见时更新
-            loadContents(false);
-        }
-    }, syncInterval);
-}
+    const data = await response.json();
 
-// 停止更新检查
-function stopUpdateCheck() {
-    if (updateCheckInterval) {
-        clearInterval(updateCheckInterval);
-        updateCheckInterval = null;
-    }
-}
+    // 比较新旧内容是否真的发生了变化
+    const hasContentChanged = JSON.stringify(contentCache) !== JSON.stringify(data);
+    
+    if (hasContentChanged) {
+        console.log('检测到内容变化，更新界面');
+        contentCache = data || [];
+        await renderContents(contentCache);
 
-// 页面可见性变化处理
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        stopUpdateCheck();
+        // 更新本地缓存
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
+        localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
+        localStorage.setItem(CONTENT_CACHE_EXPIRY_KEY, expiryDate.getTime().toString());
+        console.log('内容已更新并缓存');
     } else {
-        startUpdateCheck();
-        loadContents(false); // 页面重新可见时立即检查更新
+        console.log('内容未发生变化，保持当前显示');
     }
-});
 
-// 页面卸载时清理
-window.addEventListener('beforeunload', () => {
-    stopUpdateCheck();
-});
+    lastUpdateTime = Date.now();
+}
 
 // 修改删除内容函数,删除后同时更新缓存
 window.deleteContent = async function (id) {
@@ -1050,6 +995,41 @@ async function executeContentClear(button) {
     }
 }
 
+// 开始更新检查
+function startUpdateCheck() {
+    // 先清除可能存在的旧定时器
+    if (updateCheckInterval) {
+        clearInterval(updateCheckInterval);
+    }
+    updateCheckInterval = setInterval(() => loadContents(false), syncInterval);
+}
+
+// 停止更新检查
+function stopUpdateCheck() {
+    if (updateCheckInterval) {
+        clearInterval(updateCheckInterval);
+        updateCheckInterval = null;
+    }
+}
+
+// 添加页面卸载时的清理
+window.addEventListener('beforeunload', () => {
+    stopUpdateCheck();
+});
+
+// 添加页面可见性变化的处理
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // 页面不可见时停止检查
+        stopUpdateCheck();
+    } else {
+        // 页面可见时重新开始检查
+        startUpdateCheck();
+        // 立即检查一次更新
+        loadContents(false);
+    }
+});
+
 // DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
     // 检查密码保护
@@ -1067,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 初始化
     await loadContents(true);
     setupEventListeners();
-    startUpdateCheck();
+    startUpdateCheck(); // 开始定时检查
     initBackToTop();
 
     // 设置事件监听器
