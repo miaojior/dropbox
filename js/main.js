@@ -46,8 +46,13 @@ async function checkPasswordProtection() {
     }
 }
 
-// 验证密码
-async function verifyPassword() {
+// 修改验证密码函数
+async function verifyPassword(event) {
+    // 阻止表单默认提交行为
+    if (event) {
+        event.preventDefault();
+    }
+    
     const passwordInput = document.getElementById('accessPassword');
     const password = passwordInput.value;
 
@@ -68,7 +73,7 @@ async function verifyPassword() {
 
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').classList.remove('content-blur');
-            document.body.classList.remove('password-active'); // 移除禁止滚动的类
+            document.body.classList.remove('password-active');
             showToast('验证成功！');
         } else {
             showToast('密码错误！', 'error');
