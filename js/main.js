@@ -90,10 +90,27 @@ let contentCache = [];
 let contentContainer;
 let syncInterval = 30000; // 默认30秒
 let zoomInstance = null; // 追踪灯箱实例
+const SYNC_INTERVAL_KEY = 'sync_interval'; // 本地存储的key
+const SYNC_INTERVAL_EXPIRY_KEY = 'sync_interval_expiry'; // 过期时间的key
 
 // 获取同步间隔配置
 async function getSyncInterval() {
     try {
+        // 检查本地存储的值是否有效
+        const savedInterval = localStorage.getItem(SYNC_INTERVAL_KEY);
+        const expiry = localStorage.getItem(SYNC_INTERVAL_EXPIRY_KEY);
+        
+        if (savedInterval && expiry && new Date().getTime() < parseInt(expiry)) {
+            // 如果本地存储的值未过期,直接使用
+            const parsedInterval = parseInt(savedInterval);
+            if (!isNaN(parsedInterval) && parsedInterval >= 5000) {
+                syncInterval = parsedInterval;
+                console.log('从本地存储加载同步间隔:', syncInterval, 'ms');
+                return;
+            }
+        }
+
+        // 如果本地没有有效值,从服务器获取
         const response = await fetch('/_vars/SYNC_INTERVAL');
         if (response.ok) {
             const interval = await response.text();
@@ -101,11 +118,18 @@ async function getSyncInterval() {
             const parsedInterval = parseInt(interval);
             if (!isNaN(parsedInterval) && parsedInterval >= 5000) {
                 syncInterval = parsedInterval;
-                console.log('已从环境变量加载同步间隔:', syncInterval, 'ms');
+                
+                // 保存到本地存储,设置7天过期时间
+                const expiryDate = new Date();
+                expiryDate.setDate(expiryDate.getDate() + 7);
+                localStorage.setItem(SYNC_INTERVAL_KEY, syncInterval.toString());
+                localStorage.setItem(SYNC_INTERVAL_EXPIRY_KEY, expiryDate.getTime().toString());
+                
+                console.log('从服务器加载同步间隔:', syncInterval, 'ms');
             }
         }
     } catch (error) {
-        console.warn('无法获取同步间隔配置，使用默认值:', syncInterval, 'ms');
+        console.warn('无法获取同步间隔配置,使用默认值:', syncInterval, 'ms');
     }
 }
 
