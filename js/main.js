@@ -757,33 +757,67 @@ async function loadContents(showLoading = true) {
 
 // 从服务器获取并更新内容的函数
 async function fetchAndUpdateContent(showLoading = true) {
-    const response = await fetch(API_BASE_URL, {
-        headers: {
-            'Accept': 'application/json'
+    try {
+        const response = await fetch(API_BASE_URL, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.details || data.error || '加载失败');
         }
-    });
 
-    if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.details || data.error || '加载失败');
+        const newData = await response.json();
+
+        // 比较新旧数据是否有实质性变化
+        const hasContentChanged = checkContentChanged(contentCache, newData);
+        
+        if (hasContentChanged) {
+            console.log('检测到内容变化，更新界面');
+            contentCache = newData || [];
+            await renderContents(contentCache);
+
+            // 更新本地缓存
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
+            localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
+            localStorage.setItem(CONTENT_CACHE_EXPIRY_KEY, expiryDate.getTime().toString());
+        } else {
+            console.log('内容无变化，跳过更新');
+        }
+
+        lastUpdateTime = Date.now();
+    } catch (error) {
+        console.error('获取内容失败:', error);
+        if (showLoading) {
+            showError(`获取内容失败: ${error.message}`);
+        }
     }
+}
 
-    const data = await response.json();
+// 检查内容是否发生实质性变化
+function checkContentChanged(oldContent, newContent) {
+    if (!oldContent || !newContent) return true;
+    if (oldContent.length !== newContent.length) return true;
 
-    // 只有当数据发生变化时才更新
-    if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
-        contentCache = data || [];
-        await renderContents(contentCache);
+    // 创建一个函数来获取内容的关键属性用于比较
+    const getContentKey = (item) => {
+        return {
+            id: item.id,
+            type: item.type,
+            title: item.title,
+            content: item.content,
+            updatedAt: item.updatedAt
+        };
+    };
 
-        // 更新本地缓存
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
-        localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
-        localStorage.setItem(CONTENT_CACHE_EXPIRY_KEY, expiryDate.getTime().toString());
-        console.log('内容已更新并缓存');
-    }
+    // 将新旧内容转换为字符串进行比较
+    const oldContentStr = JSON.stringify(oldContent.map(getContentKey));
+    const newContentStr = JSON.stringify(newContent.map(getContentKey));
 
-    lastUpdateTime = Date.now();
+    return oldContentStr !== newContentStr;
 }
 
 // 修改删除内容函数,删除后同时更新缓存
