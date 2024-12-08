@@ -98,6 +98,7 @@ let contentCache = [];
 let contentContainer;
 let syncInterval = 30000; // 默认30秒
 let zoomInstance = null; // 追踪灯箱实例
+let isVideoPlaying = false; // 添加视频播放状态标志
 const SYNC_INTERVAL_KEY = 'sync_interval'; // 本地存储的key
 const SYNC_INTERVAL_EXPIRY_KEY = 'sync_interval_expiry'; // 过期时间的key
 
@@ -719,6 +720,12 @@ async function loadContents(showLoading = true) {
         contentContainer = document.getElementById('content-container');
     }
 
+    // 如果正在播放视频，跳过更新
+    if (isVideoPlaying) {
+        console.log('视频播放中，跳过内容更新');
+        return;
+    }
+
     try {
         // 首先尝试从本地缓存加载
         const cachedContent = localStorage.getItem(CONTENT_CACHE_KEY);
@@ -731,7 +738,9 @@ async function loadContents(showLoading = true) {
             console.log('从本地缓存加载内容');
 
             // 在后台更新内容
-            fetchAndUpdateContent(false);
+            if (!isVideoPlaying) {
+                fetchAndUpdateContent(false);
+            }
             return;
         }
 
@@ -986,7 +995,31 @@ async function executeContentClear(button) {
     }
 }
 
-// DOM元素
+// 添加视频播放状态监听
+function setupVideoPlaybackListeners() {
+    document.addEventListener('play', function (e) {
+        if (e.target.tagName === 'VIDEO') {
+            isVideoPlaying = true;
+            console.log('视频开始播放，暂停内容更新');
+        }
+    }, true);
+
+    document.addEventListener('pause', function (e) {
+        if (e.target.tagName === 'VIDEO') {
+            isVideoPlaying = false;
+            console.log('视频暂停，恢复内容更新');
+        }
+    }, true);
+
+    document.addEventListener('ended', function (e) {
+        if (e.target.tagName === 'VIDEO') {
+            isVideoPlaying = false;
+            console.log('视频播放结束，恢复内容更新');
+        }
+    }, true);
+}
+
+// 修改 DOM 加载完成的事件处理
 document.addEventListener('DOMContentLoaded', async () => {
     // 检查密码保护
     await checkPasswordProtection();
@@ -1003,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 初始化
     await loadContents(true);
     setupEventListeners();
+    setupVideoPlaybackListeners(); // 添加视频播放状态监听
     startUpdateCheck();
     initBackToTop();
 
