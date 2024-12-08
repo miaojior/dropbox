@@ -615,6 +615,13 @@ function renderContents(contents) {
         contentContainer = document.getElementById('content-container');
     }
 
+    // 保存当前所有 YouTube iframe 的状态
+    const youtubeIframes = Array.from(document.querySelectorAll('iframe[src*="youtube.com"]')).map(iframe => ({
+        element: iframe,
+        src: iframe.src,
+        parent: iframe.parentElement
+    }));
+
     if (!contents || contents.length === 0) {
         contentContainer.innerHTML = `
             <div class="empty">
@@ -631,6 +638,7 @@ function renderContents(contents) {
     contents.forEach(content => {
         const section = document.createElement('section');
         section.className = 'text-block';
+        section.dataset.contentId = content.id; // 添加内容ID标记
 
         let contentHtml = '';
         let downloadButton = '';
@@ -670,6 +678,7 @@ function renderContents(contents) {
                         .replace(/'/g, '&#039;')}</p>`)
                     .join('');
             } else {
+                // Markdown 内容处理
                 contentHtml = md.render(content.content);
             }
         } catch (error) {
@@ -677,21 +686,19 @@ function renderContents(contents) {
             contentHtml = `<div class="error-message">内容渲染失败</div>`;
         }
 
-        const encodedContent = encodeContent(content.content);
-        const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
-
+        // 设置section的innerHTML
         section.innerHTML = `
             <div class="text-block-header">
                 <h2>${content.title}</h2>
                 <div class="text-block-meta">
-                    <span class="modified-date">修改于 ${modifiedDate}</span>
+                    <span class="modified-date">修改于 ${formatDate(content.updatedAt || content.createdAt || Date.now())}</span>
                 </div>
             </div>
             <div class="${content.type}">
                 ${contentHtml}
             </div>
             <div class="text-block-actions">
-                <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
+                <button class="btn btn-copy" onclick="copyText('${encodeContent(content.content)}', '${content.type}')">复制</button>
                 ${downloadButton}
                 <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
                 <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
@@ -704,6 +711,20 @@ function renderContents(contents) {
     // 一次性更新DOM
     contentContainer.innerHTML = '';
     contentContainer.appendChild(fragment);
+
+    // 恢复 YouTube iframe 的状态
+    youtubeIframes.forEach(({ element, src, parent }) => {
+        const contentId = parent.closest('.text-block')?.dataset.contentId;
+        if (contentId) {
+            const newSection = contentContainer.querySelector(`.text-block[data-content-id="${contentId}"]`);
+            if (newSection) {
+                const newIframe = newSection.querySelector('iframe[src*="youtube.com"]');
+                if (newIframe) {
+                    newIframe.src = src;
+                }
+            }
+        }
+    });
 
     // 初始化功能
     requestAnimationFrame(() => {
@@ -804,13 +825,20 @@ function checkContentChanged(oldContent, newContent) {
 
     // 创建一个函数来获取内容的关键属性用于比较
     const getContentKey = (item) => {
-        return {
+        const key = {
             id: item.id,
             type: item.type,
             title: item.title,
             content: item.content,
             updatedAt: item.updatedAt
         };
+        
+        // 如果内容包含 YouTube iframe，不触发更新
+        if (item.content.includes('youtube.com/embed/')) {
+            key.content = 'youtube-video'; // 使用固定值，避免内容比较
+        }
+        
+        return key;
     };
 
     // 将新旧内容转换为字符串进行比较
