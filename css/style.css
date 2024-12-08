@@ -1769,7 +1769,7 @@ select {
             var(--skeleton-middle) 50%,
             var(--skeleton-start) 75%);
     background-size: 1000px 100%;
-    animation: shimmer 1s infinite linear;
+    animation: shimmer 2.5s infinite linear;
     margin-bottom: 1rem;
     border-radius: 6px;
     width: 60%;
@@ -1782,7 +1782,7 @@ select {
             var(--skeleton-middle) 50%,
             var(--skeleton-start) 75%);
     background-size: 1000px 100%;
-    animation: shimmer 1s infinite linear;
+    animation: shimmer 2.5s infinite linear;
     margin-bottom: 2rem;
     border-radius: 4px;
     width: 40%;
@@ -1795,7 +1795,7 @@ select {
             var(--skeleton-middle) 50%,
             var(--skeleton-start) 75%);
     background-size: 1000px 100%;
-    animation: shimmer 1s infinite linear;
+    animation: shimmer 2.5s infinite linear;
     margin-bottom: 1rem;
     border-radius: 4px;
 }
