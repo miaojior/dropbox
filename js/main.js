@@ -98,7 +98,6 @@ let contentCache = [];
 let contentContainer;
 let syncInterval = 30000; // 默认30秒
 let zoomInstance = null; // 追踪灯箱实例
-let isVideoPlaying = false; // 添加视频播放状态标志
 const SYNC_INTERVAL_KEY = 'sync_interval'; // 本地存储的key
 const SYNC_INTERVAL_EXPIRY_KEY = 'sync_interval_expiry'; // 过期时间的key
 
@@ -447,43 +446,20 @@ function formatDate(timestamp) {
 
 // 初始化 markdown-it
 const md = window.markdownit({
-    html: true,
-    breaks: true,
-    linkify: true,
-    typographer: true
-}).use(window.markdownitEmoji)
-  .use(window.markdownitSub)
-  .use(window.markdownitSup)
-  .use(window.markdownitFootnote)
-  .use(window.markdownitTaskLists);
-
-// 自定义 YouTube iframe 渲染
-const defaultRender = md.renderer.rules.html_block || function(tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-};
-
-md.renderer.rules.html_block = function(tokens, idx, options, env, self) {
-    const content = tokens[idx].content;
-    
-    // 检测是否是 YouTube iframe
-    if (content.includes('youtube.com/embed/')) {
-        // 修改 iframe 参数
-        return content.replace(/src="([^"]+)"/, (match, url) => {
-            const newUrl = new URL(url);
-            // 添加参数以优化加载
-            newUrl.searchParams.set('enablejsapi', '0');  // 禁用 JS API
-            newUrl.searchParams.set('rel', '0');          // 禁用相关视频
-            newUrl.searchParams.set('modestbranding', '1'); // 简化品牌展示
-            newUrl.searchParams.set('iv_load_policy', '3'); // 禁用视频注释
-            newUrl.searchParams.set('disablekb', '1');    // 禁用键盘控制
-            newUrl.searchParams.set('playsinline', '1');  // 在当前页面播放
-            newUrl.searchParams.set('fs', '0');           // 禁用全屏按钮
-            return `src="${newUrl.toString()}" loading="lazy"`;
-        });
-    }
-    
-    return defaultRender(tokens, idx, options, env, self);
-};
+    html: true,        // 启用 HTML 标签
+    breaks: true,      // 转换换行符为 <br>
+    linkify: true,     // 自动转换 URL 为链接
+    typographer: true, // 启用一些语言中性的替换和引号美化
+    quotes: ['""', '\'\'']    // 引号样式
+}).use(window.markdownitEmoji)                 // 启用表情
+    .use(window.markdownitSub)                   // 启用下标
+    .use(window.markdownitSup)                   // 启用上标
+    .use(window.markdownitFootnote)              // 启用脚注
+    .use(window.markdownitTaskLists, {           // 启用任务列表
+        enabled: true,
+        label: true,
+        labelAfter: true
+    });
 
 // 初始化灯箱效果
 const zoom = mediumZoom('[data-zoomable]', {
@@ -638,17 +614,6 @@ function renderContents(contents) {
         contentContainer = document.getElementById('content-container');
     }
 
-    // 保存当前所有 YouTube iframe 的状态
-    const youtubeIframes = Array.from(document.querySelectorAll('iframe[src*="youtube.com"]')).map(iframe => {
-        const currentTime = iframe.contentWindow?.document.querySelector('video')?.currentTime || 0;
-        return {
-            element: iframe,
-            src: iframe.src,
-            parent: iframe.parentElement,
-            currentTime
-        };
-    });
-
     if (!contents || contents.length === 0) {
         contentContainer.innerHTML = `
             <div class="empty">
@@ -665,7 +630,6 @@ function renderContents(contents) {
     contents.forEach(content => {
         const section = document.createElement('section');
         section.className = 'text-block';
-        section.dataset.contentId = content.id; // 添加内容ID标记
 
         let contentHtml = '';
         let downloadButton = '';
@@ -705,7 +669,6 @@ function renderContents(contents) {
                         .replace(/'/g, '&#039;')}</p>`)
                     .join('');
             } else {
-                // Markdown 内容处理
                 contentHtml = md.render(content.content);
             }
         } catch (error) {
@@ -713,19 +676,21 @@ function renderContents(contents) {
             contentHtml = `<div class="error-message">内容渲染失败</div>`;
         }
 
-        // 设置section的innerHTML
+        const encodedContent = encodeContent(content.content);
+        const modifiedDate = formatDate(content.updatedAt || content.createdAt || Date.now());
+
         section.innerHTML = `
             <div class="text-block-header">
                 <h2>${content.title}</h2>
                 <div class="text-block-meta">
-                    <span class="modified-date">修改于 ${formatDate(content.updatedAt || content.createdAt || Date.now())}</span>
+                    <span class="modified-date">修改于 ${modifiedDate}</span>
                 </div>
             </div>
             <div class="${content.type}">
                 ${contentHtml}
             </div>
             <div class="text-block-actions">
-                <button class="btn btn-copy" onclick="copyText('${encodeContent(content.content)}', '${content.type}')">复制</button>
+                <button class="btn btn-copy" onclick="copyText('${encodedContent}', '${content.type}')">复制</button>
                 ${downloadButton}
                 <button class="btn btn-edit" onclick="editContent(${content.id})">编辑</button>
                 <button class="btn btn-delete" onclick="deleteContent(${content.id})">删除</button>
@@ -738,32 +703,6 @@ function renderContents(contents) {
     // 一次性更新DOM
     contentContainer.innerHTML = '';
     contentContainer.appendChild(fragment);
-
-    // 恢复 YouTube iframe 的状态
-    youtubeIframes.forEach(({ element, src, parent, currentTime }) => {
-        const contentId = parent.closest('.text-block')?.dataset.contentId;
-        if (contentId) {
-            const newSection = contentContainer.querySelector(`.text-block[data-content-id="${contentId}"]`);
-            if (newSection) {
-                const newIframe = newSection.querySelector('iframe[src*="youtube.com"]');
-                if (newIframe) {
-                    // 保持原有参数，但确保添加了优化参数
-                    const url = new URL(src);
-                    url.searchParams.set('enablejsapi', '0');
-                    url.searchParams.set('rel', '0');
-                    url.searchParams.set('modestbranding', '1');
-                    url.searchParams.set('iv_load_policy', '3');
-                    url.searchParams.set('disablekb', '1');
-                    url.searchParams.set('playsinline', '1');
-                    url.searchParams.set('fs', '0');
-                    if (currentTime > 0) {
-                        url.searchParams.set('start', Math.floor(currentTime));
-                    }
-                    newIframe.src = url.toString();
-                }
-            }
-        }
-    });
 
     // 初始化功能
     requestAnimationFrame(() => {
@@ -780,31 +719,27 @@ async function loadContents(showLoading = true) {
         contentContainer = document.getElementById('content-container');
     }
 
-    // 如果正在播放视频，跳过更新
-    if (isVideoPlaying) {
-        console.log('视频播放中，跳过内容更新');
-        return;
-    }
-
     try {
         // 首先尝试从本地缓存加载
         const cachedContent = localStorage.getItem(CONTENT_CACHE_KEY);
         const cacheExpiry = localStorage.getItem(CONTENT_CACHE_EXPIRY_KEY);
 
         if (cachedContent && cacheExpiry && new Date().getTime() < parseInt(cacheExpiry)) {
-            // 如果缓存有效,使用缓存的内容
-            contentCache = JSON.parse(cachedContent);
-            await renderContents(contentCache);
-            console.log('从本地缓存加载内容');
+            // 如果缓存有效，使用缓存的内容
+            const newContent = JSON.parse(cachedContent);
+            // 只在第一次加载或内容为空时渲染
+            if (!contentCache || contentCache.length === 0) {
+                contentCache = newContent;
+                await renderContents(contentCache);
+                console.log('从本地缓存加载内容');
+            }
 
             // 在后台更新内容
-            if (!isVideoPlaying) {
-                fetchAndUpdateContent(false);
-            }
+            fetchAndUpdateContent(false);
             return;
         }
 
-        // 如果没有有效缓存,从服务器获取
+        // 如果没有有效缓存，从服务器获取
         await fetchAndUpdateContent(showLoading);
 
     } catch (error) {
@@ -817,74 +752,38 @@ async function loadContents(showLoading = true) {
 
 // 从服务器获取并更新内容的函数
 async function fetchAndUpdateContent(showLoading = true) {
-    try {
-        const response = await fetch(API_BASE_URL, {
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.details || data.error || '加载失败');
+    const response = await fetch(API_BASE_URL, {
+        headers: {
+            'Accept': 'application/json'
         }
+    });
 
-        const newData = await response.json();
-
-        // 比较新旧数据是否有实质性变化
-        const hasContentChanged = checkContentChanged(contentCache, newData);
-        
-        if (hasContentChanged) {
-            console.log('检测到内容变化，更新界面');
-            contentCache = newData || [];
-            await renderContents(contentCache);
-
-            // 更新本地缓存
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
-            localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
-            localStorage.setItem(CONTENT_CACHE_EXPIRY_KEY, expiryDate.getTime().toString());
-        } else {
-            console.log('内容无变化，跳过更新');
-        }
-
-        lastUpdateTime = Date.now();
-    } catch (error) {
-        console.error('获取内容失败:', error);
-        if (showLoading) {
-            showError(`获取内容失败: ${error.message}`);
-        }
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.details || data.error || '加载失败');
     }
-}
 
-// 检查内容是否发生实质性变化
-function checkContentChanged(oldContent, newContent) {
-    if (!oldContent || !newContent) return true;
-    if (oldContent.length !== newContent.length) return true;
+    const data = await response.json();
 
-    // 创建一个函数来获取内容的关键属性用于比较
-    const getContentKey = (item) => {
-        const key = {
-            id: item.id,
-            type: item.type,
-            title: item.title,
-            content: item.content,
-            updatedAt: item.updatedAt
-        };
-        
-        // 如果内容包含 YouTube iframe，不触发更新
-        if (item.content.includes('youtube.com/embed/')) {
-            key.content = 'youtube-video'; // 使用固定值，避免内容比较
-        }
-        
-        return key;
-    };
+    // 比较新旧内容是否真的发生了变化
+    const hasContentChanged = JSON.stringify(contentCache) !== JSON.stringify(data);
+    
+    if (hasContentChanged) {
+        console.log('检测到内容变化，更新界面');
+        contentCache = data || [];
+        await renderContents(contentCache);
 
-    // 将新旧内容转换为字符串进行比较
-    const oldContentStr = JSON.stringify(oldContent.map(getContentKey));
-    const newContentStr = JSON.stringify(newContent.map(getContentKey));
+        // 更新本地缓存
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
+        localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
+        localStorage.setItem(CONTENT_CACHE_EXPIRY_KEY, expiryDate.getTime().toString());
+        console.log('内容已更新并缓存');
+    } else {
+        console.log('内容未发生变化，保持当前显示');
+    }
 
-    return oldContentStr !== newContentStr;
+    lastUpdateTime = Date.now();
 }
 
 // 修改删除内容函数,删除后同时更新缓存
@@ -1096,31 +995,7 @@ async function executeContentClear(button) {
     }
 }
 
-// 添加视频播放状态监听
-function setupVideoPlaybackListeners() {
-    document.addEventListener('play', function (e) {
-        if (e.target.tagName === 'VIDEO') {
-            isVideoPlaying = true;
-            console.log('视频开始播放，暂停内容更新');
-        }
-    }, true);
-
-    document.addEventListener('pause', function (e) {
-        if (e.target.tagName === 'VIDEO') {
-            isVideoPlaying = false;
-            console.log('视频暂停，恢复内容更新');
-        }
-    }, true);
-
-    document.addEventListener('ended', function (e) {
-        if (e.target.tagName === 'VIDEO') {
-            isVideoPlaying = false;
-            console.log('视频播放结束，恢复内容更新');
-        }
-    }, true);
-}
-
-// 修改 DOM 加载完成的事件处理
+// DOM元素
 document.addEventListener('DOMContentLoaded', async () => {
     // 检查密码保护
     await checkPasswordProtection();
@@ -1137,7 +1012,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 初始化
     await loadContents(true);
     setupEventListeners();
-    setupVideoPlaybackListeners(); // 添加视频播放状态监听
     startUpdateCheck();
     initBackToTop();
 
@@ -1248,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 检文本是否为代码
     function detectCodeContent(text) {
-        // 代码征检测规则
+        // 代码检测规则
         const codePatterns = [
             /^(const|let|var|function|class|import|export|if|for|while)\s/m,  // 常见的代码关键字
             /{[\s\S]*}/m,  // 包含花括号的代码块
