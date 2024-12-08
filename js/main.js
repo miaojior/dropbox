@@ -46,13 +46,11 @@ async function checkPasswordProtection() {
     }
 }
 
-// 修改验证密码函数
+// 验证密码
 async function verifyPassword(event) {
-    // 阻止表单默认提交行为
     if (event) {
         event.preventDefault();
     }
-    
     const passwordInput = document.getElementById('accessPassword');
     const password = passwordInput.value;
 
@@ -109,7 +107,7 @@ async function getSyncInterval() {
         // 检查本地存储的值是否有效
         const savedInterval = localStorage.getItem(SYNC_INTERVAL_KEY);
         const expiry = localStorage.getItem(SYNC_INTERVAL_EXPIRY_KEY);
-        
+
         if (savedInterval && expiry && new Date().getTime() < parseInt(expiry)) {
             // 如果本地存储的值未过期,直接使用
             const parsedInterval = parseInt(savedInterval);
@@ -128,13 +126,13 @@ async function getSyncInterval() {
             const parsedInterval = parseInt(interval);
             if (!isNaN(parsedInterval) && parsedInterval >= 5000) {
                 syncInterval = parsedInterval;
-                
+
                 // 保存到本地存储,设置7天过期时间
                 const expiryDate = new Date();
                 expiryDate.setDate(expiryDate.getDate() + 7);
                 localStorage.setItem(SYNC_INTERVAL_KEY, syncInterval.toString());
                 localStorage.setItem(SYNC_INTERVAL_EXPIRY_KEY, expiryDate.getTime().toString());
-                
+
                 console.log('从服务器加载同步间隔:', syncInterval, 'ms');
             }
         }
@@ -725,13 +723,13 @@ async function loadContents(showLoading = true) {
         // 首先尝试从本地缓存加载
         const cachedContent = localStorage.getItem(CONTENT_CACHE_KEY);
         const cacheExpiry = localStorage.getItem(CONTENT_CACHE_EXPIRY_KEY);
-        
+
         if (cachedContent && cacheExpiry && new Date().getTime() < parseInt(cacheExpiry)) {
             // 如果缓存有效,使用缓存的内容
             contentCache = JSON.parse(cachedContent);
             await renderContents(contentCache);
             console.log('从本地缓存加载内容');
-            
+
             // 在后台更新内容
             fetchAndUpdateContent(false);
             return;
@@ -803,10 +801,10 @@ window.deleteContent = async function (id) {
             // 更新内容缓存
             contentCache = contentCache.filter(item => item.id !== id);
             renderContents(contentCache);
-            
+
             // 更新本地存储
             localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
-            
+
             showToast('删除成功！');
         } catch (error) {
             console.error('删除失败:', error);
