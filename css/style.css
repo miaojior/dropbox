@@ -979,7 +979,7 @@ code {
 }
 
 [data-theme="dark"] .theme-toggle {
-    background-color: #3498db;
+    background-color: #9333ea;
 }
 
 [data-theme="dark"] .theme-toggle::before {
