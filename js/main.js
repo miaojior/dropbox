@@ -10,6 +10,11 @@ const PASSWORD_VERIFIED_KEY = 'password_verified';
 const PASSWORD_VERIFIED_EXPIRY_KEY = 'password_verified_expiry';
 const VERIFY_EXPIRY_DAYS = 15;
 
+// 添加内容缓存相关的常量
+const CONTENT_CACHE_KEY = 'content_cache';  // 内容缓存的key
+const CONTENT_CACHE_EXPIRY_KEY = 'content_cache_expiry';  // 内容缓存过期时间的key
+const CACHE_EXPIRY_DAYS = 7;  // 缓存有效期7天
+
 // 检查密码验证状态
 async function checkPasswordProtection() {
     try {
@@ -705,7 +710,71 @@ function renderContents(contents) {
     });
 }
 
-// 删除内容函数
+// 修改加载内容函数
+async function loadContents(showLoading = true) {
+    if (!contentContainer) {
+        contentContainer = document.getElementById('content-container');
+    }
+
+    try {
+        // 首先尝试从本地缓存加载
+        const cachedContent = localStorage.getItem(CONTENT_CACHE_KEY);
+        const cacheExpiry = localStorage.getItem(CONTENT_CACHE_EXPIRY_KEY);
+        
+        if (cachedContent && cacheExpiry && new Date().getTime() < parseInt(cacheExpiry)) {
+            // 如果缓存有效,使用缓存的内容
+            contentCache = JSON.parse(cachedContent);
+            await renderContents(contentCache);
+            console.log('从本地缓存加载内容');
+            
+            // 在后台更新内容
+            fetchAndUpdateContent(false);
+            return;
+        }
+
+        // 如果没有有效缓存,从服务器获取
+        await fetchAndUpdateContent(showLoading);
+
+    } catch (error) {
+        console.error('加载内容失败:', error);
+        if (showLoading) {
+            showError(`加载内容失败: ${error.message}`);
+        }
+    }
+}
+
+// 从服务器获取并更新内容的函数
+async function fetchAndUpdateContent(showLoading = true) {
+    const response = await fetch(API_BASE_URL, {
+        headers: {
+            'Accept': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.details || data.error || '加载失败');
+    }
+
+    const data = await response.json();
+
+    // 只有当数据发生变化时才更新
+    if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
+        contentCache = data || [];
+        await renderContents(contentCache);
+
+        // 更新本地缓存
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
+        localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
+        localStorage.setItem(CONTENT_CACHE_EXPIRY_KEY, expiryDate.getTime().toString());
+        console.log('内容已更新并缓存');
+    }
+
+    lastUpdateTime = Date.now();
+}
+
+// 修改删除内容函数,删除后同时更新缓存
 window.deleteContent = async function (id) {
     const confirmed = await showConfirmDialog(
         '确认删除',
@@ -726,8 +795,13 @@ window.deleteContent = async function (id) {
                 throw new Error(data.error || '删除失败');
             }
 
+            // 更新内容缓存
             contentCache = contentCache.filter(item => item.id !== id);
             renderContents(contentCache);
+            
+            // 更新本地存储
+            localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(contentCache));
+            
             showToast('删除成功！');
         } catch (error) {
             console.error('删除失败:', error);
@@ -1105,51 +1179,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 开始更新检查
     function startUpdateCheck() {
         updateCheckInterval = setInterval(() => loadContents(false), syncInterval);
-    }
-
-    // 加载有内容
-    async function loadContents(showLoading = true) {
-        if (!contentContainer) {
-            contentContainer = document.getElementById('content-container');
-        }
-
-        try {
-            const response = await fetch(API_BASE_URL, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.details || data.error || '加载失败');
-            }
-
-            const data = await response.json();
-
-            // 只有当数据发生变化时才重新渲染
-            if (JSON.stringify(contentCache) !== JSON.stringify(data)) {
-                contentCache = data || [];
-                await renderContents(contentCache);  // 等待渲染完成
-            }
-
-            lastUpdateTime = Date.now();
-        } catch (error) {
-            console.error('加载内容失败:', error);
-            if (showLoading) {
-                showError(`加载内容失败: ${error.message}`);
-            }
-        }
-    }
-
-    // 显示错误信息
-    function showError(message) {
-        contentContainer.innerHTML = `
-            <div class="error">
-                ${message}
-                <button class="btn" onclick="location.reload()">重试</button>
-            </div>
-        `;
     }
 
     // 打开模态框
