@@ -19,7 +19,7 @@ button[type="submit"],
     font-size: 0.875rem;
     font-weight: 500;
     min-width: 4rem;
-    border: none;
+    border: 1px solid #613e7f;
     cursor: pointer;
     color: white !important;
     background-color: #333333 !important;
