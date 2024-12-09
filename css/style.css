@@ -2124,13 +2124,3 @@ img {
 [data-theme="dark"] .video-container {
     background: #1a1a1a;
 }
-
-/* 深色模式下的按钮边框 */
-[data-theme="dark"] .add-new-content {
-    border: 1px solid #613e7f !important;
-}
-
-/* 浅色模式下的按钮边框 */
-[data-theme="light"] .add-new-content {
-    border: 1px solid #613e7f !important;
-}
