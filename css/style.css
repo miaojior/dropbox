@@ -955,7 +955,7 @@ code {
 .theme-toggle {
     position: fixed;
     top: 20px;
-    right: -40px; /* 默认隐藏在右侧 */
+    right: -45px; /* 默认隐藏在右侧 */
     width: 48px;
     height: 24px;
     border-radius: 12px;
