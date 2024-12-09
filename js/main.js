@@ -1225,6 +1225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 打开模态框
     window.openModal = function () {
+        document.body.classList.add('no-scroll');
         currentEditId = null;
         const editForm = document.getElementById('editForm');
         const editType = document.getElementById('editType');
@@ -1277,6 +1278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 关闭模态框
     window.closeModal = function () {
+        document.body.classList.remove('no-scroll');
         document.getElementById('editModal').style.display = 'none';
         document.getElementById('editForm').reset();
         document.getElementById('imagePreview').innerHTML = '';
