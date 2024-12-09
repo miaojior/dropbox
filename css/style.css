@@ -222,7 +222,7 @@ body {
     background-image:
         linear-gradient(var(--grid-color) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-    background-size: 30px 30px;
+    background-size: 35px 35px;
     /* 使用 calc 计算背景位置,使网格居中 */
     background-position: calc(50% + 0.5px) calc(50% + 0.5px);
     background-attachment: fixed;
