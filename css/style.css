@@ -7,12 +7,15 @@
 
 /* 隐藏滚动条但保持滚动功能 */
 * {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
 }
 
 *::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
+    /* Chrome, Safari and Opera */
 }
 
 /* 按钮基础样式 - 移到文件最前面确保优先加载 */
@@ -220,10 +223,27 @@ body {
         linear-gradient(var(--grid-color) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
     background-size: 30px 30px;
-    background-position: -7px -15px;
-    /* 水平方向考虑滚动条宽度(约17px)的一半偏移 */
     background-attachment: fixed;
     transition: background-color 0.3s, color 0.1s;
+    position: relative;
+    overflow-x: hidden; /* 防止水平滚动条 */
+}
+
+/* 添加一个伪元素来创建居中的网格 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: -50%;
+    bottom: -50%;
+    width: 100vw;
+    height: 100vh;
+    transform: translate(-50%, -50%);
+    background-image: inherit;
+    background-size: inherit;
+    pointer-events: none;
+    z-index: -1;
 }
 
 .container {
@@ -965,7 +985,8 @@ code {
 .theme-toggle {
     position: fixed;
     top: 20px;
-    right: -45px; /* 默认隐藏在右侧 */
+    right: -45px;
+    /* 默认隐藏在右侧 */
     width: 48px;
     height: 24px;
     border-radius: 12px;
@@ -977,7 +998,8 @@ code {
     transition: all 0.3s ease;
     border: none;
     z-index: 1000;
-    opacity: 0.6; /* 默认半透明 */
+    opacity: 0.6;
+    /* 默认半透明 */
 }
 
 /* 创建一个悬停区域 */
@@ -985,8 +1007,10 @@ code {
     position: fixed;
     top: 0;
     right: 0;
-    width: 80px; /* 悬停区域宽度 */
-    height: 60px; /* 悬停区域高度 */
+    width: 80px;
+    /* 悬停区域宽度 */
+    height: 60px;
+    /* 悬停区域高度 */
     z-index: 999;
 }
 
@@ -2134,7 +2158,8 @@ img {
 
 .video-container.youtube,
 .video-container.bilibili {
-    padding-bottom: 56.25%; /* 16:9 比例 */
+    padding-bottom: 56.25%;
+    /* 16:9 比例 */
     height: 0;
 }
 
