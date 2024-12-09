@@ -59,8 +59,7 @@
         .copy-button:hover {
             background: #e1e1e1;
         }
-
-        /* 返回顶部按钮样式 */
+       /* 返回顶部按钮样式 */
         .back-to-top {
             position: fixed;
             right: 20px;
@@ -261,10 +260,18 @@
         <div class="password-container">
             <h2>🔒 请输入访问密码</h2>
             <form id="passwordForm" onsubmit="verifyPassword(event)">
-                <input type="text" id="accessUsername" name="username" autocomplete="username" style="display: none"
-                    value="visitor">
-                <input type="password" id="accessPassword" name="password" placeholder="没啥好康的😋" autofocus
-                    autocomplete="current-password">
+                <input type="text" 
+                       id="accessUsername" 
+                       name="username" 
+                       autocomplete="username" 
+                       style="display: none"
+                       value="visitor">
+                <input type="password" 
+                       id="accessPassword" 
+                       name="password"
+                       placeholder="没啥好康的😋" 
+                       autofocus 
+                       autocomplete="current-password">
                 <button type="submit">🥳确认</button>
             </form>
         </div>
