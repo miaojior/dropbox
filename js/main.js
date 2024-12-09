@@ -13,7 +13,7 @@ const VERIFY_EXPIRY_DAYS = 15;
 // 添加内容缓存相关的常量
 const CONTENT_CACHE_KEY = 'content_cache';  // 内容缓存的key
 const CONTENT_CACHE_EXPIRY_KEY = 'content_cache_expiry';  // 内容缓存过期时间的key
-const CACHE_EXPIRY_DAYS = 7;  // 缓存有效期7天
+const CACHE_EXPIRY_DAYS = 15;  // 缓存有效期7天
 
 // 检查密码验证状态
 async function checkPasswordProtection() {
