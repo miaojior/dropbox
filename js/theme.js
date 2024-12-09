@@ -1,10 +1,17 @@
 // 主题切换功能
 function initTheme() {
+    // 创建悬停区域
+    const hoverArea = document.createElement('div');
+    hoverArea.className = 'theme-toggle-hover-area';
+    
     // 创建主题切换按钮
     const themeToggle = document.createElement('button');
     themeToggle.className = 'theme-toggle';
     themeToggle.setAttribute('aria-label', '切换深色模式');
-    document.body.appendChild(themeToggle);
+    
+    // 将按钮添加到悬停区域中
+    hoverArea.appendChild(themeToggle);
+    document.body.appendChild(hoverArea);
 
     // 从localStorage读取主题设置
     const savedTheme = localStorage.getItem('theme') || 'light';
