@@ -19,7 +19,7 @@ button[type="submit"],
     font-size: 0.875rem;
     font-weight: 500;
     min-width: 4rem;
-    border: 1px solid #613e7f !important;
+    border: 1px solid #613e7f;
     cursor: pointer;
     color: white !important;
     background-color: #333333 !important;
@@ -35,7 +35,7 @@ button[type="submit"],
     background-color: #333333 !important;
     color: white !important;
     font-weight: 600;
-    border: 1px solid #613e7f !important;
+    border: 1px solid #613e7f;
     padding: 0.625rem 1.25rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     opacity: 1 !important;
@@ -1843,7 +1843,7 @@ select {
 .btn-danger {
     background-color: #dc3545;
     color: white;
-    border: 1px solid #dc3545;
+    border: 1px solid #613e7f;
 }
 
 .btn-danger:hover {
@@ -1858,7 +1858,7 @@ select {
 
 [data-theme="dark"] .btn-danger:hover {
     background-color: #c82333;
-    border-color: #bd2130;
+    border-color: #613e7f;
 }
 
 .btn-icon {
