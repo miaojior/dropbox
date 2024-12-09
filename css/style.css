@@ -19,7 +19,7 @@ button[type="submit"],
     font-size: 0.875rem;
     font-weight: 500;
     min-width: 4rem;
-    border: 1px solid #613e7f;
+    border: none;
     cursor: pointer;
     color: white !important;
     background-color: #333333 !important;
@@ -1853,7 +1853,7 @@ select {
 
 [data-theme="dark"] .btn-danger {
     background-color: #dc3545;
-    border-color: #dc3545;
+    border-color: #613e7f;
 }
 
 [data-theme="dark"] .btn-danger:hover {
