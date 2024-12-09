@@ -388,3 +388,89 @@ Drop中转站是一个基于 Cloudflare Pages 的多功能内容分享平台，�
 ## 开源协议
 
 本项目采用 MIT 协议开源。
+
+## CDN 配置说明
+
+本项目使用了多个 CDN 来加载外部资源，主要包括以下几个：
+
+### 1. 南科大镜像（mirrors.sustech.edu.cn）
+主要用于加载 Prism.js 核心文件：
+```html
+<script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/prism/1.29.0/prism.min.js"></script>
+```
+
+### 2. Zstatic CDN（s4.zstatic.net）
+用于加载大部分 JavaScript 库和 CSS 文件：
+
+```html
+<!-- Prism.js 样式和组件 -->
+<link rel="stylesheet" href="https://s4.zstatic.net/npm/prismjs@1.29.0/themes/prism.min.css">
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-clike.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-markup-templating.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-markup.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-csharp.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-php.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+<script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+
+<!-- Markdown-it 及其插件 -->
+<script src="https://s4.zstatic.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+<script src="https://s4.zstatic.net/npm/markdown-it-emoji/dist/markdown-it-emoji.min.js"></script>
+<script src="https://s4.zstatic.net/npm/markdown-it-sub/dist/markdown-it-sub.min.js"></script>
+<script src="https://s4.zstatic.net/npm/markdown-it-sup/dist/markdown-it-sup.min.js"></script>
+<script src="https://s4.zstatic.net/npm/markdown-it-footnote/dist/markdown-it-footnote.min.js"></script>
+<script src="https://s4.zstatic.net/npm/markdown-it-task-lists/dist/markdown-it-task-lists.min.js"></script>
+
+<!-- Medium-zoom 图片预览 -->
+<script src="https://s4.zstatic.net/npm/medium-zoom/dist/medium-zoom.min.js"></script>
+```
+
+### CDN 切换说明
+
+如果需要切换 CDN 源，可以考虑以下备选方案：
+
+1. **jsDelivr**
+```html
+<!-- 示例：切换到 jsDelivr -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+```
+
+2. **UNPKG**
+```html
+<!-- 示例：切换到 UNPKG -->
+<script src="https://unpkg.com/prismjs@1.29.0/prism.min.js"></script>
+```
+
+3. **cdnjs**
+```html
+<!-- 示例：切换到 cdnjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+```
+
+### CDN 选择建议
+
+1. **国内访问**：
+   - 优先使用南科大镜像或 Zstatic
+   - 备选：字节跳动静态资源公共库
+
+2. **国外访问**：
+   - 优先使用 jsDelivr 或 cdnjs
+   - 备选：UNPKG
+
+3. **自定义域名**：
+   - 可以使用 Cloudflare Workers 自建 CDN
+   - 支持自定义缓存策略和访问控制
+
+4. **注意事项**：
+   - 建议保留多个备用 CDN 源
+   - 可以通过 JavaScript 动态检测 CDN 可用性
+   - 关键资源建议本地部署备份
