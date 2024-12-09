@@ -150,7 +150,7 @@ Drop中转站是一个基于 Cloudflare Pages 的多功能内容分享平台，�
    - 文件：显示下载链接
    - 超长内容自动截断并添加提示
 
-5. 使用前提：
+5. 使用提示：
    - Bot 需要已被添加到目标群组
    - Bot 需要具有发送消息的权限
    - 群组 ID 必须为数字格式
@@ -187,6 +187,12 @@ Drop中转站是一个基于 Cloudflare Pages 的多功能内容分享平台，�
   - Cloudflare Workers 处理动态请求
   - Cloudflare D1 SQLite 数据库存储内容
   - Cloudflare KV 存储图片和文件
+- 核心功能：
+  - 数据库表结构自动创建和管理
+  - 文件和图片的 KV 存储管理
+  - CORS 跨域支持
+  - 可选的密码保护功能
+  - 可选的 Telegram 通知集成
 
 ## 项目结构
 
@@ -197,19 +203,56 @@ Drop中转站是一个基于 Cloudflare Pages 的多功能内容分享平台，�
 │   └── style.css               # 主样式文件
 ├── js/                         # JavaScript文件
 │   ├── main.js                # 主逻辑文件
-│   └── theme.js               # 主题相关
+│   └── theme.js               # 主题切换功能
 ├── functions/                  # Cloudflare Functions
-│   ├── contents/              # 内容管理相关API
-│   │   └── [id].js           # 内容CRUD操作
-│   ├── images/               # 图片处理相关API
-│   │   └── [name].js        # 图片上传和获取
-│   └── files/               # 文件处理相关API
-│       ├── upload.js        # 文件上传
-│       └── [name].js        # 文件获取和删除
-├── schema.sql                # 数据库结构
-├── _routes.json             # API路由配置
-└── README.md               # 项目文档
+│   ├── _middleware.js         # 中间件：数据库初始化和CORS
+│   ├── _telegram.js          # Telegram 通知功能
+│   ├── _vars/               # 环境变量访问
+│   │   └── [name].js       # 环境变量获取API
+│   ├── contents.js          # 内容列表管理
+│   ├── contents/           # 内容详细操作
+│   │   └── [id].js        # 单个内容的CRUD
+│   ├── images.js          # 图片上传和列表
+│   ├── images/           # 图片详细操作
+│   │   └── [name].js    # 单个图片的处理
+│   ├── files.js         # 文件管理
+│   ├── files/          # 文件详细操作
+│   │   ├── upload.js  # 文件上传处理
+│   │   └── [name].js  # 单个文件的处理
+│   └── clear-all.js   # 清空所有数据
+├── _routes.json       # API路由配置
+└── package.json      # 项目配置和依赖
 ```
+
+### 关键文件说明
+
+1. **核心配置文件**:
+   - `_routes.json`: 定义所有API路由和访问权限
+   - `package.json`: 项目依赖和命令配置
+
+2. **前端文件**:
+   - `index.html`: 主页面和UI组件
+   - `style.css`: 样式定义，包括深色模式
+   - `main.js`: 主要业务逻辑
+   - `theme.js`: 主题切换功能
+
+3. **后端功能**:
+   - `_middleware.js`: 
+     - 数据库初始化
+     - 表结构创建
+     - CORS 处理
+   - `_telegram.js`:
+     - Telegram 消息格式化
+     - 通知发送逻辑
+   - `contents.js` 和 `contents/[id].js`:
+     - 内容的增删改查
+     - 数据库操作
+   - `images.js` 和 `files.js`:
+     - 文件上传处理
+     - KV 存储管理
+   - `clear-all.js`:
+     - 数据清理
+     - 存储空间管理
 
 ## 使用教程
 
@@ -322,7 +365,7 @@ Drop中转站是一个基于 Cloudflare Pages 的多功能内容分享平台，�
   - 值必须大于等于5000（5秒）
   - 较短的同步间隔会增加API请求频率
   - 建议根据实际需求和免费额度（10万次/天）合理设置
-  - 计算公式：`(24小时 * 3600秒) / (同步间隔秒数) = 每天请求次数/用户`
+  - 计算公式：`(24小时 * 3600秒) / (同步间隔数) = 每天请求次数/用户`
 
 ## 常见问题
 
