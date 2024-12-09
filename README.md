@@ -393,10 +393,10 @@ Drop中转站是一个基于 Cloudflare Pages 的多功能内容分享平台，�
 
 本项目使用了多个 CDN 来加载外部资源，主要包括以下几个：
 
-### 1. 南科大镜像（mirrors.sustech.edu.cn）
+### 1. JSD 镜像（jsd.cdn.zzko.cn）
 主要用于加载 Prism.js 核心文件：
 ```html
-<script src="https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://jsd.cdn.zzko.cn/npm/prismjs@1.29.0/prism.min.js"></script>
 ```
 
 ### 2. Zstatic CDN（s4.zstatic.net）
