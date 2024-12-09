@@ -619,7 +619,7 @@ function renderContents(contents) {
             <div class="empty">
                 <div class="empty-icon">📝</div>
                 <div class="empty-text">还没有任何内容</div>
-                <div class="empty-hint">点击"添加新内容"开始创建</div>
+                <div class="empty-hint">点击"添加内容"开始创建</div>
             </div>
         `;
         return;
