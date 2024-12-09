@@ -444,22 +444,37 @@ function formatDate(timestamp) {
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-// 初始化 markdown-it
-const md = window.markdownit({
-    html: true,        // 启用 HTML 标签
-    breaks: true,      // 转换换行符为 <br>
-    linkify: true,     // 自动转换 URL 为链接
-    typographer: true, // 启用一些语言中性的替换和引号美化
-    quotes: ['""', '\'\'']    // 引号样式
-}).use(window.markdownitEmoji)                 // 启用表情
-    .use(window.markdownitSub)                   // 启用下标
-    .use(window.markdownitSup)                   // 启用上标
-    .use(window.markdownitFootnote)              // 启用脚注
-    .use(window.markdownitTaskLists, {           // 启用任务列表
-        enabled: true,
-        label: true,
-        labelAfter: true
+// 将 markdown-it 初始化代码包装在一个函数中
+function initializeMarkdownIt() {
+    window.md = window.markdownit({
+        html: true,        
+        breaks: true,      
+        linkify: true,     
+        typographer: true, 
+        quotes: ['""', '\'\'']    
     });
+
+    // 确保所有插件都已加载后再使用
+    if (window.markdownitEmoji) {
+        md.use(window.markdownitEmoji);
+    }
+    if (window.markdownitSub) {
+        md.use(window.markdownitSub);
+    }
+    if (window.markdownitSup) {
+        md.use(window.markdownitSup);
+    }
+    if (window.markdownitFootnote) {
+        md.use(window.markdownitFootnote);
+    }
+    if (window.markdownitTaskLists) {
+        md.use(window.markdownitTaskLists, {
+            enabled: true,
+            label: true,
+            labelAfter: true
+        });
+    }
+}
 
 // 初始化灯箱效果
 const zoom = mediumZoom('[data-zoomable]', {
