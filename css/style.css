@@ -1535,8 +1535,6 @@ select {
     border-radius: 12px 0 0 12px;
     overflow: hidden;
     z-index: 1000;
-    /* 添加自己的滚动条 */
-    overflow-y: auto;
 }
 
 .edit-form {
@@ -2164,28 +2162,4 @@ img {
 /* 深色模式适配 */
 [data-theme="dark"] .video-container {
     background: #1a1a1a;
-}
-
-/* 添加禁止滚动的样式 */
-body.no-scroll {
-    overflow: hidden;
-    /* 添加一个右padding来补偿滚动条消失造成的页面跳动 */
-    padding-right: 17px; /* 标准滚动条宽度 */
-}
-
-/* 编辑模态框样式调整 */
-.edit-modal {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 500px;
-    background: var(--background-color);
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    border-radius: 12px 0 0 12px;
-    overflow: hidden;
-    z-index: 1000;
-    /* 添加自己的滚动条 */
-    overflow-y: auto;
 }
