@@ -2164,57 +2164,45 @@ img {
     background: #1a1a1a;
 }
 
-/* 在文件末尾添加自定义滚动条样式 */
+/* 在文件末尾添加以下代码 */
 
-/* 整体滚动条样式 */
-::-webkit-scrollbar {
-  width: 8px; /* 滚动条宽度 */
-  height: 8px; /* 横向滚动条高度 */
-}
-
-/* 滚动条轨道样式 */
-::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 4px;
-}
-
-/* 滚动条滑块样式 */
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-/* 滑块悬停效果 */
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-/* 滑块激活状态 */
-::-webkit-scrollbar-thumb:active {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-/* 深色模式下的滚动条样式 */
-[data-theme="dark"]::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3); 
-}
-
-[data-theme="dark"]::-webkit-scrollbar-thumb:active {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-/* Firefox 滚动条样式 */
-* {
+/* 自定义滚动条样式 */
+body {
+  /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scrollbar-color: transparent transparent;
 }
 
-/* Firefox 深色模式滚动条 */
-[data-theme="dark"] * {
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+/* Chrome/Safari/Edge 的滚动条样式 */
+body::-webkit-scrollbar {
+  width: 8px; /* 滚动条宽度 */
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent; /* 轨道背景透明 */
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: transparent; /* 默认透明 */
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+/* 鼠标悬停时显示滚动条 */
+body:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5); /* 半透明灰色 */
+}
+
+/* 滚动条激活状态 */
+body::-webkit-scrollbar-thumb:active {
+  background-color: rgba(155, 155, 155, 0.8); /* 更深的灰色 */
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] body:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(200, 200, 200, 0.3); /* 深色模式下更淡的颜色 */
+}
+
+[data-theme="dark"] body::-webkit-scrollbar-thumb:active {
+  background-color: rgba(200, 200, 200, 0.5);
 }
