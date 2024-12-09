@@ -2163,3 +2163,58 @@ img {
 [data-theme="dark"] .video-container {
     background: #1a1a1a;
 }
+
+/* 在文件末尾添加自定义滚动条样式 */
+
+/* 整体滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px; /* 滚动条宽度 */
+  height: 8px; /* 横向滚动条高度 */
+}
+
+/* 滚动条轨道样式 */
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+/* 滚动条滑块样式 */
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* 滑块悬停效果 */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 滑块激活状态 */
+::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* 深色模式下的滚动条样式 */
+[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3); 
+}
+
+[data-theme="dark"]::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Firefox 滚动条样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Firefox 深色模式滚动条 */
+[data-theme="dark"] * {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
