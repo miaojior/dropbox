@@ -8,31 +8,51 @@
     <link rel="icon" type="image/jpeg" href="logo.jpg">
     <link rel="stylesheet" href="https://s4.zstatic.net/npm/prismjs@1.29.0/themes/prism.min.css">
     <script src="https://jsd.cdn.zzko.cn/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-clike.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-markup-templating.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-markup.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-csharp.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-php.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/theme.js"></script>
-    <script src="https://s4.zstatic.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/markdown-it-emoji/dist/markdown-it-emoji.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/markdown-it-sub/dist/markdown-it-sub.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/markdown-it-sup/dist/markdown-it-sup.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/markdown-it-footnote/dist/markdown-it-footnote.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/markdown-it-task-lists/dist/markdown-it-task-lists.min.js"></script>
-    <script src="https://s4.zstatic.net/npm/medium-zoom/dist/medium-zoom.min.js"></script>
+    <script>
+        // 动态加载Prism语言组件
+        const loadPrismLanguage = async (language) => {
+            if (Prism.languages[language]) return;
+            
+            try {
+                await import(`https://s4.zstatic.net/npm/prismjs@1.29.0/components/prism-${language}.min.js`);
+            } catch (error) {
+                console.warn(`Failed to load Prism language: ${language}`);
+            }
+        };
+
+        // 动态加载markdown-it及其插件
+        const loadMarkdownIt = async () => {
+            if (window.markdownit) return;
+
+            const scripts = [
+                'https://s4.zstatic.net/npm/markdown-it/dist/markdown-it.min.js',
+                'https://s4.zstatic.net/npm/markdown-it-emoji/dist/markdown-it-emoji.min.js',
+                'https://s4.zstatic.net/npm/markdown-it-sub/dist/markdown-it-sub.min.js',
+                'https://s4.zstatic.net/npm/markdown-it-sup/dist/markdown-it-sup.min.js',
+                'https://s4.zstatic.net/npm/markdown-it-footnote/dist/markdown-it-footnote.min.js',
+                'https://s4.zstatic.net/npm/markdown-it-task-lists/dist/markdown-it-task-lists.min.js'
+            ];
+
+            for (const src of scripts) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+        };
+
+        // 预加载常用语言
+        window.addEventListener('load', () => {
+            // 只预加载最常用的语言
+            const commonLanguages = ['javascript', 'css', 'markup'];
+            commonLanguages.forEach(lang => loadPrismLanguage(lang));
+        });
+    </script>
     <style>
         .code-wrapper {
             position: relative;
