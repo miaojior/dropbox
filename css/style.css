@@ -5,45 +5,17 @@
     box-sizing: border-box;
 }
 
-/* 隐藏所有滚动条但保持滚动功能 */
+/* 隐藏滚动条但保持滚动功能 */
 * {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
 }
 
 *::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
-}
-
-/* 自定义主滚动条样式 */
-body {
-    scrollbar-width: thin; /* Firefox */
-    -ms-overflow-style: auto; /* IE and Edge */
-}
-
-body::-webkit-scrollbar {
-    display: block;
-    width: 8px; /* 滚动条宽度 */
-}
-
-body::-webkit-scrollbar-track {
-    background: transparent; /* 轨道背景透明 */
-}
-
-body::-webkit-scrollbar-thumb {
-    background-color: transparent; /* 默认透明 */
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-/* 悬停时显示滚动条 */
-body:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2); /* 悬停时显示半透明灰色 */
-}
-
-/* 深色模式下的滚动条样式 */
-[data-theme="dark"] body:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2); /* 深色模式下显示浅色滚动条 */
+    display: none;
+    /* Chrome, Safari and Opera */
 }
 
 /* 按钮基础样式 - 移到文件最前面确保优先加载 */
