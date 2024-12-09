@@ -223,28 +223,14 @@ body {
         linear-gradient(var(--grid-color) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
     background-size: 30px 30px;
+    /* 使用 calc 计算背景位置,使网格居中 */
+    background-position: calc(50% + 0.5px) calc(50% + 0.5px);
     background-attachment: fixed;
     transition: background-color 0.3s, color 0.1s;
-    position: relative;
     overflow-x: hidden; /* 防止水平滚动条 */
 }
 
-/* 添加一个伪元素来创建居中的网格 */
-body::before {
-    content: '';
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    right: -50%;
-    bottom: -50%;
-    width: 100vw;
-    height: 100vh;
-    transform: translate(-50%, -50%);
-    background-image: inherit;
-    background-size: inherit;
-    pointer-events: none;
-    z-index: -1;
-}
+
 
 .container {
     max-width: 800px;
