@@ -19,7 +19,7 @@ button[type="submit"],
     font-size: 0.875rem;
     font-weight: 500;
     min-width: 4rem;
-    border: 1px solid #613e7f;
+    border: 1px solid #613e7f !important;
     cursor: pointer;
     color: white !important;
     background-color: #333333 !important;
@@ -35,7 +35,7 @@ button[type="submit"],
     background-color: #333333 !important;
     color: white !important;
     font-weight: 600;
-    border: 1px solid #613e7f;
+    border: 1px solid #613e7f !important;
     padding: 0.625rem 1.25rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     opacity: 1 !important;
@@ -2123,4 +2123,14 @@ img {
 /* 深色模式适配 */
 [data-theme="dark"] .video-container {
     background: #1a1a1a;
+}
+
+/* 深色模式下的按钮边框 */
+[data-theme="dark"] .add-new-content {
+    border: 1px solid #613e7f !important;
+}
+
+/* 浅色模式下的按钮边框 */
+[data-theme="light"] .add-new-content {
+    border: 1px solid #613e7f !important;
 }
