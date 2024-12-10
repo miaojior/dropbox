@@ -1,4 +1,4 @@
-// 发送消息到 Telegram
+// 发送消息到 Telegram 和企业微信
 async function sendToTelegram(env, message, parseMode = 'HTML') {
   // 如果没有配置 Telegram，直接返回
   if (!env.TG_BOT_TOKEN || !env.TG_CHAT_ID) {
@@ -7,7 +7,7 @@ async function sendToTelegram(env, message, parseMode = 'HTML') {
 
   try {
     // 确保消息不超过限制
-    const truncatedMessage = truncateMessage(message);
+    const truncatedMessage = truncateMessage(message, 'telegram');
 
     const response = await fetch(`https://api.telegram.org/bot${env.TG_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
@@ -35,9 +35,46 @@ async function sendToTelegram(env, message, parseMode = 'HTML') {
   }
 }
 
+// 发送消息到企业微信机器人
+async function sendToWecom(env, message) {
+  // 如果没有配置企业微信机器人，直接返回
+  if (!env.WECOM_BOT_URL) {
+    return null;
+  }
+
+  try {
+    // 确保消息不超过限制
+    const truncatedMessage = truncateMessage(message, 'wecom');
+
+    const response = await fetch(env.WECOM_BOT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        msgtype: 'markdown',
+        markdown: {
+          content: truncatedMessage
+        }
+      }),
+    });
+
+    const result = await response.json();
+    if (result.errcode !== 0) {
+      console.error(`企业微信 API 错误: ${result.errmsg}`);
+      return null;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('发送消息到企业微信失败:', error);
+    return null;
+  }
+}
+
 // 格式化内容为 Telegram 消息
 function formatContentForTelegram(type, title, content, url = null, isEdit = false) {
-  let message = `<b>${isEdit ? '内容已更��' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}</b>\n\n`;
+  let message = `<b>${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}</b>\n\n`;
   message += `<b>标题:</b> ${escapeHtml(title)}\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
@@ -57,85 +94,6 @@ function formatContentForTelegram(type, title, content, url = null, isEdit = fal
   }
 
   return message;
-}
-
-// 格式化删除通知
-function formatDeleteNotification(type, title) {
-  return `<b>🗑 内容已删除</b>\n\n` +
-         `<b>类型:</b> ${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}\n` +
-         `<b>标题:</b> ${escapeHtml(title)}\n\n` +
-         `<i>此内容已被永久删除</i>`;
-}
-
-// 截断消息以符合 Telegram 限制
-function truncateMessage(message) {
-  const MAX_LENGTH = 4000; // 留一些余地给可能的格式化字符
-  
-  if (message.length <= MAX_LENGTH) {
-    return message;
-  }
-
-  // 检查是否包含代码块
-  const codeBlockMatch = message.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/);
-  if (codeBlockMatch) {
-    const beforeCode = message.substring(0, codeBlockMatch.index);
-    const afterCode = message.substring(codeBlockMatch.index + codeBlockMatch[0].length);
-    const code = codeBlockMatch[1];
-    
-    // 如果代码太长，截断代码
-    if (code.length > MAX_LENGTH - 200) { // 预留200字符给其他内容
-      const truncatedCode = code.substring(0, MAX_LENGTH - 200) + '...(已截断)';
-      return beforeCode + '<pre><code>' + truncatedCode + '</code></pre>' + afterCode;
-    }
-  }
-
-  // 普通文本的截断
-  return message.substring(0, MAX_LENGTH - 3) + '...';
-}
-
-// HTML 转义
-function escapeHtml(text) {
-  if (!text) return '';
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-// 发送消息到企业微信
-async function sendToWecom(env, message) {
-  // 如果没有配置企业微信，直接返回
-  if (!env.WECOM_BOT_URL) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(env.WECOM_BOT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        msgtype: 'markdown',
-        markdown: {
-          content: message
-        }
-      }),
-    });
-
-    const result = await response.json();
-    if (result.errcode !== 0) {
-      console.error(`企业微信 API 错误: ${result.errmsg}`);
-      return null;
-    }
-
-    return result;
-  } catch (error) {
-    console.error('发送消息到企业微信失败:', error);
-    return null;
-  }
 }
 
 // 格式化内容为企业微信消息
@@ -161,22 +119,57 @@ function formatContentForWecom(type, title, content, url = null, isEdit = false)
   return message;
 }
 
-// 修改 sendToTelegram 函数，添加发送到企业微信的逻辑
-async function sendToTelegram(env, message, parseMode = 'HTML') {
-  // 原有的 Telegram 发送逻辑保持不变
-  let telegramResult = null;
-  if (env.TG_BOT_TOKEN && env.TG_CHAT_ID) {
-    // ... 原有的 Telegram 发送代码 ...
-  }
-
-  // 添加发送到企业微信的逻辑
-  const wecomMessage = message.replace(/<[^>]+>/g, ''); // 移除 HTML 标签
-  const wecomResult = await sendToWecom(env, wecomMessage);
-
-  return {
-    telegram: telegramResult,
-    wecom: wecomResult
-  };
+// 格式化删除通知
+function formatDeleteNotification(type, title) {
+  return `<b>🗑 内容已删除</b>\n\n` +
+         `<b>类型:</b> ${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}\n` +
+         `<b>标题:</b> ${escapeHtml(title)}\n\n` +
+         `<i>此内容已被永久删除</i>`;
 }
 
-export { sendToTelegram, formatContentForTelegram, formatDeleteNotification, formatContentForWecom };
+// 截断消息以符合平台限制
+function truncateMessage(message, platform = 'telegram') {
+  const MAX_LENGTH = platform === 'telegram' ? 4000 : 4096; // Telegram和企业微信的限制
+  
+  if (message.length <= MAX_LENGTH) {
+    return message;
+  }
+
+  // 检查是否包含代码块
+  const codeBlockPattern = platform === 'telegram' 
+    ? /<pre><code>([\s\S]*?)<\/code><\/pre>/
+    : /```[\s\S]*?\n([\s\S]*?)```/;
+
+  const codeBlockMatch = message.match(codeBlockPattern);
+  if (codeBlockMatch) {
+    const beforeCode = message.substring(0, codeBlockMatch.index);
+    const afterCode = message.substring(codeBlockMatch.index + codeBlockMatch[0].length);
+    const code = codeBlockMatch[1];
+    
+    // 如果代码太长，截断代码
+    if (code.length > MAX_LENGTH - 200) { // 预留200字符给其他内容
+      const truncatedCode = code.substring(0, MAX_LENGTH - 200) + '...(已截断)';
+      if (platform === 'telegram') {
+        return beforeCode + '<pre><code>' + truncatedCode + '</code></pre>' + afterCode;
+      } else {
+        return beforeCode + '```\n' + truncatedCode + '\n```' + afterCode;
+      }
+    }
+  }
+
+  // 普通文本的截断
+  return message.substring(0, MAX_LENGTH - 3) + '...';
+}
+
+// HTML 转义
+function escapeHtml(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+export { sendToTelegram, sendToWecom, formatContentForTelegram, formatContentForWecom, formatDeleteNotification };
