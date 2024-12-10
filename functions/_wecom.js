@@ -36,30 +36,17 @@ async function sendToWecom(env, message) {
 }
 
 // 格式化内容为企业微信消息（纯文本）
-function formatContentForWecom(type, title, content, url = null, isEdit = false) {
-  let message = `${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}\n\n`;
-  message += `标题: ${title}\n`;
+function formatContentForWecom(type, title, content, url = null) {
+  let message = `新${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}上传\n\n`;
+  message += `标题: ${title}\n\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
-    message += `内容:\n`;
-    message += content;
+    message += `内容:\n\n${content}`;
   } else if (type === 'file' || type === 'image') {
     message += `链接: ${url}`;
   }
 
-  if (isEdit) {
-    message += '\n\n此内容已被编辑';
-  }
-
   return message;
-}
-
-// 格式化删除通知
-function formatDeleteNotificationWecom(type, title) {
-  return `🗑 内容已删除\n\n` +
-         `类型: ${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}\n` +
-         `标题: ${title}\n\n` +
-         `此内容已被永久删除`;
 }
 
 // 截断消息以符合企业微信限制
@@ -73,4 +60,4 @@ function truncateMessage(message) {
   return message.substring(0, MAX_LENGTH - 3) + '...';
 }
 
-export { sendToWecom, formatContentForWecom, formatDeleteNotificationWecom }; 
+export { sendToWecom, formatContentForWecom }; 
