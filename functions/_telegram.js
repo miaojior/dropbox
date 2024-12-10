@@ -37,7 +37,7 @@ async function sendToTelegram(env, message, parseMode = 'HTML') {
 
 // 格式化内容为 Telegram 消息
 function formatContentForTelegram(type, title, content, url = null, isEdit = false) {
-  let message = `<b>${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}</b>\n\n`;
+  let message = `<b>${isEdit ? '内容已更��' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}</b>\n\n`;
   message += `<b>标题:</b> ${escapeHtml(title)}\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
@@ -104,4 +104,79 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
-export { sendToTelegram, formatContentForTelegram, formatDeleteNotification };
+// 发送消息到企业微信
+async function sendToWecom(env, message) {
+  // 如果没有配置企业微信，直接返回
+  if (!env.WECOM_BOT_URL) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(env.WECOM_BOT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        msgtype: 'markdown',
+        markdown: {
+          content: message
+        }
+      }),
+    });
+
+    const result = await response.json();
+    if (result.errcode !== 0) {
+      console.error(`企业微信 API 错误: ${result.errmsg}`);
+      return null;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('发送消息到企业微信失败:', error);
+    return null;
+  }
+}
+
+// 格式化内容为企业微信消息
+function formatContentForWecom(type, title, content, url = null, isEdit = false) {
+  let message = `**${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}**\n\n`;
+  message += `**标题:** ${title}\n`;
+  
+  if (type === 'text' || type === 'code' || type === 'poetry') {
+    message += `**内容:**\n`;
+    if (type === 'code') {
+      message += '```\n' + content + '\n```';
+    } else {
+      message += content;
+    }
+  } else if (type === 'file' || type === 'image') {
+    message += `**链接:** ${url}`;
+  }
+
+  if (isEdit) {
+    message += '\n\n*此内容已被编辑*';
+  }
+
+  return message;
+}
+
+// 修改 sendToTelegram 函数，添加发送到企业微信的逻辑
+async function sendToTelegram(env, message, parseMode = 'HTML') {
+  // 原有的 Telegram 发送逻辑保持不变
+  let telegramResult = null;
+  if (env.TG_BOT_TOKEN && env.TG_CHAT_ID) {
+    // ... 原有的 Telegram 发送代码 ...
+  }
+
+  // 添加发送到企业微信的逻辑
+  const wecomMessage = message.replace(/<[^>]+>/g, ''); // 移除 HTML 标签
+  const wecomResult = await sendToWecom(env, wecomMessage);
+
+  return {
+    telegram: telegramResult,
+    wecom: wecomResult
+  };
+}
+
+export { sendToTelegram, formatContentForTelegram, formatDeleteNotification, formatContentForWecom };
