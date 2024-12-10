@@ -1,4 +1,5 @@
 import { sendToTelegram, formatContentForTelegram } from '../_telegram.js';
+import { sendToWecom, formatContentForWecom } from '../_wecom.js';
 
 export async function onRequestPut({ request, env, params }) {
   try {
@@ -28,8 +29,12 @@ export async function onRequestPut({ request, env, params }) {
     }
 
     // 发送到 Telegram，添加编辑标记
-    const message = formatContentForTelegram(type, title, content, content, true);
-    await sendToTelegram(env, message);
+    const telegramMessage = formatContentForTelegram(type, title, content, content, true);
+    await sendToTelegram(env, telegramMessage);
+
+    // 发送到企业微信，添加编辑标记
+    const wecomMessage = formatContentForWecom(type, title, content, content, true);
+    await sendToWecom(env, wecomMessage);
 
     return new Response(JSON.stringify({ id: params.id, type, title, content }), {
       headers: {
