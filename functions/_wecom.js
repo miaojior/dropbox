@@ -12,7 +12,6 @@ const MAX_RETRIES = 3; // 最大重试次数
 async function getAccessToken(env) {
   const now = Date.now();
   
-  // 如果缓存的 token 还有效，直接返回
   if (accessTokenCache.token && now < accessTokenCache.expireTime) {
     return accessTokenCache.token;
   }
@@ -21,22 +20,25 @@ async function getAccessToken(env) {
     const tokenResponse = await fetch(
       `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${env.WECOM_CORPID}&corpsecret=${env.WECOM_CORPSECRET}`
     );
+
+    if (!tokenResponse.ok) {
+      throw new Error(`HTTP 请求失败: ${tokenResponse.status} ${tokenResponse.statusText}`);
+    }
+
     const tokenData = await tokenResponse.json();
     
     if (!tokenData.access_token) {
-      throw new Error('获取 access_token 失败');
+      throw new Error(tokenData.errmsg || '获取 access_token 失败');
     }
 
-    // 更新缓存
     accessTokenCache = {
       token: tokenData.access_token,
-      expireTime: now + TOKEN_EXPIRE_TIME - 60000 // 提前1分钟过期
+      expireTime: now + TOKEN_EXPIRE_TIME - 60000
     };
 
     return accessTokenCache.token;
   } catch (error) {
-    console.error('获取 access_token 失败:', error.message);
-    throw error;
+    throw new Error('获取 access_token 失败: ' + error.message);
   }
 }
 
@@ -44,7 +46,7 @@ async function getAccessToken(env) {
 async function sendToWecom(env, message, retryCount = 0) {
   // 如果没有配置企业微信，直接返回
   if (!env.WECOM_CORPID || !env.WECOM_CORPSECRET || !env.WECOM_AGENTID) {
-    return null;
+    return { ok: false, error: '企业微信配置不完整，请检查环境变量设置' };
   }
 
   try {
@@ -69,32 +71,73 @@ async function sendToWecom(env, message, retryCount = 0) {
           text: {
             content: truncatedMessage,
           },
-          safe: 0 // 普通消息
+          safe: 0,
+          enable_duplicate_check: 1,
+          duplicate_check_interval: 1800
         }),
       }
     );
 
+    if (!response.ok) {
+      return { 
+        ok: false, 
+        error: `HTTP 请求失败: ${response.status} ${response.statusText}`,
+        status: response.status
+      };
+    }
+
     const result = await response.json();
     
-    // 处理 token 过期情况
-    if (result.errcode === 42001 && retryCount < MAX_RETRIES) {
-      accessTokenCache.token = null; // 清除缓存的 token
-      return sendToWecom(env, message, retryCount + 1);
-    }
-
+    // 处理常见错误情况
     if (result.errcode !== 0) {
-      throw new Error(`发送消息失败: ${result.errmsg}`);
+      let errorMessage = '';
+      
+      switch (result.errcode) {
+        case 42001:
+          errorMessage = 'access_token 已过期';
+          if (retryCount < MAX_RETRIES) {
+            accessTokenCache.token = null;
+            return sendToWecom(env, message, retryCount + 1);
+          }
+          break;
+        case 40014:
+          errorMessage = 'access_token 无效，请检查 CORPSECRET 是否正确';
+          break;
+        case 81013:
+          errorMessage = '用户未关注该应用，请先在企业微信中关注应用';
+          break;
+        case 40056:
+          errorMessage = '接收用户无效';
+          break;
+        case 60011:
+          errorMessage = '应用未获得管理员审批，请先在企业微信后台确认应用可见范围';
+          break;
+        default:
+          errorMessage = result.errmsg;
+      }
+      
+      return { 
+        ok: false, 
+        error: errorMessage,
+        errcode: result.errcode,
+        errmsg: result.errmsg
+      };
     }
 
-    return result;
+    return { 
+      ok: true, 
+      msgid: result.msgid,
+      message: '消息发送成功'
+    };
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
-      // 延迟重试，每次重试增加延迟
-      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
       return sendToWecom(env, message, retryCount + 1);
     }
-    console.error('发送消息到企业微信失败:', error.message);
-    return null;
+    return { 
+      ok: false, 
+      error: '发送消息失败: ' + error.message,
+      isNetworkError: true
+    };
   }
 }
 
