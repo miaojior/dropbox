@@ -1,7 +1,8 @@
 // 发送消息到企业微信机器人
 async function sendToWecom(env, message) {
+  const webhookUrl = env.WECOM_BOT_URL;
   // 如果没有配置企业微信机器人，直接返回
-  if (!env.WECOM_BOT_URL) {
+  if (!webhookUrl) {
     console.error('未配置企业微信群机器人webhook地址');
     return null;
   }
@@ -10,42 +11,48 @@ async function sendToWecom(env, message) {
     // 确保消息不超过限制
     const truncatedMessage = truncateMessage(message);
     
-    // 使用更简单的文本消息格式
+    // 完全匹配成功的curl请求格式
     const messageData = {
-      msgtype: 'text',
+      msgtype: "text",
       text: {
-        content: truncatedMessage
+        content: truncatedMessage,
+        mentioned_list: ["@all"]
       }
     };
 
-    console.log('准备发送消息到企业微信:', truncatedMessage);
+    console.log('企业微信 Webhook URL:', webhookUrl);
+    console.log('准备发送消息到企业微信:', JSON.stringify(messageData, null, 2));
     
-    const response = await fetch(env.WECOM_BOT_URL, {
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(messageData),
+      body: JSON.stringify(messageData)
     });
 
     const result = await response.json();
     console.log('企业微信响应:', result);
 
     if (result.errcode !== 0) {
-      console.error(`企业微信 API 错误: ${result.errmsg}`);
+      console.error(`企业微信发送失败: ${result.errmsg}`);
       return null;
     }
 
     return result;
   } catch (error) {
     console.error('发送消息到企业微信失败:', error);
+    if (error.response) {
+      console.error('响应状态:', error.response.status);
+      console.error('响应数据:', error.response.data);
+    }
     return null;
   }
 }
 
 // 格式化内容为企业微信消息
 function formatContentForWecom(type, title, content, url = null, isEdit = false) {
-  let message = `${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}\n\n`;
+  let message = `${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}\n`;
   message += `标题：${title}\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
@@ -61,7 +68,7 @@ function formatContentForWecom(type, title, content, url = null, isEdit = false)
   }
 
   if (isEdit) {
-    message += '\n\n此内容已被编辑';
+    message += '\n此内容已被编辑';
   }
 
   return message;
@@ -69,9 +76,9 @@ function formatContentForWecom(type, title, content, url = null, isEdit = false)
 
 // 格式化删除通知
 function formatDeleteNotification(type, title) {
-  return `🗑 内容已删除\n\n` +
+  return `🗑 内容已删除\n` +
          `类型：${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}\n` +
-         `标题：${title}\n\n` +
+         `标题：${title}\n` +
          `此内容已被永久删除`;
 }
 
