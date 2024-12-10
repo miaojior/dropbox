@@ -69,6 +69,30 @@ async function sendToWecom(env, message) {
   }
 }
 
+// 格式化内容为 Telegram 消息
+function formatContentForTelegram(type, title, content, url = null, isEdit = false) {
+  let message = `<b>${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}</b>\n\n`;
+  message += `<b>标题:</b> ${escapeHtml(title)}\n`;
+  
+  if (type === 'text' || type === 'code' || type === 'poetry') {
+    message += `<b>内容:</b>\n`;
+    // 对于代码类型，使用代码格式
+    if (type === 'code') {
+      message += `<pre><code>${escapeHtml(content)}</code></pre>`;
+    } else {
+      message += escapeHtml(content);
+    }
+  } else if (type === 'file' || type === 'image') {
+    message += `<b>链接:</b> ${url}`;
+  }
+
+  if (isEdit) {
+    message += '\n\n<i>此内容已被编辑</i>';
+  }
+
+  return message;
+}
+
 // 格式化内容为企业微信消息
 function formatContentForWecom(type, title, content, url = null, isEdit = false) {
   let message = `**${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}**\n\n`;
