@@ -35,40 +35,6 @@ async function sendToTelegram(env, message, parseMode = 'HTML') {
   }
 }
 
-// 发送消息到企业微信
-async function sendToWecom(env, message) {
-  // 如果没有配置企业微信机器人，直接返回
-  if (!env.WECOM_BOT_URL) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(env.WECOM_BOT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        msgtype: 'markdown',
-        markdown: {
-          content: message
-        }
-      }),
-    });
-
-    const result = await response.json();
-    if (result.errcode !== 0) {
-      console.error(`Wecom API error: ${result.errmsg}`);
-      return null;
-    }
-
-    return result;
-  } catch (error) {
-    console.error('Failed to send message to Wecom:', error);
-    return null;
-  }
-}
-
 // 格式化内容为 Telegram 消息
 function formatContentForTelegram(type, title, content, url = null, isEdit = false) {
   let message = `<b>${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}</b>\n\n`;
@@ -88,30 +54,6 @@ function formatContentForTelegram(type, title, content, url = null, isEdit = fal
 
   if (isEdit) {
     message += '\n\n<i>此内容已被编辑</i>';
-  }
-
-  return message;
-}
-
-// 格式化内容为企业微信消息
-function formatContentForWecom(type, title, content, url = null, isEdit = false) {
-  let message = `**${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}**\n\n`;
-  message += `**标题:** ${title}\n`;
-  
-  if (type === 'text' || type === 'code' || type === 'poetry') {
-    message += `**内容:**\n`;
-    // 对于代码类型，使用代码格式
-    if (type === 'code') {
-      message += "```\n" + content + "\n```";
-    } else {
-      message += content;
-    }
-  } else if (type === 'file' || type === 'image') {
-    message += `**链接:** ${url}`;
-  }
-
-  if (isEdit) {
-    message += '\n\n*此内容已被编辑*';
   }
 
   return message;
@@ -162,4 +104,4 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
-export { sendToTelegram, sendToWecom, formatContentForTelegram, formatContentForWecom, formatDeleteNotification };
+export { sendToTelegram, formatContentForTelegram, formatDeleteNotification };
