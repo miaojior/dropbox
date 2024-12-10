@@ -6,6 +6,9 @@ async function sendToWecom(env, message) {
   }
 
   try {
+    // 确保消息不超过限制
+    const truncatedMessage = truncateMessage(message);
+
     const response = await fetch(env.WECOM_BOT_URL, {
       method: 'POST',
       headers: {
@@ -14,7 +17,7 @@ async function sendToWecom(env, message) {
       body: JSON.stringify({
         msgtype: 'markdown',
         markdown: {
-          content: message
+          content: truncatedMessage
         }
       }),
     });
@@ -34,19 +37,20 @@ async function sendToWecom(env, message) {
 
 // 格式化内容为企业微信消息
 function formatContentForWecom(type, title, content, url = null, isEdit = false) {
-  let message = `**${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}**\n\n`;
-  message += `**标题:** ${title}\n`;
+  // 企业微信 markdown 中使用 > 引用块来突出显示重要信息
+  let message = `> ${isEdit ? '内容已更新' : '新' + (type === 'file' ? '文件' : type === 'image' ? '图片' : '内容') + '上传'}\n\n`;
+  message += `**标题：**${title}\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
-    message += `**内容:**\n`;
-    // 对于代码类型，使用代码格式
+    message += `**内容：**\n`;
+    // 对于代码类型，使用引用块格式（企业微信不支持代码块语法）
     if (type === 'code') {
-      message += "```\n" + content + "\n```";
+      message += '> ' + content.split('\n').join('\n> ');
     } else {
       message += content;
     }
   } else if (type === 'file' || type === 'image') {
-    message += `**链接:** ${url}`;
+    message += `**链接：**[点击查看](${url})`;
   }
 
   if (isEdit) {
@@ -58,9 +62,9 @@ function formatContentForWecom(type, title, content, url = null, isEdit = false)
 
 // 格式化删除通知
 function formatDeleteNotification(type, title) {
-  return `**🗑 内容已删除**\n\n` +
-         `**类型:** ${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}\n` +
-         `**标题:** ${title}\n\n` +
+  return `> 🗑 内容已删除\n\n` +
+         `**类型：**${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}\n` +
+         `**标题：**${title}\n\n` +
          `*此内容已被永久删除*`;
 }
 
@@ -72,22 +76,21 @@ function truncateMessage(message) {
     return message;
   }
 
-  // 检查是否包含代码块
-  const codeBlockMatch = message.match(/```[\s\S]*?```/);
-  if (codeBlockMatch) {
-    const beforeCode = message.substring(0, codeBlockMatch.index);
-    const afterCode = message.substring(codeBlockMatch.index + codeBlockMatch[0].length);
-    const code = codeBlockMatch[0];
-    
-    // 如果代码太长，截断代码
-    if (code.length > MAX_LENGTH - 200) { // 预留200字符给��他内容
-      const truncatedCode = code.substring(0, MAX_LENGTH - 200) + '...(已截断)';
-      return beforeCode + truncatedCode + afterCode;
+  // 检查是否包含引用块
+  const lines = message.split('\n');
+  let length = 0;
+  let truncatedLines = [];
+
+  for (const line of lines) {
+    if (length + line.length + 1 > MAX_LENGTH - 3) {
+      truncatedLines.push('...(已截断)');
+      break;
     }
+    truncatedLines.push(line);
+    length += line.length + 1; // +1 for newline
   }
 
-  // 普通文本的截断
-  return message.substring(0, MAX_LENGTH - 3) + '...';
+  return truncatedLines.join('\n');
 }
 
 export { sendToWecom, formatContentForWecom, formatDeleteNotification }; 
