@@ -37,13 +37,16 @@ async function sendToWecom(env, message) {
 
 // 格式化内容为企业微信消息（纯文本）
 function formatContentForWecom(type, title, content, url = null) {
-  let message = `新${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}上传\n\n`;
-  message += `标题: ${title}\n\n`;
+  // 根据类型选择不同的emoji
+  const typeEmoji = type === 'file' ? '📄' : type === 'image' ? '🖼️' : '📝';
+  
+  let message = `${typeEmoji} 新${type === 'file' ? '文件' : type === 'image' ? '图片' : '内容'}上传\n\n`;
+  message += `📌 标题: ${title}\n\n`;
   
   if (type === 'text' || type === 'code' || type === 'poetry') {
-    message += `内容:\n\n${content}`;
+    message += `💬 内容:\n\n${content}`;
   } else if (type === 'file' || type === 'image') {
-    message += `链接: ${url}`;
+    message += `🔗 链接: ${url}`;
   }
 
   return message;
